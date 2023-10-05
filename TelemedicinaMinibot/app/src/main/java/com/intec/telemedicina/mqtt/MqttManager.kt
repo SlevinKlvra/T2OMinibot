@@ -102,7 +102,8 @@ class MqttManager(private val context: Context, private val callback: MqttManage
         listaTopics.add(15,"robot/voice_info/sound_record")
         listaTopics.add(16,"robot/human_cmd/cmd")
         listaTopics.add(17,"robot/simulation/ai_vision/new_person")
-        listaTopics.add(17,"robot/nav_cmds/go_to")
+        listaTopics.add(18,"robot/nav_cmds/go_to")
+        listaTopics.add(19,"robot/nav_cmds/stop_navigation")
         return listaTopics
     }
 

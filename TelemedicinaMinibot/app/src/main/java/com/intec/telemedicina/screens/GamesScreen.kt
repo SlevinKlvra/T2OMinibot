@@ -28,8 +28,5 @@ fun GamesScreen(navController: NavController){
         }, update = {view ->
             view.loadUrl(url)
         })
-
     }
-
-
 }

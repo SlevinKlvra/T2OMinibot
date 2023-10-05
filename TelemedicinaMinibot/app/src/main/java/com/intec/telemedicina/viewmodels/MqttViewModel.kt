@@ -25,13 +25,17 @@ import javax.inject.Inject
 
 @HiltViewModel
 class MqttViewModel @Inject constructor(
-    application: Application
+    application: Application,
+    private val robotApi: RobotApi,
+    private var actionListener: ActionListener
 ) : AndroidViewModel(application), MqttMessageListener {
 
     private val _connectionState = mutableStateOf("Disconnected")
     val connectionState get()= _connectionState
+    var navigation : Boolean = false
+    val listeningTopics : String = "robot/nav_cmds/stop_navigation"
 
-    private var skillApi = SkillApi()
+    lateinit var skillApi: SkillApi
 
     private val mqttCallback = MqttManagerCallback(_connectionState, {
         val updatedMessages = _incomingMessages.value.toMutableList()
@@ -48,6 +52,7 @@ class MqttViewModel @Inject constructor(
     )
 
     init {
+        skillApi = SkillApi()
         mqttManager = MqttManager(getApplication(), mqttCallback, mqttConfigInstance ,application)
         skillApi.connectApi(getApplication(), object : ApiListener {
             override fun handleApiDisabled() {
@@ -116,29 +121,6 @@ class MqttViewModel @Inject constructor(
         mqttManager.publishMessage(topic, message)
     }
 
-    private val mSkillCallback = object : SkillCallback() {
-        // Implementa los métodos según sea necesario.
-        override fun onSpeechParResult(p0: String?) {
-            Log.d("MqttViewModel", "onSpeech method was called: $p0")
-        }
-
-        override fun onStart() {
-            Log.d("MqttViewModel", "onStart method was called.")
-        }
-
-        override fun onStop() {
-            Log.d("MqttViewModel", "onStop method was called.")
-        }
-
-        override fun onVolumeChange(p0: Int) {
-            Log.d("MqttViewModel", "onVolume method was called.")
-        }
-
-        override fun onQueryEnded(p0: Int) {
-            Log.d("MqttViewModel", "onQuery method was called.")
-        }
-    }
-
     fun playTextViaTTS(text: String) {
         skillApi.playText(text, object : TextListener() {
             override fun onStart() {
@@ -166,9 +148,23 @@ class MqttViewModel @Inject constructor(
 
         when(topic){
             "robot/nav_pub/status" -> RobotApi.getInstance().currentPose
-            "robot/nav_cmds/go_to" -> RobotApi.getInstance().startNavigation(1, message.toString(), 0.01, 100000, navigationListener)
+            "robot/nav_cmds/go_to" -> {
+                RobotApi.getInstance().startNavigation(1, message.toString(), 0.01, 100000, navigationListener)
+            }
             "robot/nav_cmds/go_to_coord" -> RobotApi.getInstance().startNavigation(1, message,0.01, 100000, navigationListener)
-            "robot/voice_cmds/text_to_speech" -> playTextViaTTS(message)
+            "robot/nav_cmds/go_charger" -> RobotApi.getInstance().goCharging(1)
+            "robot/nav_cmds/stop_navigation" -> {
+                RobotApi.getInstance().stopNavigation(1)
+            
+            }
+                                                
+            
+            //navigationListener.onStatusUpdate(Definition.ACTION_NAVI_STOP_MOVE,"YESSSSS")
+            "robot/voice_cmds/text_to_speech" -> {
+                Log.d("TextToSpeech", message)
+                playTextViaTTS(message)
+            }
+
         }
     }
 
@@ -193,6 +189,8 @@ class MqttViewModel @Inject constructor(
             when (status) {
                 Definition.RESULT_OK -> if ("true" == response) {
                     //navigation is successful
+                    publishMessage("robot/nav_pub/status",RobotApi.getInstance().currentPose.toString())
+
                 } else {
                     //navigation is failed
                 }
@@ -218,7 +216,10 @@ class MqttViewModel @Inject constructor(
             when (status) {
                 Definition.STATUS_NAVI_AVOID -> {}
                 Definition.STATUS_NAVI_AVOID_END -> {}
-                Definition.STATUS_START_NAVIGATION -> {}
+                Definition.STATUS_START_NAVIGATION -> {
+                    Log.d("NAVIGATION", "Starting navigation, $data")
+                    navigation = true
+                }
                 Definition.STATUS_START_CRUISE -> {}
                 Definition.STATUS_NAVI_OUT_MAP -> {}
                 Definition.STATUS_NAVI_MULTI_ROBOT_WAITING -> {}
@@ -226,6 +227,23 @@ class MqttViewModel @Inject constructor(
                 Definition.STATUS_NAVI_GO_STRAIGHT -> {}
                 Definition.STATUS_NAVI_TURN_LEFT -> {}
                 Definition.STATUS_NAVI_TURN_RIGHT -> {}
+                Definition.ACTION_NAVI_GET_LOCATION -> {
+                    Log.d("NAVIGATION", "Getting location, $data")
+                }
+
+                Definition.ACTION_NAVI_GET_PLACE_NAME -> {
+                    Log.d("NAVIGATION", "Getting place name, $data")
+                }
+                Definition.ACTION_NAVI_GET_POSITION ->  {
+                    Log.d("NAVIGATION", "Getting position, $data")
+                }
+                Definition.ACTION_NAVI_STOP_MOVE -> {
+                    Log.d("NAVIGATION", "Stopping move, $data")
+                }
+                Definition.ACTION_NAVI_STOP_NAVIGATION -> {
+                    Log.d("NAVIGATION", "Stopping navigation, $data")
+
+                }
             }
         }
 

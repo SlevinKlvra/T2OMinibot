@@ -18,8 +18,9 @@ class ModuleCallback : ModuleCallbackApi() {
         // reqType: tipo de comando de voz
         // reqText: texto convertido del comando de voz
         // reqParam: parámetro del comando de voz
+        Log.d("SPEECH RECOGNIZED", reqText)
 
-        when (reqText) {
+        /*when (reqText) {
             "adelante" -> {
                 Log.d("ADELANTE", "MOVING FORWARD")
                 // Lógica para hacer que el robot avance
@@ -30,7 +31,7 @@ class ModuleCallback : ModuleCallbackApi() {
                 // Lógica para hacer que el robot retroceda
                 return true
             }
-        }
+        }*/
         return false
     }
 

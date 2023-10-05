@@ -32,10 +32,15 @@ import com.intec.telemedicina.viewmodels.MqttViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.intec.telemedicina.components.BackButton
+import com.intec.telemedicina.di.MqttViewModelFactory
+import com.intec.telemedicina.viewmodels.SplashScreenViewModel
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalComposeUiApi::class)
 @Composable
-fun MqttScreen(navController: NavController, viewModel: MqttViewModel = viewModel()) {
+fun MqttScreen(navController: NavController, mqttViewModel: MqttViewModelFactory) {
+
+    val viewModel: MqttViewModel = viewModel(factory = mqttViewModel)
+    
     val connectionState by viewModel.connectionState
     val messages by viewModel.incomingMessages
 

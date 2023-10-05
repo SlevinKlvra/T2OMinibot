@@ -4,11 +4,12 @@ import androidx.compose.runtime.Composable
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.intec.telemedicina.di.MqttViewModelFactory
 import com.intec.telemedicina.di.SplashScreenViewModelFactory
 import com.intec.telemedicina.screens.*
 
 @Composable
-fun AppNavigation(viewModelFactory : SplashScreenViewModelFactory){
+fun AppNavigation(viewModelFactory : SplashScreenViewModelFactory, mqttViewModelFactory: MqttViewModelFactory){
     val navController = rememberNavController()
 
     NavHost(
@@ -25,7 +26,7 @@ fun AppNavigation(viewModelFactory : SplashScreenViewModelFactory){
             SettingsScreen(navController = navController, "Settings Screen")
         }
         composable(AppScreens.MqttScreen.route){
-            MqttScreen(navController = navController)
+            MqttScreen(navController = navController, mqttViewModel = mqttViewModelFactory)
         }
         composable(AppScreens.AgendaScreen.route){
             AgendaScreen(navController = navController)

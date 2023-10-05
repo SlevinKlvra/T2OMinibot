@@ -1,6 +1,7 @@
 package com.intec.telemedicina.robot.skillcallback
 
 import android.os.RemoteException
+import android.util.Log
 
 import com.ainirobot.coreservice.client.speech.SkillCallback
 
@@ -24,6 +25,7 @@ var mSkillCallback: SkillCallback = object : SkillCallback() {
     @Throws(RemoteException::class)
     override fun onVolumeChange(volume: Int) {
         //The size of the recognized voice changes
+        //Log.d("onVolume",volume.toString())
     }
 
     /**
@@ -42,5 +44,6 @@ var mSkillCallback: SkillCallback = object : SkillCallback() {
     @Throws(RemoteException::class)
     override fun onQueryAsrResult(asrResult: String) {
         //asrResult: final recognition result
+        Log.d("Recognition result",asrResult)
     }
 }

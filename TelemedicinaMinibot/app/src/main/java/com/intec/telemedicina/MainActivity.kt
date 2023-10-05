@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.ui.Modifier
+import com.intec.telemedicina.di.MqttViewModelFactory
 import com.intec.telemedicina.di.SplashScreenViewModelFactory
 import com.intec.telemedicina.navigation.AppNavigation
 import com.intec.telemedicina.ui.theme.PlantillaJetpackTheme
@@ -22,9 +23,12 @@ class MainActivity : ComponentActivity() {
     @Inject
     lateinit var viewModelFactory: SplashScreenViewModelFactory
 
+    @Inject
+    lateinit var mqttViewModelFactory: MqttViewModelFactory
+
     private val viewModel by viewModels<SplashScreenViewModel> { viewModelFactory }
 
-    val mqttViewModel: MqttViewModel by viewModels()
+    private val mqttViewModel by viewModels<MqttViewModel> { mqttViewModelFactory }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -36,7 +40,7 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxHeight(1f),
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    AppNavigation(viewModelFactory = viewModelFactory)
+                    AppNavigation(viewModelFactory = viewModelFactory, mqttViewModelFactory = mqttViewModelFactory)
                 }
                 // A surface container using the 'background' color from the theme
             }

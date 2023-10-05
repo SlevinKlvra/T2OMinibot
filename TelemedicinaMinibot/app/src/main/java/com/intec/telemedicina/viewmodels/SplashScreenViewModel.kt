@@ -58,25 +58,6 @@ class SplashScreenViewModel @Inject constructor(
 
     init {
 
-        val mSkillCallback = object : SkillCallback() {
-            override fun onSpeechParResult(s: String) {
-                // Handle the result of temporary speech recognition
-            }
-
-            override fun onStart() {
-                // Handle start of recognition
-            }
-
-            override fun onStop() {
-                //println("LA FRASE TERMINA (ONSTOP)")
-            }
-
-            override fun onVolumeChange(p0: Int) {}
-
-            override fun onQueryEnded(p0: Int) {}
-            // Implement other methods...
-        }
-
         setupActionListener()
 
         val appContext = application.applicationContext
