@@ -6,27 +6,25 @@ import android.util.Log
 import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.AndroidViewModel
-import com.ainirobot.coreservice.client.ApiListener
+import androidx.lifecycle.MutableLiveData
 import com.ainirobot.coreservice.client.Definition
 import com.ainirobot.coreservice.client.RobotApi
 import com.ainirobot.coreservice.client.listener.ActionListener
 import com.ainirobot.coreservice.client.listener.TextListener
 import com.ainirobot.coreservice.client.speech.SkillApi
-import com.ainirobot.coreservice.client.speech.SkillCallback
 import com.intec.telemedicina.mqtt.MQTTConfig
 import com.intec.telemedicina.mqtt.MqttManager
 import com.intec.telemedicina.mqtt.MqttManagerCallback
 import com.intec.telemedicina.mqtt.MqttMessageListener
-import com.intec.telemedicina.robot.modulecallback.ModuleCallback
-import com.intec.telemedicina.robot.skillcallback.mSkillCallback
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.MutableStateFlow
 import javax.inject.Inject
-
 
 @HiltViewModel
 class MqttViewModel @Inject constructor(
     application: Application,
     private val robotApi: RobotApi,
+    private val skillApi: SkillApi,
     private var actionListener: ActionListener
 ) : AndroidViewModel(application), MqttMessageListener {
 
@@ -34,8 +32,10 @@ class MqttViewModel @Inject constructor(
     val connectionState get()= _connectionState
     var navigation : Boolean = false
     val listeningTopics : String = "robot/nav_cmds/stop_navigation"
+    private var _mqttQuestion = MutableLiveData<String>()
+    val mqttQuestion : MutableLiveData<String> get() = _mqttQuestion
 
-    lateinit var skillApi: SkillApi
+    val showQuestionsDialog = MutableStateFlow(false)
 
     private val mqttCallback = MqttManagerCallback(_connectionState, {
         val updatedMessages = _incomingMessages.value.toMutableList()
@@ -52,22 +52,8 @@ class MqttViewModel @Inject constructor(
     )
 
     init {
-        skillApi = SkillApi()
         mqttManager = MqttManager(getApplication(), mqttCallback, mqttConfigInstance ,application)
-        skillApi.connectApi(getApplication(), object : ApiListener {
-            override fun handleApiDisabled() {
-                TODO("Not yet implemented")
-            }
 
-            override fun handleApiConnected() {
-                skillApi.registerCallBack(mSkillCallback)
-            }
-
-            override fun handleApiDisconnected() {
-                TODO("Not yet implemented")
-            }
-            // Implementa otros métodos según sea necesario.
-        })
         Log.d("MQTTManager", "MqttManager created: $mqttManager")
     }
 
@@ -122,6 +108,7 @@ class MqttViewModel @Inject constructor(
     }
 
     fun playTextViaTTS(text: String) {
+
         skillApi.playText(text, object : TextListener() {
             override fun onStart() {
                 // Iniciar reproducción
@@ -147,15 +134,14 @@ class MqttViewModel @Inject constructor(
         addIncomingMessage(message)
 
         when(topic){
-            "robot/nav_pub/status" -> RobotApi.getInstance().currentPose
+            "robot/nav_pub/status" -> robotApi.currentPose
             "robot/nav_cmds/go_to" -> {
-                RobotApi.getInstance().startNavigation(1, message.toString(), 0.01, 100000, navigationListener)
+                robotApi.startNavigation(1, message.toString(), 0.01, 100000, navigationListener)
             }
-            "robot/nav_cmds/go_to_coord" -> RobotApi.getInstance().startNavigation(1, message,0.01, 100000, navigationListener)
-            "robot/nav_cmds/go_charger" -> RobotApi.getInstance().goCharging(1)
+            "robot/nav_cmds/go_to_coord" -> robotApi.startNavigation(1, message,0.01, 100000, navigationListener)
+            "robot/nav_cmds/go_charger" -> robotApi.goCharging(1)
             "robot/nav_cmds/stop_navigation" -> {
-                RobotApi.getInstance().stopNavigation(1)
-            
+                robotApi.stopNavigation(1)
             }
                                                 
             
@@ -165,6 +151,14 @@ class MqttViewModel @Inject constructor(
                 playTextViaTTS(message)
             }
 
+            "robot/voice_cmds/question" -> {
+                Log.d("Question",message)
+                _mqttQuestion.value = message
+
+                showQuestionsDialog()
+                //Open window with question --> Yes/No
+                //Send response back
+            }
         }
     }
 
@@ -189,7 +183,7 @@ class MqttViewModel @Inject constructor(
             when (status) {
                 Definition.RESULT_OK -> if ("true" == response) {
                     //navigation is successful
-                    publishMessage("robot/nav_pub/status",RobotApi.getInstance().currentPose.toString())
+                    publishMessage("robot/nav_pub/status",robotApi.currentPose.toString())
 
                 } else {
                     //navigation is failed
@@ -246,6 +240,15 @@ class MqttViewModel @Inject constructor(
                 }
             }
         }
+    }
 
+    fun showQuestionsDialog(){
+        Log.d("MQTTViewModel", "Showing questions dialog")
+        showQuestionsDialog.value = true
+    }
+
+    fun hideQuestionsDialog(){
+        Log.d("MQTTViewModel", "Hiding questions dialog")
+        showQuestionsDialog.value = false
     }
 }

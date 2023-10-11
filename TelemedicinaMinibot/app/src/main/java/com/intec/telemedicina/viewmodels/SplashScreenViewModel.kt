@@ -12,11 +12,10 @@ import com.ainirobot.coreservice.client.Definition
 import com.ainirobot.coreservice.client.RobotApi
 import com.ainirobot.coreservice.client.listener.ActionListener
 import com.ainirobot.coreservice.client.listener.CommandListener
+import com.ainirobot.coreservice.client.listener.TextListener
 import com.ainirobot.coreservice.client.speech.SkillApi
-import com.ainirobot.coreservice.client.speech.SkillCallback
 import com.intec.telemedicina.repositories.dto.Place
 import com.intec.telemedicina.robot.modulecallback.ModuleCallback
-import com.intec.telemedicina.robot.skillcallback.mSkillCallback
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import org.json.JSONArray
@@ -28,6 +27,7 @@ import javax.inject.Inject
 class SplashScreenViewModel @Inject constructor(
     application: Application,
     private val robotApi: RobotApi,
+    private val skillApi: SkillApi,
     private var actionListener: ActionListener
 ) : AndroidViewModel(application) {
 
@@ -78,6 +78,30 @@ class SplashScreenViewModel @Inject constructor(
         })
 
     }
+
+    fun playTextViaTTS(text: String) {
+
+            skillApi.playText(text, object : TextListener() {
+                override fun onStart() {
+                    // Iniciar reproducción
+                    Log.d("TTS", "Reproduciendo texto: $text")
+                }
+
+                override fun onStop() {
+                    // Detener reproducción
+                }
+
+                override fun onError() {
+                    // Manejar error
+                }
+
+                override fun onComplete() {
+                    // Reproducción completada
+                    skillApi.setRecognizeMode(true);
+                    skillApi.setRecognizable(true);
+                }
+            })
+        }
 
     private fun setupActionListener() {
         actionListener = object : ActionListener() {

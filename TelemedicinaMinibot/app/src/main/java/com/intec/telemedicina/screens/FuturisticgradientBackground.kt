@@ -8,14 +8,15 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import com.example.compose.md_theme_light_onBackground
 
 @Composable
 fun FuturisticGradientBackground(content: @Composable () -> Unit) {
     // Definimos los colores del gradiente
     val gradientColors = listOf(
-        Color(0xFF1A1A1A),  // Gris oscuro
-        Color(0xFF2E2E2E),  // Gris medio
-        Color(0xFF4D4D4D)   // Gris claro
+        Color(0xFFFFFAF0),  // Crema más claro
+        Color(0xFFFFF5E1),  // Crema base
+        Color(0xFFFFEBCD)   // Crema ligeramente más oscuro
     )
 
     // Crear el gradiente

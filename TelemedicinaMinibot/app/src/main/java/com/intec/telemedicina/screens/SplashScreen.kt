@@ -1,7 +1,12 @@
 package com.intec.telemedicina.screens
 
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.size
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -13,18 +18,16 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
-import com.intec.telemedicina.navigation.AppScreens
-import kotlinx.coroutines.delay
-import com.intec.telemedicina.viewmodels.SplashScreenViewModel
 import com.intec.telemedicina.R
-import com.intec.telemedicina.di.SplashScreenViewModelFactory
+import com.intec.telemedicina.navigation.AppScreens
+import com.intec.telemedicina.viewmodels.SplashScreenViewModel
+import kotlinx.coroutines.delay
 
 @Composable
-fun SplashScreen(navController: NavHostController, viewModelFactory: SplashScreenViewModelFactory) {
+fun SplashScreen(navController: NavHostController, viewModel: SplashScreenViewModel) {
     //Instancia del viewModel
-    val viewModel: SplashScreenViewModel = viewModel(factory = viewModelFactory)
+    val viewModel: SplashScreenViewModel = viewModel
 
     // Observa los datos del ViewModel
     //val data by viewModel.data.observeAsState()

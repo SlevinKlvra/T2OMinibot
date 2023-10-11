@@ -20,23 +20,30 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Call
 import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.PlayArrow
+import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Settings
-import androidx.compose.material.icons.filled.Share
-import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.setValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.platform.LocalView
@@ -45,30 +52,26 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
-import com.intec.telemedicina.viewmodels.SplashScreenViewModel
-import androidx.compose.foundation.lazy.items
-import androidx.compose.material.icons.filled.DateRange
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
-import androidx.compose.ui.draw.shadow
-import androidx.compose.ui.text.style.TextOverflow
-import com.intec.telemedicina.di.SplashScreenViewModelFactory
-import com.intec.telemedicina.navigation.AppScreens
-import com.intec.telemedicina.ui.theme.md_theme_light_primaryContainer
-import com.intec.telemedicina.ui.theme.md_theme_light_secondary
+import com.example.compose.md_theme_light_onPrimary
+import com.example.compose.md_theme_light_primary
+import com.example.compose.md_theme_light_primaryContainer
 import com.intec.telemedicina.R
+import com.intec.telemedicina.navigation.AppScreens
+import com.intec.telemedicina.viewmodels.MqttViewModel
+import com.intec.telemedicina.viewmodels.SplashScreenViewModel
 
 @Composable
-fun HomeScreen(navController: NavController, viewModelFactory: SplashScreenViewModelFactory){
+fun HomeScreen(navController: NavController, splashScreenViewModel: SplashScreenViewModel, mqttViewModel: MqttViewModel){
 
-    val splashScreenViewModel: SplashScreenViewModel = viewModel(factory = viewModelFactory)
+    val splashScreenViewModel: SplashScreenViewModel = splashScreenViewModel
+    val mqttViewModel: MqttViewModel = mqttViewModel
 
     val showDialog by splashScreenViewModel.showNavigationDialog.collectAsState()
+    val showQuestionsDialog by mqttViewModel.showQuestionsDialog.collectAsState()
 
     if (showDialog) {
         NavigationDialog(
@@ -76,6 +79,16 @@ fun HomeScreen(navController: NavController, viewModelFactory: SplashScreenViewM
             onStopNavigation = { splashScreenViewModel.stopNavigation() },
             onReturnToPreviousOrReception = { /* Lógica para regresar */ },
             splashScreenViewModel = splashScreenViewModel
+        )
+    }
+
+    if(showQuestionsDialog) {
+        Log.d("QUESTIONS", "ENTRA AL DIALOGO")
+        QuestionsDialog(
+            title = "Question",
+            onAccept = {},
+            onDismiss = {},
+            mqttViewModel = mqttViewModel
         )
     }
 
@@ -101,11 +114,11 @@ fun Cabecera(navController: NavController){
         // El Row que contiene el título
         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween){
             MqttButton(navController = navController)
-            Text(text = "MENÚ PRINCIPAL", modifier = Modifier.padding(3.dp),color = MaterialTheme.colorScheme.onPrimary, fontWeight = FontWeight.Bold, fontFamily = FontFamily.SansSerif, fontSize = 30.sp)
+            Text(text = "MENÚ PRINCIPAL", modifier = Modifier.padding(3.dp),color = Color.Black, fontWeight = FontWeight.Bold, fontFamily = FontFamily.SansSerif, fontSize = 30.sp)
             SoundButton()
         }
         // El Text que contiene el subtítulo
-        Text(text = "Seleccione una opción", modifier = Modifier.fillMaxWidth(), color = MaterialTheme.colorScheme.onPrimary,fontSize = 15.sp, fontWeight = FontWeight.Light, textAlign = TextAlign.Center)
+        Text(text = "Seleccione una opción", modifier = Modifier.fillMaxWidth(), color = Color.Black,fontSize = 15.sp, fontWeight = FontWeight.Light, textAlign = TextAlign.Center)
     }
 }
 
@@ -160,18 +173,19 @@ fun LazyRowUbicaciones(splashScreenViewModel: SplashScreenViewModel, modifier : 
 @Composable
 fun Botones(navController: NavController) {
 
+
     val rutas = listOf(
         AppScreens.GamesScreen.route,
         AppScreens.VideoCallScreen.route,
-        AppScreens.ThirdScreen.route,
-        AppScreens.FourthScreen.route,
-        AppScreens.AgendaScreen.route,
-        AppScreens.MenuComidaScreen.route
+        AppScreens.TourScreen.route,
+        AppScreens.HomeControlScreen.route,
+        AppScreens.IcariaScreen.route,
+        AppScreens.TestScreen.route
     )
     // Una lista de iconos para los botones
-    val iconos = listOf(Icons.Default.Home, Icons.Default.Star, Icons.Default.Settings, Icons.Default.Share, Icons.Default.DateRange, Icons.Default.Share)
+    val iconos = listOf(Icons.Default.PlayArrow, Icons.Default.Call, Icons.Default.Refresh, Icons.Default.Home, Icons.Default.Person, Icons.Default.Settings)
     // Una lista de textos para los botones
-    val textos = listOf("JUEGOS", "VIDEOLLAMADA", "EJERCICIO", "CUATRO", "AGENDA", "MENÚ COMIDA")
+    val textos = listOf("JUEGOS", "VIDEOLLAMADA", "TOUR", "CONTROL DE CASA", "ICARIA", "TEST")
     // Un LazyVerticalGrid con tres columnas
 
     Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center){
@@ -187,14 +201,14 @@ fun Botones(navController: NavController) {
                         .fillMaxWidth()
                         .padding(9.dp),
                     onClick = { navController.navigate(rutas[index]) },
-                    colors = ButtonDefaults.buttonColors(contentColor = md_theme_light_secondary),
+                    colors = ButtonDefaults.buttonColors(contentColor = md_theme_light_primary),
                     shape = MaterialTheme.shapes.medium
                 ) {
                     // Un Row con el icono y el texto del botón
                     Column(verticalArrangement = Arrangement.Center, horizontalAlignment = Alignment.CenterHorizontally) {
-                        Icon(imageVector = iconos[index], contentDescription = textos[index], tint= MaterialTheme.colorScheme.primaryContainer, modifier = Modifier.size(45.dp))
+                        Icon(imageVector = iconos[index], contentDescription = textos[index], tint= md_theme_light_onPrimary, modifier = Modifier.size(45.dp))
                         Spacer(modifier = Modifier.width(30.dp))
-                        Text(textos[index], color = MaterialTheme.colorScheme.primaryContainer, fontSize = 12.sp, fontWeight = FontWeight.ExtraBold)
+                        Text(textos[index], color = md_theme_light_onPrimary, fontSize = 12.sp, fontWeight = FontWeight.ExtraBold)
                     }
                 }
             }
@@ -244,7 +258,7 @@ fun SoundButton() {
                 .padding(5.dp)
         ) {
             // Mostrar el icono del sonido con el color correspondiente
-            Icon(painter = soundIcon, contentDescription = "Sound", tint = Color.White)
+            Icon(painter = soundIcon, contentDescription = "Sound", tint = Color.Black)
         }
     }
 }

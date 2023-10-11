@@ -38,6 +38,10 @@ object RemoteModule {
 
     @Provides
     @Singleton
+    fun provideSkillApi(): SkillApi = SkillApi()
+
+    @Provides
+    @Singleton
     fun provideActionListener(): ActionListener {
         return ActionListener()
     }

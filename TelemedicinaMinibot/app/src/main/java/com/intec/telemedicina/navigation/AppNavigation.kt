@@ -4,12 +4,21 @@ import androidx.compose.runtime.Composable
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import com.intec.telemedicina.di.MqttViewModelFactory
-import com.intec.telemedicina.di.SplashScreenViewModelFactory
-import com.intec.telemedicina.screens.*
+import com.intec.telemedicina.screens.GamesScreen
+import com.intec.telemedicina.screens.HomeControlScreen
+import com.intec.telemedicina.screens.HomeScreen
+import com.intec.telemedicina.screens.IcariaScreen
+import com.intec.telemedicina.screens.MqttScreen
+import com.intec.telemedicina.screens.SettingsScreen
+import com.intec.telemedicina.screens.SplashScreen
+import com.intec.telemedicina.screens.TestScreen
+import com.intec.telemedicina.screens.TourScreen
+import com.intec.telemedicina.screens.VideoCallScreen
+import com.intec.telemedicina.viewmodels.MqttViewModel
+import com.intec.telemedicina.viewmodels.SplashScreenViewModel
 
 @Composable
-fun AppNavigation(viewModelFactory : SplashScreenViewModelFactory, mqttViewModelFactory: MqttViewModelFactory){
+fun AppNavigation(viewModel: SplashScreenViewModel, mqttViewModel: MqttViewModel){
     val navController = rememberNavController()
 
     NavHost(
@@ -17,34 +26,34 @@ fun AppNavigation(viewModelFactory : SplashScreenViewModelFactory, mqttViewModel
         startDestination = AppScreens.SplashScreen.route
     ){
         composable(AppScreens.SplashScreen.route){
-            SplashScreen(navController = navController, viewModelFactory = viewModelFactory)
+            SplashScreen(navController = navController, viewModel = viewModel)
         }
         composable(AppScreens.HomeScreen.route){
-            HomeScreen(navController = navController, viewModelFactory = viewModelFactory)
+            HomeScreen(navController = navController, splashScreenViewModel = viewModel, mqttViewModel = mqttViewModel)
         }
         composable(AppScreens.SettingsScreen.route){
             SettingsScreen(navController = navController, "Settings Screen")
         }
         composable(AppScreens.MqttScreen.route){
-            MqttScreen(navController = navController, mqttViewModel = mqttViewModelFactory)
+            MqttScreen(navController = navController, mqttViewModel = mqttViewModel)
         }
-        composable(AppScreens.AgendaScreen.route){
-            AgendaScreen(navController = navController)
+        composable(AppScreens.TestScreen.route){
+            TestScreen(navController = navController)
         }
         composable(AppScreens.GamesScreen.route){
             GamesScreen(navController = navController)
         }
-        composable(AppScreens.ThirdScreen.route){
-            ThirdScreen(navController = navController)
+        composable(AppScreens.TourScreen.route){
+            TourScreen(navController = navController)
         }
-        composable(AppScreens.FourthScreen.route){
-            FourthScreen(navController = navController)
+        composable(AppScreens.HomeControlScreen.route){
+            HomeControlScreen(navController = navController)
         }
         composable(AppScreens.VideoCallScreen.route){
             VideoCallScreen(navController = navController)
         }
-        composable(AppScreens.MenuComidaScreen.route){
-            MenuComidaScreen(navController = navController)
+        composable(AppScreens.IcariaScreen.route){
+            IcariaScreen(navController = navController)
         }
     }
 }

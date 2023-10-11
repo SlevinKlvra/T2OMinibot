@@ -40,7 +40,7 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxHeight(1f),
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    AppNavigation(viewModelFactory = viewModelFactory, mqttViewModelFactory = mqttViewModelFactory)
+                    AppNavigation(viewModel = viewModel, mqttViewModel = mqttViewModel)
                 }
                 // A surface container using the 'background' color from the theme
             }

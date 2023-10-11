@@ -20,7 +20,6 @@ import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -28,18 +27,15 @@ import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.unit.dp
-import com.intec.telemedicina.viewmodels.MqttViewModel
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.intec.telemedicina.components.BackButton
-import com.intec.telemedicina.di.MqttViewModelFactory
-import com.intec.telemedicina.viewmodels.SplashScreenViewModel
+import com.intec.telemedicina.viewmodels.MqttViewModel
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalComposeUiApi::class)
 @Composable
-fun MqttScreen(navController: NavController, mqttViewModel: MqttViewModelFactory) {
+fun MqttScreen(navController: NavController, mqttViewModel: MqttViewModel) {
 
-    val viewModel: MqttViewModel = viewModel(factory = mqttViewModel)
+    val viewModel: MqttViewModel = mqttViewModel
     
     val connectionState by viewModel.connectionState
     val messages by viewModel.incomingMessages
