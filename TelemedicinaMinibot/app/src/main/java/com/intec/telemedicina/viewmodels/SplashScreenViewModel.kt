@@ -10,6 +10,7 @@ import androidx.lifecycle.MutableLiveData
 import com.ainirobot.coreservice.client.ApiListener
 import com.ainirobot.coreservice.client.Definition
 import com.ainirobot.coreservice.client.RobotApi
+import com.ainirobot.coreservice.client.actionbean.Pose
 import com.ainirobot.coreservice.client.listener.ActionListener
 import com.ainirobot.coreservice.client.listener.CommandListener
 import com.ainirobot.coreservice.client.listener.TextListener
@@ -55,6 +56,10 @@ class SplashScreenViewModel @Inject constructor(
     var currentAction: String = ""
 
     private val placesList: MutableList<Place> = mutableListOf()
+    private val posesList: MutableList<Pose> = mutableListOf()
+
+    var lastDestiny: String = ""
+    var currentDestiny: String = ""
 
     init {
 
@@ -144,6 +149,7 @@ class SplashScreenViewModel @Inject constructor(
     }
 
     fun showNavigationDialog() {
+        //stopNavigation()
         showNavigationDialog.value = true
     }
 
@@ -159,6 +165,7 @@ class SplashScreenViewModel @Inject constructor(
                     val jsonArray = JSONArray(message)
                     val newPlaces = mutableListOf<Place>()
                     val newDestinations = mutableListOf<String>()
+                    val newPoses = mutableListOf<Pose>()
 
                     for (i in 0 until jsonArray.length()) {
                         val json = jsonArray.getJSONObject(i)
@@ -166,12 +173,16 @@ class SplashScreenViewModel @Inject constructor(
                         val y = json.getDouble("y")
                         val theta = json.getDouble("theta")
                         val name = json.getString("name")
-
+                        //float x, float y, float theta, String name, boolean ignoreDistance, int safeDistance
+                        val ignoreDistance = false//json.getBoolean("ignoreDistance")
+                        val safedistance = 1//json.getInt("safeDistance")
+                        val pose = Pose(x.toFloat(),y.toFloat(), theta.toFloat(), name, ignoreDistance, safedistance)
                         val place = Place(x, y, theta, name)
                         newPlaces.add(place)
                         newDestinations.add(name)
+                        newPoses.add(pose)
                     }
-
+                    posesList.addAll(newPoses)
                     placesList.addAll(newPlaces)
                     _destinationsList.value = placesList.map { it.name }
                     Log.d("MAP", "CURRENT LOCATIONS ARE $placesList")
@@ -186,11 +197,33 @@ class SplashScreenViewModel @Inject constructor(
     }
 
     fun navigateToDestiny(destiny: String) {
+        Log.d("NAVIGATION", "Iniciando navegación a $destiny")
+        updateDestiny(destiny)
         robotApi.startNavigation(1, destiny, AVOIDANCE_RADIUS, TIMEOUT, actionListener)
+    }
+
+    //Actualiza el destino actual y guarda el anterior
+    fun updateDestiny(destiny: String){
+        Log.d("SWITCH_DESTINY", "Switching currentDestiny: $currentDestiny to lastDestiny: $lastDestiny")
+        lastDestiny = currentDestiny
+        currentDestiny = destiny
+    }
+
+    //Navega al último destino
+    fun navigateToLastDestiny(){
+        Log.d("NAVIGATION_RETURN", "Return to location: $lastDestiny")
+        if(lastDestiny == ""){
+            lastDestiny = currentDestiny
+        }
+        navigateToDestiny(lastDestiny)
     }
 
     fun stopNavigation(){
         Log.d("STOP NAVIGATION", "Deteniendo navegación")
         robotApi.stopNavigation(2)
+    }
+
+    fun startTour(){
+        robotApi.startCruise(1,posesList,1, mutableListOf<Int>(1,2,3),actionListener)
     }
 }

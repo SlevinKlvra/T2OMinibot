@@ -1,6 +1,7 @@
 package com.intec.telemedicina.screens
 
 import NavigationDialog
+import WelcomeDialog
 import android.util.Log
 import android.view.SoundEffectConstants
 import androidx.compose.foundation.Image
@@ -72,12 +73,14 @@ fun HomeScreen(navController: NavController, splashScreenViewModel: SplashScreen
 
     val showDialog by splashScreenViewModel.showNavigationDialog.collectAsState()
     val showQuestionsDialog by mqttViewModel.showQuestionsDialog.collectAsState()
+    val showWelcomeDialog by mqttViewModel.showWelcomeDialog.collectAsState()
 
     if (showDialog) {
         NavigationDialog(
             onDismiss = { splashScreenViewModel.hideNavigationDialog() },
             onStopNavigation = { splashScreenViewModel.stopNavigation() },
-            onReturnToPreviousOrReception = { /* Lógica para regresar */ },
+            onReturnToPreviousOrReception = { splashScreenViewModel.navigateToLastDestiny() },
+            onEmergencyCall = { Log.d("EMERGENCY", "PLEASE HELP") },
             splashScreenViewModel = splashScreenViewModel
         )
     }
@@ -88,6 +91,17 @@ fun HomeScreen(navController: NavController, splashScreenViewModel: SplashScreen
             title = "Question",
             onAccept = {},
             onDismiss = {},
+            mqttViewModel = mqttViewModel
+        )
+    }
+
+    if(showWelcomeDialog) {
+        Log.d("QUESTIONS", "ENTRA AL DIALOGO")
+        WelcomeDialog(
+            onDismiss = { mqttViewModel.hideWelcomeDialog() },
+            onStopNavigation = {  },
+            onReturnToPreviousOrReception = {  },
+            onEmergencyCall = {  },
             mqttViewModel = mqttViewModel
         )
     }
@@ -155,7 +169,10 @@ fun LazyRowUbicaciones(splashScreenViewModel: SplashScreenViewModel, modifier : 
                     }
                     .padding(end = 15.dp, bottom = 12.dp, top = 5.dp)
                     .shadow(elevation = 8.dp)
-                    .background(color = md_theme_light_primaryContainer, shape = MaterialTheme.shapes.medium),
+                    .background(
+                        color = md_theme_light_primaryContainer,
+                        shape = MaterialTheme.shapes.medium
+                    ),
                 contentAlignment = Alignment.Center // Centra el contenido del Box
             ) {
                 Text(

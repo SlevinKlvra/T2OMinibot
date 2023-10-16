@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.ExitToApp
+import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
@@ -22,6 +23,7 @@ fun NavigationDialog(
     onDismiss: () -> Unit,
     onStopNavigation: () -> Unit,
     onReturnToPreviousOrReception: () -> Unit,
+    onEmergencyCall : () -> Unit,
     splashScreenViewModel: SplashScreenViewModel
 ) {
 
@@ -63,6 +65,22 @@ fun NavigationDialog(
                     Text("Regresar al Punto Anterior/Recepción")
                 }
             }
+            Button(onClick = onEmergencyCall){
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.Center
+                ){
+                    Icon(
+                        imageVector = Icons.Default.Warning,
+                        contentDescription = "Regresar",
+                        modifier = Modifier.size(24.dp).padding(end = 10.dp)
+                    )
+                    Text("Llamar a Emergencias")
+
+                }
+
+            }
         }
+        
     )
 }

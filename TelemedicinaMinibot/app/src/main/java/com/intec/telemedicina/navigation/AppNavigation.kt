@@ -44,7 +44,7 @@ fun AppNavigation(viewModel: SplashScreenViewModel, mqttViewModel: MqttViewModel
             GamesScreen(navController = navController)
         }
         composable(AppScreens.TourScreen.route){
-            TourScreen(navController = navController)
+            TourScreen(navController = navController, splashScreenViewModel = viewModel)
         }
         composable(AppScreens.HomeControlScreen.route){
             HomeControlScreen(navController = navController)

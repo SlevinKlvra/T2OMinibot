@@ -36,6 +36,7 @@ class MqttViewModel @Inject constructor(
     val mqttQuestion : MutableLiveData<String> get() = _mqttQuestion
 
     val showQuestionsDialog = MutableStateFlow(false)
+    val showWelcomeDialog = MutableStateFlow(false)
 
     private val mqttCallback = MqttManagerCallback(_connectionState, {
         val updatedMessages = _incomingMessages.value.toMutableList()
@@ -159,6 +160,10 @@ class MqttViewModel @Inject constructor(
                 //Open window with question --> Yes/No
                 //Send response back
             }
+            "robot/welcome_cmd" -> { //return answer on --> "robot/welcome_pub"
+                robotApi.startNavigation(1, "Punto de recepción", 0.01, 100000, navigationListener)
+                showWelcomeDialog()
+            }
         }
     }
 
@@ -250,5 +255,15 @@ class MqttViewModel @Inject constructor(
     fun hideQuestionsDialog(){
         Log.d("MQTTViewModel", "Hiding questions dialog")
         showQuestionsDialog.value = false
+    }
+
+    fun showWelcomeDialog(){
+        Log.d("MQTTViewModel", "Showing welcome dialog")
+        showWelcomeDialog.value = true
+    }
+
+    fun hideWelcomeDialog(){
+        Log.d("MQTTViewModel", "Hiding welcome dialog")
+        showWelcomeDialog.value = false
     }
 }
