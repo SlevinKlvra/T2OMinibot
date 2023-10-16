@@ -136,6 +136,7 @@ class MqttViewModel @Inject constructor(
         when(topic){
             "robot/nav_pub/status" -> robotApi.currentPose
             "robot/nav_cmds/go_to" -> {
+                Log.d("MQTTViewModel", "Starting navigation to: $message")
                 robotApi.startNavigation(1, message.toString(), 0.01, 100000, navigationListener)
             }
             "robot/nav_cmds/go_to_coord" -> robotApi.startNavigation(1, message,0.01, 100000, navigationListener)
@@ -143,8 +144,7 @@ class MqttViewModel @Inject constructor(
             "robot/nav_cmds/stop_navigation" -> {
                 robotApi.stopNavigation(1)
             }
-                                                
-            
+
             //navigationListener.onStatusUpdate(Definition.ACTION_NAVI_STOP_MOVE,"YESSSSS")
             "robot/voice_cmds/text_to_speech" -> {
                 Log.d("TextToSpeech", message)

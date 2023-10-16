@@ -125,9 +125,10 @@ fun Cabecera(navController: NavController){
 @Composable
 fun LazyRowUbicaciones(splashScreenViewModel: SplashScreenViewModel, modifier : Modifier = Modifier){
     Log.d("DESTINATIONS", "ENTRA A LA FUNCIÓN")
-    Log.d("DESTINATIONS LIST", splashScreenViewModel.destinationsList.toString())
+    Log.d("DESTINATIONS LIST", splashScreenViewModel.destinationsList.value.toString())
 
-    val destinations : List<String> = mutableListOf()
+    var destinations : List<String> = mutableListOf()
+    destinations = splashScreenViewModel.destinationsList.value!!
 
     LaunchedEffect(Unit){
         splashScreenViewModel.getPlaceList()

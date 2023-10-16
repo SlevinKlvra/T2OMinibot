@@ -1,17 +1,14 @@
 package com.intec.telemedicina.di
 
 import android.app.Application
-import android.content.Context
 import com.ainirobot.coreservice.client.RobotApi
 import com.ainirobot.coreservice.client.listener.ActionListener
 import com.ainirobot.coreservice.client.speech.SkillApi
 import com.intec.telemedicina.api.RickAndMortyApi
-import com.intec.telemedicina.mqtt.MQTTConfig
 import com.intec.telemedicina.utils.BASE_URL
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
-import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import org.eclipse.paho.android.service.MqttAndroidClient
 import org.eclipse.paho.client.mqttv3.persist.MqttDefaultFilePersistence
@@ -52,5 +49,4 @@ object RemoteModule {
         val persistence = MqttDefaultFilePersistence(application.filesDir.path)
         return MqttAndroidClient(application, "tcp://localhost:1883", "BasicSample", persistence)
     }
-
 }

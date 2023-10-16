@@ -114,7 +114,7 @@ class SplashScreenViewModel @Inject constructor(
                 }
             }
 
-            // Si hay otros métodos en ActionListener, deberías sobrescribirlos aquí también
+            // Si hay otros métodos en ActionListener, sobrescribirlos aquí también
         }
     }
 
@@ -174,9 +174,7 @@ class SplashScreenViewModel @Inject constructor(
 
                     placesList.addAll(newPlaces)
                     _destinationsList.value = placesList.map { it.name }
-
                     Log.d("MAP", "CURRENT LOCATIONS ARE $placesList")
-                    Log.d("MAP", "Lista ubicaciones: $destinationsList")
 
                 } catch (e: JSONException) {
                     Log.e("ERROR", "Error parsing JSON", e)

@@ -9,7 +9,6 @@ import com.ainirobot.coreservice.client.listener.ActionListener
 import com.ainirobot.coreservice.client.speech.SkillApi
 import com.intec.telemedicina.robot.skillcallback.mSkillCallback
 import com.intec.telemedicina.viewmodels.MqttViewModel
-import dagger.hilt.android.internal.Contexts.getApplication
 import javax.inject.Inject
 
 class MqttViewModelFactory @Inject constructor(
