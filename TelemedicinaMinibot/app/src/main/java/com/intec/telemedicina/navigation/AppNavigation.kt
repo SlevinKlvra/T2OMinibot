@@ -1,5 +1,6 @@
 package com.intec.telemedicina.navigation
 
+import VideoCallScreen
 import androidx.compose.runtime.Composable
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -13,7 +14,6 @@ import com.intec.telemedicina.screens.SettingsScreen
 import com.intec.telemedicina.screens.SplashScreen
 import com.intec.telemedicina.screens.TestScreen
 import com.intec.telemedicina.screens.TourScreen
-import com.intec.telemedicina.screens.VideoCallScreen
 import com.intec.telemedicina.viewmodels.MqttViewModel
 import com.intec.telemedicina.viewmodels.SplashScreenViewModel
 

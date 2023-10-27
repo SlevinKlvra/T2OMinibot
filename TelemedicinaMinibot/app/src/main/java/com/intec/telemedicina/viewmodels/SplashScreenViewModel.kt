@@ -224,6 +224,6 @@ class SplashScreenViewModel @Inject constructor(
     }
 
     fun startTour(){
-        robotApi.startCruise(1,posesList,1, mutableListOf<Int>(1,2,3),actionListener)
+        robotApi.startCruise(1,posesList,1 , mutableListOf<Int>(1,2,3),actionListener)
     }
 }
