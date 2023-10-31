@@ -74,9 +74,7 @@ fun HomeScreen(navController: NavController, splashScreenViewModel: SplashScreen
     val showQuestionsDialog by mqttViewModel.showQuestionsDialog.collectAsState()
     val showWelcomeDialog by mqttViewModel.showWelcomeDialog.collectAsState()
 
-    mqttViewModel.connect()
-    val topics : MutableList<String> = mqttViewModel.resumeTopics()  // Asume que resumeTopics está en el ViewModel.
-    mqttViewModel.subscribeToAllTopics(topics)
+
 
     if (showDialog) {
         NavigationDialog(
