@@ -10,7 +10,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.ui.Modifier
 import com.intec.telemedicina.di.MqttViewModelFactory
 import com.intec.telemedicina.di.SplashScreenViewModelFactory
-import com.intec.telemedicina.navigation.AppNavigation
+import com.intec.telemedicina.icariascreen.AppNavigation
 import com.intec.telemedicina.ui.theme.PlantillaJetpackTheme
 import com.intec.telemedicina.viewmodels.MqttViewModel
 import com.intec.telemedicina.viewmodels.SplashScreenViewModel

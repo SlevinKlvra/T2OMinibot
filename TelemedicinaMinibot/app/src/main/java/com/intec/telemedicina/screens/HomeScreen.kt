@@ -44,7 +44,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.platform.LocalView
@@ -57,11 +56,11 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
-import com.example.compose.md_theme_light_onPrimary
-import com.example.compose.md_theme_light_primary
-import com.example.compose.md_theme_light_primaryContainer
 import com.intec.telemedicina.R
 import com.intec.telemedicina.navigation.AppScreens
+import com.intec.telemedicina.ui.color.md_theme_light_onPrimary
+import com.intec.telemedicina.ui.color.md_theme_light_primary
+import com.intec.telemedicina.ui.color.md_theme_light_tertiary
 import com.intec.telemedicina.viewmodels.MqttViewModel
 import com.intec.telemedicina.viewmodels.SplashScreenViewModel
 
@@ -74,6 +73,10 @@ fun HomeScreen(navController: NavController, splashScreenViewModel: SplashScreen
     val showDialog by splashScreenViewModel.showNavigationDialog.collectAsState()
     val showQuestionsDialog by mqttViewModel.showQuestionsDialog.collectAsState()
     val showWelcomeDialog by mqttViewModel.showWelcomeDialog.collectAsState()
+
+    mqttViewModel.connect()
+    val topics : MutableList<String> = mqttViewModel.resumeTopics()  // Asume que resumeTopics está en el ViewModel.
+    mqttViewModel.subscribeToAllTopics(topics)
 
     if (showDialog) {
         NavigationDialog(
@@ -168,9 +171,9 @@ fun LazyRowUbicaciones(splashScreenViewModel: SplashScreenViewModel, modifier : 
                         splashScreenViewModel.showNavigationDialog()
                     }
                     .padding(end = 15.dp, bottom = 12.dp, top = 5.dp)
-                    .shadow(elevation = 8.dp)
+
                     .background(
-                        color = md_theme_light_primaryContainer,
+                        color = md_theme_light_tertiary,
                         shape = MaterialTheme.shapes.medium
                     ),
                 contentAlignment = Alignment.Center // Centra el contenido del Box
@@ -179,7 +182,7 @@ fun LazyRowUbicaciones(splashScreenViewModel: SplashScreenViewModel, modifier : 
                     text = item,
                     maxLines = 1, // Asegúrate de que el texto no exceda una línea
                     overflow = TextOverflow.Ellipsis, // Usa "..." si el texto es demasiado largo
-                    color = Color.White,
+                    color = Color.Black,
                     fontSize = 10.sp,
                     fontWeight = FontWeight.Bold
                 )
@@ -215,7 +218,7 @@ fun Botones(navController: NavController) {
                 Button(
                     modifier = Modifier
                         .height(100.dp)
-                        .shadow(elevation = 4.dp, shape = MaterialTheme.shapes.medium)
+
                         .fillMaxWidth()
                         .padding(9.dp),
                     onClick = { navController.navigate(rutas[index]) },

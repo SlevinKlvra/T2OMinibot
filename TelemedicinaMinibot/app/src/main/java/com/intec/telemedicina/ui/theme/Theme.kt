@@ -18,7 +18,7 @@ import androidx.core.view.ViewCompat
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.material3.darkColorScheme
-import com.example.compose.*
+import com.intec.telemedicina.ui.color.*
 
 private val LightColors = lightColorScheme(
     primary = md_theme_light_primary,

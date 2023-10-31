@@ -1,14 +1,15 @@
-package com.intec.telemedicina.navigation
+package com.intec.telemedicina.icariascreen
 
+import IcariaScreen
 import VideoCallScreen
 import androidx.compose.runtime.Composable
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.intec.telemedicina.navigation.AppScreens
 import com.intec.telemedicina.screens.GamesScreen
 import com.intec.telemedicina.screens.HomeControlScreen
 import com.intec.telemedicina.screens.HomeScreen
-import com.intec.telemedicina.screens.IcariaScreen
 import com.intec.telemedicina.screens.MqttScreen
 import com.intec.telemedicina.screens.SettingsScreen
 import com.intec.telemedicina.screens.SplashScreen

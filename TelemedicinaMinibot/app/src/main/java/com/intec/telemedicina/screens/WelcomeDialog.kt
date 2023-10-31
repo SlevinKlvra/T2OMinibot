@@ -6,7 +6,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.ExitToApp
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
@@ -31,20 +30,15 @@ fun WelcomeDialog(
 
     AlertDialog(
         onDismissRequest = { onDismiss },
-        title = { Text(text = "Hello, welcome to the house") },
-        text = { Text(text = "Who are you?") },
+        title = { Text(text = "Hola, bienvenidos a nuestro apartamento adaptado") },
+        text = { Text(text = "Quién eres?") },
         confirmButton = {
             Button(onClick = { Log.d("WELCOME","LIVE") }) {
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.Center
                 ) {
-                    Icon(
-                        imageVector = Icons.Default.Close,
-                        contentDescription = "I live here",
-                        modifier = Modifier.size(24.dp).padding(end = 10.dp)
-                    )
-                    Text("I live here")
+                    Text("Yo vivo aquí")
                 }
             }
             Button(onClick = { Log.d("WELCOME","WORK") }) {
@@ -52,12 +46,7 @@ fun WelcomeDialog(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.Center
                 ) {
-                    Icon(
-                        imageVector = Icons.Default.Close,
-                        contentDescription = "I am healthcare personnel",
-                        modifier = Modifier.size(24.dp).padding(end = 10.dp)
-                    )
-                    Text("I am healthcare personnel")
+                    Text("Soy personal sanitario")
                 }
             }
             Button(onClick = { Log.d("WELCOME","FRIEND") }) {
@@ -65,12 +54,7 @@ fun WelcomeDialog(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.Center
                 ) {
-                    Icon(
-                        imageVector = Icons.Default.Close,
-                        contentDescription = "I am a friend",
-                        modifier = Modifier.size(24.dp).padding(end = 10.dp)
-                    )
-                    Text("I am a friend")
+                    Text("Soy un amigo")
                 }
             }
             Button(onClick = { Log.d("WELCOME","FAMILY") }) {
@@ -78,12 +62,7 @@ fun WelcomeDialog(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.Center
                 ) {
-                    Icon(
-                        imageVector = Icons.Default.Close,
-                        contentDescription = "I am a family",
-                        modifier = Modifier.size(24.dp).padding(end = 10.dp)
-                    )
-                    Text("I am a family")
+                    Text("Soy un familiar")
                 }
             }
         },
@@ -94,7 +73,7 @@ fun WelcomeDialog(
                     horizontalArrangement = Arrangement.Center
                 ) {
                     Icon(
-                        imageVector = Icons.Default.ExitToApp,
+                        imageVector = Icons.Default.Close,
                         contentDescription = "Cancel",
                         modifier = Modifier.size(24.dp).padding(end = 10.dp)
                     )

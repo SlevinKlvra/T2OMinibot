@@ -8,7 +8,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import com.example.compose.md_theme_light_onBackground
+import com.intec.telemedicina.ui.color.md_theme_light_onBackground
 
 @Composable
 fun FuturisticGradientBackground(content: @Composable () -> Unit) {
