@@ -12,6 +12,7 @@ import com.ainirobot.coreservice.client.RobotApi
 import com.ainirobot.coreservice.client.listener.ActionListener
 import com.ainirobot.coreservice.client.listener.TextListener
 import com.ainirobot.coreservice.client.speech.SkillApi
+import com.ainirobot.coreservice.client.speech.entity.TTSEntity
 import com.intec.telemedicina.mqtt.MQTTConfig
 import com.intec.telemedicina.mqtt.MqttManager
 import com.intec.telemedicina.mqtt.MqttManagerCallback
@@ -45,7 +46,7 @@ class MqttViewModel @Inject constructor(
     }, this)
     private val mqttManager : MqttManager
     private var mqttConfigInstance = MQTTConfig(
-        SERVER_URI ="tcp://192.168.47.116:1883",
+        SERVER_URI ="tcp://192.168.47.120:1883",
         client_id = "Robot",
         qos = 0,
         user = "telegraf",
@@ -110,7 +111,7 @@ class MqttViewModel @Inject constructor(
 
     fun playTextViaTTS(text: String) {
 
-        skillApi.playText(text, object : TextListener() {
+        skillApi.playText(TTSEntity(text), object : TextListener() {
             override fun onStart() {
                 // Iniciar reproducción
             }
@@ -129,6 +130,26 @@ class MqttViewModel @Inject constructor(
                 skillApi.setRecognizable(true);
             }
         })
+
+        /*skillApi.playText(text, object : TextListener() {
+            override fun onStart() {
+                // Iniciar reproducción
+            }
+
+            override fun onStop() {
+                // Detener reproducción
+            }
+
+            override fun onError() {
+                // Manejar error
+            }
+
+            override fun onComplete() {
+                // Reproducción completada
+                skillApi.setRecognizeMode(true);
+                skillApi.setRecognizable(true);
+            }
+        })*/
     }
 
     override fun onMessageReceived(topic: String, message: String) {
