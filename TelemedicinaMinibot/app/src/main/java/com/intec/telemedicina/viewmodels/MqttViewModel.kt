@@ -12,7 +12,6 @@ import com.ainirobot.coreservice.client.RobotApi
 import com.ainirobot.coreservice.client.listener.ActionListener
 import com.ainirobot.coreservice.client.listener.TextListener
 import com.ainirobot.coreservice.client.speech.SkillApi
-import com.ainirobot.coreservice.client.speech.SkillCallback
 import com.ainirobot.coreservice.client.speech.entity.TTSEntity
 import com.intec.telemedicina.mqtt.MQTTConfig
 import com.intec.telemedicina.mqtt.MqttManager
@@ -33,33 +32,12 @@ class MqttViewModel @Inject constructor(
     private val _connectionState = mutableStateOf("Disconnected")
     val connectionState get()= _connectionState
     var navigation : Boolean = false
+    val listeningTopics : String = "robot/nav_cmds/stop_navigation"
     private var _mqttQuestion = MutableLiveData<String>()
     val mqttQuestion : MutableLiveData<String> get() = _mqttQuestion
 
     val showQuestionsDialog = MutableStateFlow(false)
     val showWelcomeDialog = MutableStateFlow(false)
-
-    private val mTextListener: TextListener = object : TextListener() {
-        override fun onStart() {
-            super.onStart()
-            Log.d("TextListener","onStart")
-        }
-
-        override fun onStop() {
-            super.onStop()
-            Log.d("TextListener","onStop")
-        }
-
-        override fun onComplete() {
-            super.onComplete()
-            Log.d("TextListener","onComplete")
-        }
-
-        override fun onError() {
-            super.onError()
-            Log.d("TextListener","onError")
-        }
-    }
 
     private val mqttCallback = MqttManagerCallback(_connectionState, {
         val updatedMessages = _incomingMessages.value.toMutableList()
@@ -68,7 +46,7 @@ class MqttViewModel @Inject constructor(
     }, this)
     private val mqttManager : MqttManager
     private var mqttConfigInstance = MQTTConfig(
-        SERVER_URI ="tcp://192.168.0.16:1883",
+        SERVER_URI ="tcp://192.168.47.120:1883",
         client_id = "Robot",
         qos = 0,
         user = "telegraf",
@@ -77,6 +55,7 @@ class MqttViewModel @Inject constructor(
 
     init {
         mqttManager = MqttManager(getApplication(), mqttCallback, mqttConfigInstance ,application)
+
         Log.d("MQTTManager", "MqttManager created: $mqttManager")
     }
 
@@ -130,9 +109,47 @@ class MqttViewModel @Inject constructor(
         mqttManager.publishMessage(topic, message)
     }
 
-    private fun playTextViaTTS(text: String) {
-        Log.d("PlayTextViaTTS", text)
-        skillApi.playText(TTSEntity("sid-012345", text), mTextListener)
+    fun playTextViaTTS(text: String) {
+
+        skillApi.playText(TTSEntity(text), object : TextListener() {
+            override fun onStart() {
+                // Iniciar reproducción
+            }
+
+            override fun onStop() {
+                // Detener reproducción
+            }
+
+            override fun onError() {
+                // Manejar error
+            }
+
+            override fun onComplete() {
+                // Reproducción completada
+                skillApi.setRecognizeMode(true);
+                skillApi.setRecognizable(true);
+            }
+        })
+
+        /*skillApi.playText(text, object : TextListener() {
+            override fun onStart() {
+                // Iniciar reproducción
+            }
+
+            override fun onStop() {
+                // Detener reproducción
+            }
+
+            override fun onError() {
+                // Manejar error
+            }
+
+            override fun onComplete() {
+                // Reproducción completada
+                skillApi.setRecognizeMode(true);
+                skillApi.setRecognizable(true);
+            }
+        })*/
     }
 
     override fun onMessageReceived(topic: String, message: String) {
