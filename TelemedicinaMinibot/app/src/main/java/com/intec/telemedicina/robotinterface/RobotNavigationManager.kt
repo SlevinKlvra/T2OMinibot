@@ -1,5 +1,6 @@
 package com.intec.telemedicina.robotinterface
 
+import android.util.Log
 import com.ainirobot.coreservice.client.Definition
 import com.ainirobot.coreservice.client.RobotApi
 import com.ainirobot.coreservice.client.listener.ActionListener
@@ -13,7 +14,7 @@ class RobotNavigationManager @Inject constructor(
     private val robotApi: RobotApi // Your Robot API class
 ) : RobotInterface {
     private val closeEnoughThreshold = 0.5f // Define your threshold, e.g., 0.5 meters
-
+    /*
     fun startNavigation(
         reqId: Int,
         destName: String,
@@ -43,7 +44,7 @@ class RobotNavigationManager @Inject constructor(
                 // Handle error
             }
         })
-    }
+    }*/
 
     private fun getCurrentPosition(reqId: Int, callback: (CoordinatePose) -> Unit) {
         robotApi.getPosition(reqId, object : CommandListener() {
@@ -85,15 +86,17 @@ class RobotNavigationManager @Inject constructor(
     override fun startNavigation(
         reqId: Int,
         destName: String,
-        coordinateDeviation: Float,
+        coordinateDeviation: Double,
         time: Long,
         navigationListener: ActionListener
     ) {
-        TODO("Not yet implemented")
+        Log.d("START NAVIGATION", "Comenzando navegación")
+        robotApi.startNavigation(1, destName, coordinateDeviation, time, navigationListener)
     }
 
     override fun stopNavigation(reqId: Int) {
-        TODO("Not yet implemented")
+        Log.d("STOP NAVIGATION", "Deteniendo navegación")
+        robotApi.stopNavigation(reqId)
     }
 
     override fun goPosition(reqId: Int, position: String, goPositionListener: CommandListener) {

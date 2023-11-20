@@ -122,7 +122,7 @@ class SplashScreenViewModel @Inject constructor(
         }
     }
 
-    private fun getCurrentMap(){
+    /*private fun getCurrentMap(){
         RobotApi.getInstance().getMapName(1, object : CommandListener() {
             override fun onResult(result: Int, message: String) {
                 if (!TextUtils.isEmpty(message)) {
@@ -132,9 +132,9 @@ class SplashScreenViewModel @Inject constructor(
                 }
             }
         })
-    }
+    }*/
 
-    private fun getMapName(){
+    /*private fun getMapName(){
         robotApi.getMapName(1, object : CommandListener() {
             override fun onResult(result: Int, message: String) {
                 if (!TextUtils.isEmpty(message)) {
@@ -145,7 +145,7 @@ class SplashScreenViewModel @Inject constructor(
             }
         })
         Log.d("MAP", "Mapa actual: $mapName")
-    }
+    }*/
 
     fun showNavigationDialog() {
         //stopNavigation()

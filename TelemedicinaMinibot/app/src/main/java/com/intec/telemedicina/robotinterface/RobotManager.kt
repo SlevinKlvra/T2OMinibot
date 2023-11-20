@@ -54,6 +54,8 @@ class RobotManager @Inject constructor(@ApplicationContext applicationContext: C
         }
     }
 
+    
+    
     val robotInterface: RobotInterface = RobotNavigationManager(robotApi)
 
     fun getRobotInterfaceMethod(): RobotInterface {

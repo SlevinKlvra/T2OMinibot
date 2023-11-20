@@ -158,15 +158,17 @@ class MqttViewModel @Inject constructor(
         addIncomingMessage(message)
 
         when(topic){
-            "robot/nav_pub/status" -> robotApi.currentPose
+            //"robot/nav_pub/status" -> robotApi.currentPose
             "robot/nav_cmds/go_to" -> {
                 Log.d("MQTTViewModel", "Starting navigation to: $message")
                 //robotApi.startNavigation(1, message.toString(), 0.01, 100000, navigationListener)
+                robotManager.getRobotInterfaceMethod().startNavigation(1, message.toString(), 0.01, 100000, navigationListener)
             }
-            "robot/nav_cmds/go_to_coord" -> robotApi.startNavigation(1, message,0.01, 100000, navigationListener)
-            "robot/nav_cmds/go_charger" -> robotApi.goCharging(1)
+            /*"robot/nav_cmds/go_to_coord" -> robotApi.startNavigation(1, message,0.01, 100000, navigationListener)
+            "robot/nav_cmds/go_charger" -> robotApi.goCharging(1)*/
             "robot/nav_cmds/stop_navigation" -> {
                 //robotApi.stopNavigation(1)
+                robotManager.getRobotInterfaceMethod().stopNavigation(1)
             }
 
             //navigationListener.onStatusUpdate(Definition.ACTION_NAVI_STOP_MOVE,"YESSSSS")
@@ -211,7 +213,7 @@ class MqttViewModel @Inject constructor(
             when (status) {
                 Definition.RESULT_OK -> if ("true" == response) {
                     //navigation is successful
-                    publishMessage("robot/nav_pub/status",robotApi.currentPose.toString())
+                    //publishMessage("robot/nav_pub/status",robotApi.currentPose.toString())
 
                 } else {
                     //navigation is failed

@@ -4,7 +4,7 @@ import com.ainirobot.coreservice.client.listener.ActionListener
 import com.ainirobot.coreservice.client.listener.CommandListener
 
 interface RobotInterface {
-    fun startNavigation(reqId: Int, destName: String, coordinateDeviation: Float, time: Long, navigationListener: ActionListener)
+    fun startNavigation(reqId: Int, destName: String, coordinateDeviation: Double, time: Long, navigationListener: ActionListener)
     fun stopNavigation(reqId: Int)
     fun goPosition(reqId: Int, position: String, goPositionListener: CommandListener)
     fun stopGoPosition(reqId: Int)
