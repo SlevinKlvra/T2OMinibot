@@ -7,7 +7,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
-import com.ainirobot.coreservice.client.ApiListener
 import com.ainirobot.coreservice.client.Definition
 import com.ainirobot.coreservice.client.RobotApi
 import com.ainirobot.coreservice.client.actionbean.Pose
@@ -16,11 +15,9 @@ import com.ainirobot.coreservice.client.listener.CommandListener
 import com.ainirobot.coreservice.client.listener.TextListener
 import com.ainirobot.coreservice.client.speech.SkillApi
 import com.intec.telemedicina.repositories.dto.Place
-import com.intec.telemedicina.robot.modulecallback.ModuleCallback
+import com.intec.telemedicina.robotinterface.RobotManager
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
-import org.json.JSONArray
-import org.json.JSONException
 import javax.inject.Inject
 
 
@@ -29,6 +26,7 @@ class SplashScreenViewModel @Inject constructor(
     application: Application,
     private val robotApi: RobotApi,
     private val skillApi: SkillApi,
+    private val robotManager: RobotManager,
     private var actionListener: ActionListener
 ) : AndroidViewModel(application) {
 
@@ -60,7 +58,7 @@ class SplashScreenViewModel @Inject constructor(
 
     var lastDestiny: String = ""
     var currentDestiny: String = ""
-
+    /*
     init {
 
         setupActionListener()
@@ -83,6 +81,7 @@ class SplashScreenViewModel @Inject constructor(
         })
 
     }
+    */
 
     fun playTextViaTTS(text: String) {
 
@@ -156,7 +155,7 @@ class SplashScreenViewModel @Inject constructor(
     fun hideNavigationDialog() {
         showNavigationDialog.value = false
     }
-
+/*
     fun getPlaceList() {
         currentAction = "Cargando ubicaciones del mapa"
         robotApi.getPlaceList(1, object : CommandListener() {
@@ -195,13 +194,15 @@ class SplashScreenViewModel @Inject constructor(
             }
         })
     }
+*/
 
+    /*
     fun navigateToDestiny(destiny: String) {
         Log.d("NAVIGATION", "Iniciando navegación a $destiny")
         updateDestiny(destiny)
         robotApi.startNavigation(1, destiny, AVOIDANCE_RADIUS, TIMEOUT, actionListener)
     }
-
+*/
     //Actualiza el destino actual y guarda el anterior
     fun updateDestiny(destiny: String){
         Log.d("SWITCH_DESTINY", "Switching currentDestiny: $currentDestiny to lastDestiny: $lastDestiny")
@@ -209,6 +210,7 @@ class SplashScreenViewModel @Inject constructor(
         currentDestiny = destiny
     }
 
+    /*
     //Navega al último destino
     fun navigateToLastDestiny(){
         Log.d("NAVIGATION_RETURN", "Return to location: $lastDestiny")
@@ -217,7 +219,9 @@ class SplashScreenViewModel @Inject constructor(
         }
         navigateToDestiny(lastDestiny)
     }
+*/
 
+    /*
     fun stopNavigation(){
         Log.d("STOP NAVIGATION", "Deteniendo navegación")
         robotApi.stopNavigation(2)
@@ -226,4 +230,6 @@ class SplashScreenViewModel @Inject constructor(
     fun startTour(){
         robotApi.startCruise(1,posesList,1 , mutableListOf<Int>(1,2,3),actionListener)
     }
+
+     */
 }

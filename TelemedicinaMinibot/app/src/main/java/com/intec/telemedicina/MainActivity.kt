@@ -11,6 +11,7 @@ import androidx.compose.ui.Modifier
 import com.intec.telemedicina.di.MqttViewModelFactory
 import com.intec.telemedicina.di.SplashScreenViewModelFactory
 import com.intec.telemedicina.icariascreen.AppNavigation
+import com.intec.telemedicina.robotinterface.RobotManager
 import com.intec.telemedicina.ui.theme.PlantillaJetpackTheme
 import com.intec.telemedicina.viewmodels.MqttViewModel
 import com.intec.telemedicina.viewmodels.SplashScreenViewModel
@@ -30,6 +31,9 @@ class MainActivity : ComponentActivity() {
 
     private val mqttViewModel by viewModels<MqttViewModel> { mqttViewModelFactory }
 
+    private var robotManager : RobotManager = RobotManager(applicationContext)
+    // TODO: Pass robotManager to the viewmodel and try out the navigation
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         // Get the DisplayMetrics object
@@ -40,7 +44,7 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxHeight(1f),
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    AppNavigation(viewModel = viewModel, mqttViewModel = mqttViewModel)
+                    AppNavigation(viewModel = viewModel, mqttViewModel = mqttViewModel, robotManager = robotManager)
                 }
                 // A surface container using the 'background' color from the theme
             }

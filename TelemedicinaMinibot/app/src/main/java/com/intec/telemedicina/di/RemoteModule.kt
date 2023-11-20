@@ -29,9 +29,10 @@ object RemoteModule {
             .create(RickAndMortyApi::class.java)
     }
 
-    @Provides
+    
+    /*@Provides
     @Singleton
-    fun provideRobotApi(): RobotApi = RobotApi.getInstance()
+    fun provideRobotApi(): RobotApi = RobotApi.getInstance()*/
 
     @Provides
     @Singleton
@@ -49,4 +50,5 @@ object RemoteModule {
         val persistence = MqttDefaultFilePersistence(application.filesDir.path)
         return MqttAndroidClient(application, "tcp://localhost:1883", "BasicSample", persistence)
     }
+
 }

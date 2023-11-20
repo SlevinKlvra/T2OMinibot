@@ -8,7 +8,7 @@ import com.intec.telemedicina.viewmodels.SplashScreenViewModel
 
 @Composable
 fun TourScreen(navController: NavController, splashScreenViewModel: SplashScreenViewModel){
-    Button(onClick = {splashScreenViewModel.startTour()},
+    Button(onClick = {/*splashScreenViewModel.startTour()*/},
         content = {})
     Text("Third Screen")
 }

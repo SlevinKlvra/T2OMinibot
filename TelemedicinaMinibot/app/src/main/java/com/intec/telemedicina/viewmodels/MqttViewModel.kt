@@ -17,6 +17,7 @@ import com.intec.telemedicina.mqtt.MQTTConfig
 import com.intec.telemedicina.mqtt.MqttManager
 import com.intec.telemedicina.mqtt.MqttManagerCallback
 import com.intec.telemedicina.mqtt.MqttMessageListener
+import com.intec.telemedicina.robotinterface.RobotManager
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import javax.inject.Inject
@@ -26,6 +27,7 @@ class MqttViewModel @Inject constructor(
     application: Application,
     private val robotApi: RobotApi,
     private val skillApi: SkillApi,
+    private val robotManager: RobotManager,
     private var actionListener: ActionListener
 ) : AndroidViewModel(application), MqttMessageListener {
 
@@ -159,12 +161,12 @@ class MqttViewModel @Inject constructor(
             "robot/nav_pub/status" -> robotApi.currentPose
             "robot/nav_cmds/go_to" -> {
                 Log.d("MQTTViewModel", "Starting navigation to: $message")
-                robotApi.startNavigation(1, message.toString(), 0.01, 100000, navigationListener)
+                //robotApi.startNavigation(1, message.toString(), 0.01, 100000, navigationListener)
             }
             "robot/nav_cmds/go_to_coord" -> robotApi.startNavigation(1, message,0.01, 100000, navigationListener)
             "robot/nav_cmds/go_charger" -> robotApi.goCharging(1)
             "robot/nav_cmds/stop_navigation" -> {
-                robotApi.stopNavigation(1)
+                //robotApi.stopNavigation(1)
             }
 
             //navigationListener.onStatusUpdate(Definition.ACTION_NAVI_STOP_MOVE,"YESSSSS")
@@ -182,7 +184,7 @@ class MqttViewModel @Inject constructor(
                 //Send response back
             }
             "robot/welcome_cmd" -> { //return answer on --> "robot/welcome_pub"
-                robotApi.startNavigation(1, "Punto de recepción", 0.01, 100000, navigationListener)
+                //robotApi.startNavigation(1, "Punto de recepción", 0.01, 100000, navigationListener)
                 showWelcomeDialog()
             }
         }

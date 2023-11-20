@@ -35,7 +35,7 @@ fun NavigationDialog(
         text = { Text(text = navigationStatus) },
         confirmButton = {
             Button(onClick = {
-                splashScreenViewModel.stopNavigation()
+                /*splashScreenViewModel.stopNavigation()*/
                 splashScreenViewModel.hideNavigationDialog()
             }) {
                 Row(
@@ -78,9 +78,7 @@ fun NavigationDialog(
                     Text("Llamar a Emergencias")
 
                 }
-
             }
         }
-        
     )
 }

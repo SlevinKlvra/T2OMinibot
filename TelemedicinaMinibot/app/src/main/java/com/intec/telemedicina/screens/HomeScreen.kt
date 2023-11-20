@@ -58,6 +58,7 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.intec.telemedicina.R
 import com.intec.telemedicina.navigation.AppScreens
+import com.intec.telemedicina.robotinterface.RobotManager
 import com.intec.telemedicina.ui.color.md_theme_light_onPrimary
 import com.intec.telemedicina.ui.color.md_theme_light_primary
 import com.intec.telemedicina.ui.color.md_theme_light_tertiary
@@ -65,7 +66,7 @@ import com.intec.telemedicina.viewmodels.MqttViewModel
 import com.intec.telemedicina.viewmodels.SplashScreenViewModel
 
 @Composable
-fun HomeScreen(navController: NavController, splashScreenViewModel: SplashScreenViewModel, mqttViewModel: MqttViewModel){
+fun HomeScreen(navController: NavController, splashScreenViewModel: SplashScreenViewModel, mqttViewModel: MqttViewModel, robotManager : RobotManager){
 
     val splashScreenViewModel: SplashScreenViewModel = splashScreenViewModel
     val mqttViewModel: MqttViewModel = mqttViewModel
@@ -74,13 +75,11 @@ fun HomeScreen(navController: NavController, splashScreenViewModel: SplashScreen
     val showQuestionsDialog by mqttViewModel.showQuestionsDialog.collectAsState()
     val showWelcomeDialog by mqttViewModel.showWelcomeDialog.collectAsState()
 
-
-
     if (showDialog) {
         NavigationDialog(
             onDismiss = { splashScreenViewModel.hideNavigationDialog() },
-            onStopNavigation = { splashScreenViewModel.stopNavigation() },
-            onReturnToPreviousOrReception = { splashScreenViewModel.navigateToLastDestiny() },
+            onStopNavigation = { /*splashScreenViewModel.stopNavigation()*/ },
+            onReturnToPreviousOrReception = { /*splashScreenViewModel.navigateToLastDestiny()*/ },
             onEmergencyCall = { Log.d("EMERGENCY", "PLEASE HELP") },
             splashScreenViewModel = splashScreenViewModel
         )
@@ -146,7 +145,7 @@ fun LazyRowUbicaciones(splashScreenViewModel: SplashScreenViewModel, modifier : 
     destinations = splashScreenViewModel.destinationsList.value!!
 
     LaunchedEffect(Unit){
-        splashScreenViewModel.getPlaceList()
+        /*splashScreenViewModel.getPlaceList()*/
     }
 
     LazyRow(modifier = modifier.then(
@@ -165,7 +164,7 @@ fun LazyRowUbicaciones(splashScreenViewModel: SplashScreenViewModel, modifier : 
                 modifier = Modifier
                     .size(width = 120.dp, height = 100.dp) // Establece un tamaño fijo para el botón
                     .clickable {
-                        splashScreenViewModel.navigateToDestiny(item)
+                        /*splashScreenViewModel.navigateToDestiny(item)*/
                         splashScreenViewModel.showNavigationDialog()
                     }
                     .padding(end = 15.dp, bottom = 12.dp, top = 5.dp)
