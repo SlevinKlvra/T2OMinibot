@@ -58,7 +58,6 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.intec.telemedicina.R
 import com.intec.telemedicina.navigation.AppScreens
-import com.intec.telemedicina.robotinterface.RobotManager
 import com.intec.telemedicina.ui.color.md_theme_light_onPrimary
 import com.intec.telemedicina.ui.color.md_theme_light_primary
 import com.intec.telemedicina.ui.color.md_theme_light_tertiary
@@ -66,7 +65,7 @@ import com.intec.telemedicina.viewmodels.MqttViewModel
 import com.intec.telemedicina.viewmodels.SplashScreenViewModel
 
 @Composable
-fun HomeScreen(navController: NavController, splashScreenViewModel: SplashScreenViewModel, mqttViewModel: MqttViewModel, robotManager : RobotManager){
+fun HomeScreen(navController: NavController, splashScreenViewModel: SplashScreenViewModel, mqttViewModel: MqttViewModel){
 
     val splashScreenViewModel: SplashScreenViewModel = splashScreenViewModel
     val mqttViewModel: MqttViewModel = mqttViewModel
@@ -75,10 +74,16 @@ fun HomeScreen(navController: NavController, splashScreenViewModel: SplashScreen
     val showQuestionsDialog by mqttViewModel.showQuestionsDialog.collectAsState()
     val showWelcomeDialog by mqttViewModel.showWelcomeDialog.collectAsState()
 
+    if(!mqttViewModel.getInitiatedStatus()){
+        mqttViewModel.connect()
+        Log.d("Topicslist",mqttViewModel.resumeTopics().toString())
+        mqttViewModel.subscribeToAllTopics(mqttViewModel.resumeTopics())
+    }
+
     if (showDialog) {
         NavigationDialog(
             onDismiss = { splashScreenViewModel.hideNavigationDialog() },
-            onStopNavigation = { /*splashScreenViewModel.stopNavigation()*/ },
+            onStopNavigation = { /*robotMan.getRobotInterfaceMethod().stopNavigation(1)*/ /*splashScreenViewModel.stopNavigation()*/ },
             onReturnToPreviousOrReception = { /*splashScreenViewModel.navigateToLastDestiny()*/ },
             onEmergencyCall = { Log.d("EMERGENCY", "PLEASE HELP") },
             splashScreenViewModel = splashScreenViewModel

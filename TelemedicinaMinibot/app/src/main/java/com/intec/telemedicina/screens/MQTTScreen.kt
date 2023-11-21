@@ -29,7 +29,6 @@ import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.intec.telemedicina.components.BackButton
-import com.intec.telemedicina.robotinterface.RobotManager
 import com.intec.telemedicina.viewmodels.MqttViewModel
 
 //TODO: Implement a class which contains all the robot actions and call them from here.
@@ -39,7 +38,7 @@ import com.intec.telemedicina.viewmodels.MqttViewModel
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalComposeUiApi::class)
 @Composable
-fun MqttScreen(navController: NavController, mqttViewModel: MqttViewModel, robotManager : RobotManager) {
+fun MqttScreen(navController: NavController, mqttViewModel: MqttViewModel) {
 
     val viewModel: MqttViewModel = mqttViewModel
     val connectionState by viewModel.connectionState

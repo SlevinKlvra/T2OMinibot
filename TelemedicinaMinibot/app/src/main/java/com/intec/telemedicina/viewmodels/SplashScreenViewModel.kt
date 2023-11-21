@@ -1,17 +1,14 @@
 package com.intec.telemedicina.viewmodels
 
 import android.app.Application
-import android.text.TextUtils
 import android.util.Log
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import com.ainirobot.coreservice.client.Definition
-import com.ainirobot.coreservice.client.RobotApi
 import com.ainirobot.coreservice.client.actionbean.Pose
 import com.ainirobot.coreservice.client.listener.ActionListener
-import com.ainirobot.coreservice.client.listener.CommandListener
 import com.ainirobot.coreservice.client.listener.TextListener
 import com.ainirobot.coreservice.client.speech.SkillApi
 import com.intec.telemedicina.repositories.dto.Place
@@ -24,7 +21,6 @@ import javax.inject.Inject
 @HiltViewModel
 class SplashScreenViewModel @Inject constructor(
     application: Application,
-    private val robotApi: RobotApi,
     private val skillApi: SkillApi,
     private val robotManager: RobotManager,
     private var actionListener: ActionListener

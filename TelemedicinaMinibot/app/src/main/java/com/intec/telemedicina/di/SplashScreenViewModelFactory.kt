@@ -14,7 +14,6 @@ import javax.inject.Inject
 
 class SplashScreenViewModelFactory @Inject constructor(
     private val application : Application,
-    private val robotApi: RobotApi,
     private val skillApi: SkillApi,
     private val robotManager: RobotManager,
     private val actionListener: ActionListener
@@ -35,7 +34,7 @@ class SplashScreenViewModelFactory @Inject constructor(
                     }
                     // Implementa otros métodos según sea necesario.
                 })
-            return SplashScreenViewModel(application, robotApi, skillApi, robotManager, actionListener) as T
+            return SplashScreenViewModel(application, skillApi, robotManager, actionListener) as T
         }
         throw IllegalArgumentException("Unknown ViewModel class")
     }
