@@ -118,7 +118,7 @@ class RobotManager @Inject constructor(skillApi: SkillApi, @ApplicationContext a
         time: Long
     ) {
         Log.d("START NAVIGATION", "Comenzando navegación")
-        RobotApi.getInstance().goPosition(0, Pose(0.16775802F,-1.8305563F,-2.7992465F).toJson(), CommandListener())
+        RobotApi.getInstance().goPosition(0, RobotApi.getInstance().getSpecialPose(destName).toJson(), CommandListener())
         //robotApi.startNavigation(1, destName, coordinateDeviation, time, navigationListener)
     }
 

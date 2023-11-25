@@ -6,7 +6,11 @@ import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.MutableLiveData
+import com.ainirobot.coreservice.client.RobotApi
+import com.ainirobot.coreservice.client.listener.CommandListener
+import com.ainirobot.coreservice.client.listener.Person
 import com.ainirobot.coreservice.client.listener.TextListener
+import com.ainirobot.coreservice.client.person.PersonApi
 import com.ainirobot.coreservice.client.speech.SkillApi
 import com.ainirobot.coreservice.client.speech.entity.TTSEntity
 import com.intec.telemedicina.mqtt.MQTTConfig
@@ -17,6 +21,7 @@ import com.intec.telemedicina.robotinterface.RobotManager
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import javax.inject.Inject
+
 
 @HiltViewModel
 class MqttViewModel @Inject constructor(
@@ -57,6 +62,7 @@ class MqttViewModel @Inject constructor(
 
     init {
         mqttManager = MqttManager(getApplication(), mqttCallback, mqttConfigInstance, application)
+
 
         Log.d("MQTTManager", "MqttManager created: $mqttManager")
     }
@@ -166,14 +172,29 @@ class MqttViewModel @Inject constructor(
         when(topic){
             //"robot/nav_pub/status" -> robotApi.currentPose
             "robot/nav_cmds/go_to" -> {
-                Log.d("MQTTViewModel", "Starting navigation to: $message")
+                //Log.d("MQTTViewModel", "Starting navigation to: $message")
                 //robotApi.startNavigation(1, message.toString(), 0.01, 100000, navigationListener)
                 //RobotManager(getApplication<Application>().applicationContext).getRobotInterfaceMethod().startNavigation(1, message.toString(), 0.01, 100000)
 
-                Log.d("Poses",robotMan.getPoses().toString())
+                //Log.d("Poses",robotMan.getPoses().toString())
                 //robotMan.printPoses()
                 //robotMan.startNavigation(0,"sillon",0.1234,0)
 
+                Log.d("DISTANCE TO SILLON",RobotApi.getInstance().getPlaceDistance("sillon").toString())
+                /*Log.d("DISTANCE IN FRONT",
+                    //RobotApi.getInstance().queryRadarStatus(0, CommandListener()).toString()
+                    ""
+                )*/
+                //RobotApi.getInstance().setObstaclesSafeDistance(0,1.0, CommandListener())
+                Log.d("UPDATE SAFE DISTANCE","Update the safe distance")
+
+                //RobotApi.getInstance().startInspection(0,100000, ActionListener())
+                robotMan.startNavigation(0,message.toString(),0.1234,0)
+
+                //RobotApi.getInstance().goForward(0, 0.2F,0.1F,false, CommandListener())
+
+
+                //RobotApi.getInstance().goForward(0, 0.3F, 0.1F, CommandListener())
                 //RobotManager(getApplication<Application>().applicationContext).getRobotInterfaceMethod().goPosition()
             }
             /*"robot/nav_cmds/go_to_coord" -> robotApi.startNavigation(1, message,0.01, 100000, navigationListener)
@@ -201,6 +222,49 @@ class MqttViewModel @Inject constructor(
             "robot/welcome_cmd" -> { //return answer on --> "robot/welcome_pub"
                 //robotApi.startNavigation(1, "Punto de recepción", 0.01, 100000, navigationListener)
                 showWelcomeDialog()
+            }
+            "robot/focus" -> {
+                val personList: List<Person> = PersonApi.getInstance().getAllPersons()
+                Log.d("PERSON LIST",personList.toString())
+                Log.d("FOCUS","We will try to focus on the user!")
+                /*RobotApi.getInstance().startFocusFollow(
+                    0,
+                    personList.get(0).remoteFaceId.toInt(),
+                    1000000,
+                    5F,
+                    object : ActionListener() {
+                        override fun onStatusUpdate(status: Int, data: String?) {
+                            when (status) {
+                                Definition.STATUS_TRACK_TARGET_SUCCEED -> {Log.d("Focus", "Focus on person")}
+                                Definition.STATUS_GUEST_LOST -> {Log.d("Focus", "Focus on person lost")}
+                                Definition.STATUS_GUEST_FARAWAY -> {Log.d("Focus", "Focus on person faraway")}
+                                Definition.STATUS_GUEST_APPEAR -> {Log.d("Focus", "Focus on person appear")}
+                            }
+                        }
+
+                        override fun onError(errorCode: Int, errorString: String?) {
+                            when (errorCode) {
+                                Definition.ERROR_SET_TRACK_FAILED, Definition.ERROR_TARGET_NOT_FOUND -> {Log.d("Focus", "Focus on person failed")}
+                                Definition.ACTION_RESPONSE_ALREADY_RUN -> {Log.d("Focus", "Focus on person already running")}
+                                Definition.ACTION_RESPONSE_REQUEST_RES_ERROR -> {Log.d("Focus", "Focus on person request res error")}
+                            }
+                        }
+
+                        override fun onResult(status: Int, responseString: String?) {
+                            //Log.d(TAG, "startTrackPerson onResult status: $status")
+                            when (status) {
+                                Definition.ACTION_RESPONSE_STOP_SUCCESS -> {}
+                            }
+                        }
+                    })*/
+            }
+
+            "robot/unfocus" -> {
+                Log.d("UNFOCUS","We will not focus on the user anymore!")
+                RobotApi.getInstance().stopFocusFollow(0)
+            }
+            "robot/move_forward" -> {
+                RobotApi.getInstance().goForward(0, 0.2F,0.1F,false, CommandListener())
             }
         }
     }
