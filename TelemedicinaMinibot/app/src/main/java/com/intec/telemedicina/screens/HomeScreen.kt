@@ -77,7 +77,7 @@ fun HomeScreen(navController: NavController, splashScreenViewModel: SplashScreen
     if(!mqttViewModel.getInitiatedStatus()){
         mqttViewModel.connect()
         Log.d("Topicslist",mqttViewModel.resumeTopics().toString())
-        mqttViewModel.subscribeToAllTopics(mqttViewModel.resumeTopics())
+        //mqttViewModel.subscribeToAllTopics(mqttViewModel.resumeTopics())
     }
 
     if (showDialog) {

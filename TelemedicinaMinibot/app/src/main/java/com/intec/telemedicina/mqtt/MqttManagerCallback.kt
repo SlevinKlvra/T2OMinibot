@@ -1,8 +1,7 @@
 package com.intec.telemedicina.mqtt
 
-import android.content.Context
+import android.util.Log
 import androidx.compose.runtime.MutableState
-import com.ainirobot.coreservice.client.RobotApi
 import org.eclipse.paho.client.mqttv3.IMqttDeliveryToken
 import org.eclipse.paho.client.mqttv3.MqttCallbackExtended
 import org.eclipse.paho.client.mqttv3.MqttMessage
@@ -19,6 +18,7 @@ class MqttManagerCallback(
 
     override fun messageArrived(topic: String, message: MqttMessage) {
         onMessageArrived("Topic: $topic, Message: ${message.toString()}")
+        Log.d("MQTT Message Arrived","$topic: $message")
         val receivedMessage = message?.toString() ?: return
         listener.onMessageReceived(topic, receivedMessage)
         // Aquí puedes manejar la lógica cuando llega un mensaje

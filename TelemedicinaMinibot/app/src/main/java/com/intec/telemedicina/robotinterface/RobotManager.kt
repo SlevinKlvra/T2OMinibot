@@ -2,6 +2,8 @@ package com.intec.telemedicina.robotinterface
 
 import android.content.Context
 import android.util.Log
+import androidx.compose.runtime.State
+import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import com.ainirobot.coreservice.client.Definition
@@ -11,15 +13,23 @@ import com.ainirobot.coreservice.client.listener.ActionListener
 import com.ainirobot.coreservice.client.listener.CommandListener
 import com.ainirobot.coreservice.client.listener.TextListener
 import com.ainirobot.coreservice.client.speech.SkillApi
+import com.ainirobot.coreservice.client.speech.SkillCallback
 import com.ainirobot.coreservice.client.speech.entity.TTSEntity
+import com.intec.telemedicina.mqtt.MQTTConfig
+import com.intec.telemedicina.mqtt.MqttManager
+import com.intec.telemedicina.mqtt.MqttManagerCallback
+import com.intec.telemedicina.mqtt.MqttMessageListener
 import com.intec.telemedicina.repositories.dto.Place
+import dagger.hilt.android.internal.Contexts.getApplication
 import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.flow.MutableStateFlow
 import org.json.JSONArray
 import org.json.JSONException
 import javax.inject.Inject
 
 
-class RobotManager @Inject constructor(skillApi: SkillApi, @ApplicationContext applicationContext: Context){
+class RobotManager @Inject constructor(skillApi: SkillApi, @ApplicationContext applicationContext: Context) :
+    MqttMessageListener {
     var skillApi = skillApi
 
     var actionListener : ActionListener = ActionListener()
@@ -27,6 +37,7 @@ class RobotManager @Inject constructor(skillApi: SkillApi, @ApplicationContext a
 
     //TODO: Add poseslist methods reading from the shared prefs to get the pose from name --> Use this to expand the robot manager
     //TODO: Create speech methods inside here
+    //TODO: Add navController here for opening and closing screens
     val placesList: MutableList<Place> = mutableListOf()
     val posesList: MutableList<Pose> = mutableListOf()
     private val _destinationsList = MutableLiveData(listOf<String>())
@@ -37,12 +48,81 @@ class RobotManager @Inject constructor(skillApi: SkillApi, @ApplicationContext a
 
     val savePosesSharedPreferences = SavePosesSharedPreferences(applicationContext)
 
+    var pausedLocation : String = ""
+
+    private val _connectionState = mutableStateOf("Disconnected")
+    val connectionState get()= _connectionState
+    var navigation : Boolean = false
+    val listeningTopics : String = "robot/nav_cmds/stop_navigation"
+    private var _mqttQuestion = MutableLiveData<String>()
+    val mqttQuestion : MutableLiveData<String> get() = _mqttQuestion
+
+    val showQuestionsDialog = MutableStateFlow(false)
+    val showWelcomeDialog = MutableStateFlow(false)
+
+    var initiated_status = false
+
+    private val _incomingMessages = mutableStateOf(emptyList<String>())
+    val incomingMessages: State<List<String>> get() = _incomingMessages
+
+    private val mqttCallback = MqttManagerCallback(_connectionState, {
+        val updatedMessages = _incomingMessages.value.toMutableList()
+        updatedMessages.add(it)
+        _incomingMessages.value = updatedMessages
+    }, this)
+    private val mqttManager : MqttManager
+    private var mqttConfigInstance = MQTTConfig(
+        SERVER_URI ="tcp://192.168.47.116:1883",
+        client_id = "Robot",
+        qos = 0,
+        user = "telegraf",
+        password = "metricsmetricsmetricsmetrics"
+    )
+
+    lateinit var textListener : TextListener
+
     init {
+        mqttManager = MqttManager(getApplication(applicationContext), mqttCallback, mqttConfigInstance, getApplication(applicationContext))
+        mqttManager.connect()
         setupActionListener()
         getPlaceList()
 
+        textListener = object : TextListener() {
+            override fun onStart() {
+                // Iniciar reproducción
+            }
+
+            override fun onStop() {
+                // Detener reproducción
+            }
+
+            override fun onError() {
+                // Manejar error
+            }
+
+            override fun onComplete() {
+                // Reproducción completada
+            }
+        }
+
         //getPlaceList()
         //robotInterface = RobotNavigationManager(robotApi)
+    }
+
+    fun callback_speech_to_speech(speechResult: String){
+        Log.d("STT",speechResult)
+        addIncomingMessage("Publishing message: $speechResult to topic: test/speech")
+        mqttManager.publishMessage("test/speech",speechResult.toString())
+    }
+
+    private fun addIncomingMessage(message: String) {
+        Log.d("MqttViewModel", "Nuevo mensaje recibido: $message")
+        val currentMessages = _incomingMessages.value ?: emptyList()
+        _incomingMessages.value = currentMessages + message
+    }
+
+    override fun onMessageReceived(topic: String, message: String){
+
     }
 
 
@@ -120,16 +200,34 @@ class RobotManager @Inject constructor(skillApi: SkillApi, @ApplicationContext a
         Log.d("START NAVIGATION", "Comenzando navegación")
         RobotApi.getInstance().goPosition(0, RobotApi.getInstance().getSpecialPose(destName).toJson(), CommandListener())
         //robotApi.startNavigation(1, destName, coordinateDeviation, time, navigationListener)
+        pausedLocation = RobotApi.getInstance().getSpecialPose(destName).toJson()
+    }
+
+    fun resumeNavigation(reqId: Int){
+        if(pausedLocation.isNotEmpty()){
+            Log.d("RESUME NAVIGATION","Continuing navigation: $pausedLocation")
+            RobotApi.getInstance().goPosition(0, pausedLocation, CommandListener())
+        }
+        else{
+            Log.d("RESUME NAVIGATION","No last navigated location available")
+        }
     }
 
     fun stopNavigation(reqId: Int) {
         Log.d("STOP NAVIGATION", "Deteniendo navegación")
         //robotApi.stopNavigation(reqId)
         RobotApi.getInstance().stopGoPosition(0)
+        pausedLocation = ""
+    }
+
+    fun pauseNavigation(reqId: Int) {
+        Log.d("STOP NAVIGATION", "Deteniendo navegación")
+        //robotApi.stopNavigation(reqId)
+        RobotApi.getInstance().stopGoPosition(0)
     }
 
 
-    fun speak(text : String){
+    fun speak(text : String, listen: Boolean){
         skillApi.playText(TTSEntity("sid-012345",text), object : TextListener() {
             override fun onStart() {
                 // Iniciar reproducción
@@ -145,12 +243,53 @@ class RobotManager @Inject constructor(skillApi: SkillApi, @ApplicationContext a
 
             override fun onComplete() {
                 // Reproducción completada
-                skillApi.setRecognizeMode(true);
-                skillApi.setRecognizable(true);
+                skillApi.setRecognizeMode(listen)
+                skillApi.setRecognizable(listen)
             }
         })
     }
-    
+
+    fun setRecognizable(listen: Boolean){
+        skillApi.setRecognizeMode(listen)
+        skillApi.setRecognizable(listen)
+    }
+
+    fun registerCallback(){
+        skillApi.registerCallBack(object : SkillCallback(){
+            override fun onSpeechParResult(s: String) {
+                // Resultado temporal del reconocimiento de voz
+                //Log.d("RobotViewModel ASR", s)
+                //robotMan.callback_speech_to_speech(s)
+            }
+
+            override fun onStart() {
+                // Inicio del reconocimiento
+                //Log.d("RobotViewModel ASR", "onStart")
+            }
+
+            override fun onStop() {
+                // Fin del reconocimiento
+                //Log.d("RobotViewModel ASR", "onStop")
+            }
+
+            override fun onVolumeChange(volume: Int) {
+                // Cambio en el volumen de la voz reconocida
+                //Log.d("RobotViewModel ASR", "onVolumeChange")
+            }
+
+            override fun onQueryEnded(status: Int) {
+                // Manejar el fin de la consulta basado en el estado
+                //Log.d("RobotViewModel ASR", "onQueryEnded")
+            }
+
+            override fun onQueryAsrResult(asrResult: String) {
+                // asrResult: resultado final del reconocimiento
+                //Log.d("RobotViewModel ASR", asrResult)
+                callback_speech_to_speech(asrResult)
+            }
+        })
+        skillApi.setRecognizable(false)
+    }
     
 
 

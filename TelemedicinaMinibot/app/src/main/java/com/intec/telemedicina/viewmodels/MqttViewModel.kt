@@ -63,7 +63,6 @@ class MqttViewModel @Inject constructor(
     init {
         mqttManager = MqttManager(getApplication(), mqttCallback, mqttConfigInstance, application)
 
-
         Log.d("MQTTManager", "MqttManager created: $mqttManager")
     }
 
@@ -83,6 +82,7 @@ class MqttViewModel @Inject constructor(
         addIncomingMessage("Connecting to broker: ${mqttConfigInstance.SERVER_URI}")
         mqttManager.connect()
         initiated_status = true
+        //subscribeToAllTopics(resumeTopics())
     }
 
     fun disconnect() {
@@ -114,7 +114,7 @@ class MqttViewModel @Inject constructor(
     fun subscribeToAllTopics(topics: MutableList<String>) {
         Log.d("MQTTViewModel", "Subscribing to all topics")
         addIncomingMessage("Subscribing to all topics")
-        mqttManager.subscribeToAllTopics(topics)
+        //mqttManager.subscribeToAllTopics(topics)
     }
 
     fun publishMessage(topic: String, message: String) {
@@ -168,6 +168,7 @@ class MqttViewModel @Inject constructor(
 
     override fun onMessageReceived(topic: String, message: String) {
         addIncomingMessage(message)
+        Log.d("MQTT Message","$topic: $message")
 
         when(topic){
             //"robot/nav_pub/status" -> robotApi.currentPose
@@ -204,11 +205,19 @@ class MqttViewModel @Inject constructor(
                 robotMan.stopNavigation(0)
             }
 
+            "robot/nav_cmds/pause_navigation" -> {
+                robotMan.pauseNavigation(0)
+            }
+
+            "robot/nav_cmds/resume_navigation" -> {
+                robotMan.resumeNavigation(0)
+            }
+
             //navigationListener.onStatusUpdate(Definition.ACTION_NAVI_STOP_MOVE,"YESSSSS")
             "robot/voice_cmds/text_to_speech" -> {
                 Log.d("TextToSpeech", message)
                 //playTextViaTTS(message)
-                robotMan.speak(message)
+                robotMan.speak(message,true)
             }
 
             "robot/voice_cmds/question" -> {
@@ -265,6 +274,10 @@ class MqttViewModel @Inject constructor(
             }
             "robot/move_forward" -> {
                 RobotApi.getInstance().goForward(0, 0.2F,0.1F,false, CommandListener())
+            }
+            "robot/stop_stt" -> {
+                Log.d("STT","Listening disabled")
+                robotMan.setRecognizable(false)
             }
         }
     }

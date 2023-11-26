@@ -62,37 +62,7 @@ class MainActivity : ComponentActivity() {
                     }
 
                     override fun handleApiConnected() {
-                        skillApi.registerCallBack(object : SkillCallback(){
-                            override fun onSpeechParResult(s: String) {
-                                // Resultado temporal del reconocimiento de voz
-                                Log.d("RobotViewModel ASR", s)
-                            }
-
-                            override fun onStart() {
-                                // Inicio del reconocimiento
-                                Log.d("RobotViewModel ASR", "onStart")
-                            }
-
-                            override fun onStop() {
-                                // Fin del reconocimiento
-                                Log.d("RobotViewModel ASR", "onStop")
-                            }
-
-                            override fun onVolumeChange(volume: Int) {
-                                // Cambio en el volumen de la voz reconocida
-                                Log.d("RobotViewModel ASR", "onVolumeChange")
-                            }
-
-                            override fun onQueryEnded(status: Int) {
-                                // Manejar el fin de la consulta basado en el estado
-                                Log.d("RobotViewModel ASR", "onQueryEnded")
-                            }
-
-                            override fun onQueryAsrResult(asrResult: String) {
-                                // asrResult: resultado final del reconocimiento
-                                Log.d("RobotViewModel ASR", asrResult)
-                            }
-                        })
+                        robotMan.registerCallback()
                         Log.d("SKILLAPI","Skill api connected!")
                     }
 

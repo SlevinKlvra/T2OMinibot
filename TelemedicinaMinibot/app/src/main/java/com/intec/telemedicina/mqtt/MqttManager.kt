@@ -46,6 +46,8 @@ class MqttManager(private val context: Context, private val callback: MqttManage
                     mqttAndroidClient.setBufferOpts(disconnectedBufferOptions)
                     onSuccess?.invoke()
                     //addToHistory("Connected to $serverUri")
+
+                    subscribeToAllTopics(getTopics())
                 }
                 override fun onFailure(asyncActionToken: IMqttToken?, exception: Throwable) {
                     // Something went wrong e.g. connection timeout or firewall problems
@@ -109,6 +111,9 @@ class MqttManager(private val context: Context, private val callback: MqttManage
         listaTopics.add(22,"robot/focus")
         listaTopics.add(23,"robot/unfocus")
         listaTopics.add(24,"robot/move_forward")
+        listaTopics.add(25,"robot/nav_cmds/pause_navigation")
+        listaTopics.add(26,"robot/nav_cmds/resume_navigation")
+        listaTopics.add(27,"robot/stop_stt")
         return listaTopics
     }
 
@@ -126,7 +131,7 @@ class MqttManager(private val context: Context, private val callback: MqttManage
         Log.d("SUBSCRIPTION", "SUBSCRIBING TO TOPIC!")
 
         try {
-            mqttAndroidClient.subscribe(currentTopic, 1, null, object : IMqttActionListener {
+            mqttAndroidClient.subscribe(currentTopic, 0, null, object : IMqttActionListener {
                 override fun onSuccess(asyncActionToken: IMqttToken) {
                     Log.d("SUBSCRIPTION", "SUBSCRIPTION to $currentTopic SUCCESS!")
                 }
@@ -148,6 +153,7 @@ class MqttManager(private val context: Context, private val callback: MqttManage
             message.payload = mensage.toByteArray()
             Log.d("PUBLISH", (message.payload).toString())
             if (mqttAndroidClient.isConnected) {
+                Log.d("PUBLISH","SENDING MESSAGE")
                 mqttAndroidClient.publish(topic, message)
                 //addToHistory("Message Published >$publishedMessage<")
                 if (!mqttAndroidClient.isConnected) {
