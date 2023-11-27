@@ -58,6 +58,15 @@ fun MqttScreen(navController: NavController, mqttViewModel: MqttViewModel) {
     var topicToPublish by remember { mutableStateOf("") }
     var messageToPublish by remember { mutableStateOf("") }
 
+
+    /*if(openScreen && (navController.currentDestination?.route.toString() != "driving_face_screen")) {
+        Log.d("DRIVINGSCREEN", "Open the drivingscreen: ${navController.currentDestination!!.route}")
+        navController.navigate(AppScreens.DrivingFaceScreen.route)
+    }*/
+    /*else if(!openScreen && (navController.currentDestination?.route.toString() == "driving_face_screen")){
+        navController.popBackStack()
+    }*/
+
     LazyColumn(
         modifier = Modifier
             .fillMaxSize()

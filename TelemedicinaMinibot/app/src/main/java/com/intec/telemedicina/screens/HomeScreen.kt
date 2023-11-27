@@ -23,6 +23,7 @@ import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Call
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Person
@@ -31,6 +32,7 @@ import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -58,6 +60,7 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.intec.telemedicina.R
 import com.intec.telemedicina.navigation.AppScreens
+import com.intec.telemedicina.robotinterface.RobotManager
 import com.intec.telemedicina.ui.color.md_theme_light_onPrimary
 import com.intec.telemedicina.ui.color.md_theme_light_primary
 import com.intec.telemedicina.ui.color.md_theme_light_tertiary
@@ -65,20 +68,35 @@ import com.intec.telemedicina.viewmodels.MqttViewModel
 import com.intec.telemedicina.viewmodels.SplashScreenViewModel
 
 @Composable
-fun HomeScreen(navController: NavController, splashScreenViewModel: SplashScreenViewModel, mqttViewModel: MqttViewModel){
+fun HomeScreen(navController: NavController, splashScreenViewModel: SplashScreenViewModel, mqttViewModel: MqttViewModel, robotManager: RobotManager){
 
     val splashScreenViewModel: SplashScreenViewModel = splashScreenViewModel
     val mqttViewModel: MqttViewModel = mqttViewModel
+    val robotManager = robotManager
 
     val showDialog by splashScreenViewModel.showNavigationDialog.collectAsState()
     val showQuestionsDialog by mqttViewModel.showQuestionsDialog.collectAsState()
     val showWelcomeDialog by mqttViewModel.showWelcomeDialog.collectAsState()
 
-    if(!mqttViewModel.getInitiatedStatus()){
+    val showDrivingScreenFace by mqttViewModel.showDrivingScreenFace.collectAsState()
+    val closeDrivingScreenFace by mqttViewModel.closeDrivingScreenFace.collectAsState()
+
+    /*if(!mqttViewModel.getInitiatedStatus()){
         mqttViewModel.connect()
         Log.d("Topicslist",mqttViewModel.resumeTopics().toString())
         //mqttViewModel.subscribeToAllTopics(mqttViewModel.resumeTopics())
-    }
+    }*/
+
+    /*if(showDrivingScreenFace){ //&& (navController.currentDestination?.route.toString() != "driving_face_screen")) {
+        Log.d("DRIVINGSCREEN", "Open the drivingscreen: ${navController.currentDestination!!.route}")
+        navController.navigate(AppScreens.DrivingScreen.route)
+        mqttViewModel.deactivateOpenDrivingScreenFace()
+    }*/
+
+    /*if(closeDrivingScreenFace) {
+        navController.navigateUp()
+        mqttViewModel.deactivateCloseDrivingScreenFace()
+    }*/
 
     if (showDialog) {
         NavigationDialog(
@@ -103,7 +121,9 @@ fun HomeScreen(navController: NavController, splashScreenViewModel: SplashScreen
     if(showWelcomeDialog) {
         Log.d("QUESTIONS", "ENTRA AL DIALOGO")
         WelcomeDialog(
-            onDismiss = { mqttViewModel.hideWelcomeDialog() },
+            onDismiss = {
+                //navController.navigate(AppScreens.DrivingFaceScreen.route)
+                mqttViewModel.hideWelcomeDialog() },
             onStopNavigation = {  },
             onReturnToPreviousOrReception = {  },
             onEmergencyCall = {  },
@@ -119,6 +139,16 @@ fun HomeScreen(navController: NavController, splashScreenViewModel: SplashScreen
             Box(modifier = Modifier
                 .fillMaxWidth()
                 .weight(1f)) {
+                FloatingActionButton(
+                    onClick = { navController.popBackStack() },
+                    modifier = Modifier.size(36.dp).align(Alignment.BottomStart),
+                    containerColor = md_theme_light_tertiary
+                ) { // You can set the house icon here using painterResource
+                    Icon(
+                        imageVector = Icons.Default.ArrowBack,
+                        contentDescription = null
+                    )
+                }
                 LazyRowUbicaciones(splashScreenViewModel = splashScreenViewModel, modifier = Modifier.align(Alignment.BottomCenter))
             }
         }

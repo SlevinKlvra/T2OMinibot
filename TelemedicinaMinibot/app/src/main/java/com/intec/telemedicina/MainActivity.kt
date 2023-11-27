@@ -12,7 +12,6 @@ import androidx.compose.ui.Modifier
 import com.ainirobot.coreservice.client.ApiListener
 import com.ainirobot.coreservice.client.RobotApi
 import com.ainirobot.coreservice.client.speech.SkillApi
-import com.ainirobot.coreservice.client.speech.SkillCallback
 import com.intec.telemedicina.di.MqttViewModelFactory
 import com.intec.telemedicina.di.SplashScreenViewModelFactory
 import com.intec.telemedicina.icariascreen.AppNavigation
@@ -55,7 +54,16 @@ class MainActivity : ComponentActivity() {
             override fun handleApiDisabled() {}
             override fun handleApiConnected() {
                 // Server is connected, set the callback for receiving requests, including voice commands, system events, etc.
-                RobotApi.getInstance().setCallback(ModuleCallback())
+                RobotApi.getInstance().setCallback(object : ModuleCallback() {
+                    override fun onSendRequest(
+                        reqId: Int,
+                        reqType: String,
+                        reqText: String,
+                        reqParam: String
+                    ): Boolean {
+                        return robotMan.onSendRequest(reqId, reqType, reqText, reqParam)
+                    }
+                })
                 skillApi.connectApi(applicationContext, object : ApiListener {
                     override fun handleApiDisabled() {
                         TODO("Not yet implemented")
@@ -84,7 +92,7 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxHeight(1f),
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    AppNavigation(viewModel = viewModel, mqttViewModel = mqttViewModel)
+                    AppNavigation(viewModel = viewModel, mqttViewModel = mqttViewModel, robotManager = robotMan)
                 }
                 // A surface container using the 'background' color from the theme
             }

@@ -12,4 +12,6 @@ sealed class AppScreens(val route:String){
     object TourScreen: AppScreens("tour_screen")
     object HomeControlScreen: AppScreens("home_control_screen")
     object TestScreen: AppScreens("test_screen")
+    object DrivingScreen: AppScreens("driving_screen")
+    object EyesScreen: AppScreens("eyes_screen")
 }

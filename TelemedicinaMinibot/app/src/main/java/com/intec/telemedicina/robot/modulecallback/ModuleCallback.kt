@@ -3,9 +3,8 @@ package com.intec.telemedicina.robot.modulecallback
 import android.os.RemoteException
 import android.util.Log
 import com.ainirobot.coreservice.client.module.ModuleCallbackApi
-import com.intec.telemedicina.viewmodels.MqttViewModel
 
-class ModuleCallback : ModuleCallbackApi() {
+open class ModuleCallback : ModuleCallbackApi() {
     @Throws(RemoteException::class)
     override fun onSendRequest(
         reqId: Int,

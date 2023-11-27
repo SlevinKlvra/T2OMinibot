@@ -7,12 +7,13 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.MutableLiveData
 import com.ainirobot.coreservice.client.RobotApi
-import com.ainirobot.coreservice.client.listener.CommandListener
 import com.ainirobot.coreservice.client.listener.Person
 import com.ainirobot.coreservice.client.listener.TextListener
 import com.ainirobot.coreservice.client.person.PersonApi
 import com.ainirobot.coreservice.client.speech.SkillApi
 import com.ainirobot.coreservice.client.speech.entity.TTSEntity
+import com.intec.telemedicina.data.Face
+import com.intec.telemedicina.data.InteractionState
 import com.intec.telemedicina.mqtt.MQTTConfig
 import com.intec.telemedicina.mqtt.MqttManager
 import com.intec.telemedicina.mqtt.MqttManagerCallback
@@ -41,8 +42,18 @@ class MqttViewModel @Inject constructor(
     private var _mqttQuestion = MutableLiveData<String>()
     val mqttQuestion : MutableLiveData<String> get() = _mqttQuestion
 
+    var faceType = MutableStateFlow(Face.NEUTRAL)
+    var interactionState = MutableStateFlow(InteractionState.NONE)
+    var isDriving = MutableStateFlow(false)
+    var isPaused = MutableStateFlow(false)
+    var question = MutableStateFlow("")
+
+
     val showQuestionsDialog = MutableStateFlow(false)
     val showWelcomeDialog = MutableStateFlow(false)
+
+    val showDrivingScreenFace = MutableStateFlow(false)
+    val closeDrivingScreenFace = MutableStateFlow(false)
 
     var initiated_status = false
 
@@ -62,9 +73,9 @@ class MqttViewModel @Inject constructor(
 
     init {
         mqttManager = MqttManager(getApplication(), mqttCallback, mqttConfigInstance, application)
-
         Log.d("MQTTManager", "MqttManager created: $mqttManager")
     }
+
 
     // State para mensajes entrantes
     private val _incomingMessages = mutableStateOf(emptyList<String>())
@@ -173,6 +184,7 @@ class MqttViewModel @Inject constructor(
         when(topic){
             //"robot/nav_pub/status" -> robotApi.currentPose
             "robot/nav_cmds/go_to" -> {
+                isDriving.value = true
                 //Log.d("MQTTViewModel", "Starting navigation to: $message")
                 //robotApi.startNavigation(1, message.toString(), 0.01, 100000, navigationListener)
                 //RobotManager(getApplication<Application>().applicationContext).getRobotInterfaceMethod().startNavigation(1, message.toString(), 0.01, 100000)
@@ -203,14 +215,18 @@ class MqttViewModel @Inject constructor(
             "robot/nav_cmds/stop_navigation" -> {
                 //robotApi.stopNavigation(1)
                 robotMan.stopNavigation(0)
+                isDriving.value = false
             }
 
             "robot/nav_cmds/pause_navigation" -> {
                 robotMan.pauseNavigation(0)
+                isDriving.value = false
             }
 
             "robot/nav_cmds/resume_navigation" -> {
                 robotMan.resumeNavigation(0)
+                isDriving.value = true
+                isPaused.value = false
             }
 
             //navigationListener.onStatusUpdate(Definition.ACTION_NAVI_STOP_MOVE,"YESSSSS")
@@ -220,13 +236,22 @@ class MqttViewModel @Inject constructor(
                 robotMan.speak(message,true)
             }
 
-            "robot/voice_cmds/question" -> {
-                Log.d("Question",message)
-                _mqttQuestion.value = message
+            "robot/voice_cmds/question_si_no" -> {
+                robotMan.question_si_no(message, true)
+                question.value = message
+            }
 
-                showQuestionsDialog()
+            "robot/voice_cmds/question" -> {
+                //Log.d("Question",message)
+                //_mqttQuestion.value = message
+                robotMan.question_si_no(message,false)
+                question.value = message
+                //showQuestionsDialog()
                 //Open window with question --> Yes/No
                 //Send response back
+            }
+            "robot/voice_cmds/remove_question" -> {
+                question.value = ""
             }
             "robot/welcome_cmd" -> { //return answer on --> "robot/welcome_pub"
                 //robotApi.startNavigation(1, "Punto de recepción", 0.01, 100000, navigationListener)
@@ -273,13 +298,36 @@ class MqttViewModel @Inject constructor(
                 RobotApi.getInstance().stopFocusFollow(0)
             }
             "robot/move_forward" -> {
-                RobotApi.getInstance().goForward(0, 0.2F,0.1F,false, CommandListener())
+                robotMan.moveForward()
             }
             "robot/stop_stt" -> {
                 Log.d("STT","Listening disabled")
                 robotMan.setRecognizable(false)
             }
+            "robot/faceType" -> {
+                faceType.value = Face.valueOf(message)
+            }
+            "robot/interactionState" -> {
+                interactionState.value = InteractionState.valueOf(message)
+            }
+            "robot/close_screen" -> {
+                closeDrivingScreenFace.value = true
+            }
+            "robot/wake_up" -> {
+                robotMan.wakeUp()
+            }
+            "robot/nav_cmds/driving_finished" -> {
+                isDriving.value = false
+            }
         }
+    }
+
+    fun deactivateOpenDrivingScreenFace(){
+        showDrivingScreenFace.value = false
+    }
+
+    fun deactivateCloseDrivingScreenFace(){
+        closeDrivingScreenFace.value = false
     }
 
     // LiveData to handle keyboard hide state
@@ -315,5 +363,10 @@ class MqttViewModel @Inject constructor(
     fun hideWelcomeDialog(){
         Log.d("MQTTViewModel", "Hiding welcome dialog")
         showWelcomeDialog.value = false
+    }
+
+    fun setPaused(isPaused_temp : Boolean) {
+        isPaused.value = isPaused_temp
+        robotMan.pauseNavigation(0)
     }
 }
