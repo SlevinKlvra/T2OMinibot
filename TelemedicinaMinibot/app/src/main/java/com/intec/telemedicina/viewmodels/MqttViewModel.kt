@@ -216,8 +216,8 @@ class MqttViewModel @Inject constructor(
                 //RobotApi.getInstance().goForward(0, 0.3F, 0.1F, CommandListener())
                 //RobotManager(getApplication<Application>().applicationContext).getRobotInterfaceMethod().goPosition()
             }
-            /*"robot/nav_cmds/go_to_coord" -> robotApi.startNavigation(1, message,0.01, 100000, navigationListener)
-            "robot/nav_cmds/go_charger" -> robotApi.goCharging(1)*/
+            /*"robot/nav_cmds/go_to_coord" -> robotApi.startNavigation(1, message,0.01, 100000, navigationListener)*/
+            "robot/nav_cmds/go_charger" -> RobotApi.getInstance().goCharging(0)
             "robot/nav_cmds/stop_navigation" -> {
                 //robotApi.stopNavigation(1)
                 robotMan.stopNavigation(0)
