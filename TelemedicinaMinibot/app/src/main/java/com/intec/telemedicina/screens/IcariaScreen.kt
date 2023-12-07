@@ -11,17 +11,15 @@ import android.webkit.WebResourceRequest
 import android.webkit.WebView
 import android.webkit.WebViewClient
 import androidx.annotation.RequiresApi
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.absoluteOffset
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
@@ -34,9 +32,15 @@ fun IcariaScreen(navController: NavController) {
     //val url = "http://192.168.47.116:8123"
     // Composable function to display the WebView
 
+    /*Box(){
+        WebView
+    }*/
+
     fun navigateBack() {
         navController.popBackStack() // You may need to adjust this based on your navigation setup
     }
+
+
 
     @SuppressLint("SetJavaScriptEnabled")
     @Composable
@@ -94,21 +98,17 @@ fun IcariaScreen(navController: NavController) {
     // Display the WebViewContainer in your Composable
     WebViewContainer(url)
 
-    Row(
-        modifier = Modifier.fillMaxSize(),
-        horizontalArrangement = Arrangement.Start
-    ) {
-        Spacer(modifier = Modifier.absoluteOffset(0.dp,0.dp))
+    Box{
         FloatingActionButton(
-            onClick = { navigateBack() },
-            modifier = Modifier.size(36.dp),
+            onClick = { navController.popBackStack() },
+            modifier = Modifier.size(36.dp).align(Alignment.BottomStart),
             containerColor = md_theme_light_tertiary
-        ) {
-            // You can set the house icon here using painterResource
+        ) { // You can set the house icon here using painterResource
             Icon(
-                imageVector = Icons.Default.Home, // Replace with your house icon
+                imageVector = Icons.Default.ArrowBack,
                 contentDescription = null
             )
         }
     }
+
 }

@@ -7,6 +7,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.MutableLiveData
 import com.ainirobot.coreservice.client.RobotApi
+import com.ainirobot.coreservice.client.actionbean.Pose
 import com.ainirobot.coreservice.client.listener.Person
 import com.ainirobot.coreservice.client.listener.TextListener
 import com.ainirobot.coreservice.client.person.PersonApi
@@ -42,11 +43,14 @@ class MqttViewModel @Inject constructor(
     private var _mqttQuestion = MutableLiveData<String>()
     val mqttQuestion : MutableLiveData<String> get() = _mqttQuestion
 
+    val posesList = MutableStateFlow(emptyList<Pose>())
+
     var faceType = MutableStateFlow(Face.NEUTRAL)
     var interactionState = MutableStateFlow(InteractionState.NONE)
     var isDriving = MutableStateFlow(false)
     var isPaused = MutableStateFlow(false)
     var question = MutableStateFlow("")
+    var notUnderstood = MutableStateFlow(false)
 
 
     val showQuestionsDialog = MutableStateFlow(false)
@@ -54,6 +58,8 @@ class MqttViewModel @Inject constructor(
 
     val showDrivingScreenFace = MutableStateFlow(false)
     val closeDrivingScreenFace = MutableStateFlow(false)
+
+    val openHomescreen = MutableStateFlow(false)
 
     var initiated_status = false
 
@@ -233,7 +239,7 @@ class MqttViewModel @Inject constructor(
             "robot/voice_cmds/text_to_speech" -> {
                 Log.d("TextToSpeech", message)
                 //playTextViaTTS(message)
-                robotMan.speak(message,true)
+                robotMan.speak(message,false)
             }
 
             "robot/voice_cmds/question_si_no" -> {
@@ -252,6 +258,7 @@ class MqttViewModel @Inject constructor(
             }
             "robot/voice_cmds/remove_question" -> {
                 question.value = ""
+                notUnderstood.value = false
             }
             "robot/welcome_cmd" -> { //return answer on --> "robot/welcome_pub"
                 //robotApi.startNavigation(1, "Punto de recepción", 0.01, 100000, navigationListener)
@@ -317,9 +324,27 @@ class MqttViewModel @Inject constructor(
                 robotMan.wakeUp()
             }
             "robot/nav_cmds/driving_finished" -> {
+                Log.d("DRIVINGFINISHED","Preparing home screen")
                 isDriving.value = false
             }
+            "robot/open_homescreen" -> {
+                openHomescreen.value = true
+            }
+            "robot/notUnderstood" -> {
+                notUnderstood.value = true
+            }
+            "robot/nav_cmds/request_move" -> {
+                robotMan.question_move()
+            }
         }
+    }
+
+    fun closeHomescreen(){
+        openHomescreen.value = false
+    }
+
+    fun getListPoses(){
+        posesList.value = robotMan.getPoses()
     }
 
     fun deactivateOpenDrivingScreenFace(){

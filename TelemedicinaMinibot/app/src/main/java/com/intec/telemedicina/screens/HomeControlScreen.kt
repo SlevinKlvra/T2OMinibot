@@ -5,8 +5,11 @@ import android.util.Log
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.res.painterResource
@@ -16,6 +19,7 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.intec.telemedicina.AppBottomBar
 import com.intec.telemedicina.R
+import com.intec.telemedicina.ui.color.md_theme_light_tertiary
 import com.intec.telemedicina.viewmodels.SplashScreenViewModel
 
 
@@ -56,6 +60,18 @@ fun BodyContent(navController: NavController){
                 }
             }
         })
+    }
+    Box{
+        FloatingActionButton(
+            onClick = { navController.popBackStack() },
+            modifier = Modifier.size(36.dp).align(Alignment.BottomStart),
+            containerColor = md_theme_light_tertiary
+        ) { // You can set the house icon here using painterResource
+            Icon(
+                imageVector = Icons.Default.ArrowBack,
+                contentDescription = null
+            )
+        }
     }
 }
 

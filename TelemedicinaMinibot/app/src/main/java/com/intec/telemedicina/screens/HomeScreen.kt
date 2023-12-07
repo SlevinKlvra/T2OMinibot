@@ -38,7 +38,6 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -58,6 +57,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import com.ainirobot.coreservice.client.actionbean.Pose
 import com.intec.telemedicina.R
 import com.intec.telemedicina.navigation.AppScreens
 import com.intec.telemedicina.robotinterface.RobotManager
@@ -141,7 +141,9 @@ fun HomeScreen(navController: NavController, splashScreenViewModel: SplashScreen
                 .weight(1f)) {
                 FloatingActionButton(
                     onClick = { navController.popBackStack() },
-                    modifier = Modifier.size(36.dp).align(Alignment.BottomStart),
+                    modifier = Modifier
+                        .size(36.dp)
+                        .align(Alignment.BottomStart),
                     containerColor = md_theme_light_tertiary
                 ) { // You can set the house icon here using painterResource
                     Icon(
@@ -149,7 +151,7 @@ fun HomeScreen(navController: NavController, splashScreenViewModel: SplashScreen
                         contentDescription = null
                     )
                 }
-                LazyRowUbicaciones(splashScreenViewModel = splashScreenViewModel, modifier = Modifier.align(Alignment.BottomCenter))
+                LazyRowUbicaciones(mqttViewModel = mqttViewModel, modifier = Modifier.align(Alignment.BottomCenter), navController)
             }
         }
     }
@@ -172,35 +174,37 @@ fun Cabecera(navController: NavController){
 }
 
 @Composable
-fun LazyRowUbicaciones(splashScreenViewModel: SplashScreenViewModel, modifier : Modifier = Modifier){
-    Log.d("DESTINATIONS", "ENTRA A LA FUNCIÓN")
-    Log.d("DESTINATIONS LIST", splashScreenViewModel.destinationsList.value.toString())
+fun LazyRowUbicaciones(mqttViewModel: MqttViewModel, modifier : Modifier = Modifier, navController: NavController){
 
-    var destinations : List<String> = mutableListOf()
+    /*var destinations : List<String> = mutableListOf()
     destinations = splashScreenViewModel.destinationsList.value!!
 
     LaunchedEffect(Unit){
-        /*splashScreenViewModel.getPlaceList()*/
-    }
+        splashScreenViewModel.getPlaceList()
+    }*/
+
+    mqttViewModel.getListPoses()
+    val destinations : List<Pose> by mqttViewModel.posesList.collectAsState()
 
     LazyRow(modifier = modifier.then(
         Modifier
             .background(Color.Transparent)
             .fillMaxWidth()
-            .padding(top = 4.dp)),
+            .padding(top = 4.dp, start = 40.dp)),
         verticalAlignment = Alignment.Bottom,
         horizontalArrangement = Arrangement.Center,
     ) {
         // Los botones que se crean a partir de la lista del viewModel
         items(items = destinations) { item ->
-            Log.d("DESTINATIONS", item)
+            Log.d("DESTINATIONS", item.name)
             // Un botón con el onClick y el estilo que quieras
             Box(
                 modifier = Modifier
                     .size(width = 120.dp, height = 100.dp) // Establece un tamaño fijo para el botón
                     .clickable {
                         /*splashScreenViewModel.navigateToDestiny(item)*/
-                        splashScreenViewModel.showNavigationDialog()
+                        mqttViewModel.robotMan.startNavigation(0,item.name,0.1,1000000)
+                        navController.navigate(AppScreens.EyesScreen.route)
                     }
                     .padding(end = 15.dp, bottom = 12.dp, top = 5.dp)
 
@@ -211,7 +215,7 @@ fun LazyRowUbicaciones(splashScreenViewModel: SplashScreenViewModel, modifier : 
                 contentAlignment = Alignment.Center // Centra el contenido del Box
             ) {
                 Text(
-                    text = item,
+                    text = item.name,
                     maxLines = 1, // Asegúrate de que el texto no exceda una línea
                     overflow = TextOverflow.Ellipsis, // Usa "..." si el texto es demasiado largo
                     color = Color.Black,

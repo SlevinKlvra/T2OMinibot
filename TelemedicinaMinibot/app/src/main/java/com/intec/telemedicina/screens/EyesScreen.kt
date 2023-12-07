@@ -9,7 +9,13 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -30,6 +36,7 @@ import com.intec.telemedicina.R
 import com.intec.telemedicina.data.Face
 import com.intec.telemedicina.data.InteractionState
 import com.intec.telemedicina.navigation.AppScreens
+import com.intec.telemedicina.ui.color.md_theme_light_tertiary
 import com.intec.telemedicina.viewmodels.MqttViewModel
 
 @Composable
@@ -41,6 +48,13 @@ fun EyesScreen(navController: NavController, mqttViewModel: MqttViewModel){
     val isDriving by mqttViewModel.isDriving.collectAsState()
     val isPaused by mqttViewModel.isPaused.collectAsState()
     val question by mqttViewModel.question.collectAsState()
+    val openHomescreen by mqttViewModel.openHomescreen.collectAsState()
+    val notUnderstood by mqttViewModel.notUnderstood.collectAsState()
+
+    if(openHomescreen){
+        navController.navigate(AppScreens.HomeScreen.route)
+        mqttViewModel.closeHomescreen()
+    }
 
     if(!mqttViewModel.getInitiatedStatus()){
         mqttViewModel.connect()
@@ -52,24 +66,45 @@ fun EyesScreen(navController: NavController, mqttViewModel: MqttViewModel){
         Modifier
             .clickable {
 
-                if(isDriving){
+                if (isDriving) {
                     mqttViewModel.setPaused(true)
                     navController.navigate(AppScreens.DrivingScreen.route)
-                }
-                else{
+                } else {
                     navController.navigate(AppScreens.HomeScreen.route)
-                }}
+                }
+            }
             .background(Color.Black)
             .fillMaxSize()){
-        ImageExample(faceType, interactionState, question)
+        ImageExample(faceType, interactionState, question, notUnderstood)
+        if(false){//notUnderstood){
+            FloatingActionButton(
+                onClick = { /*TO-DO: Yes button*/ },
+                modifier = Modifier.size(36.dp).align(Alignment.BottomStart),
+                containerColor = md_theme_light_tertiary
+            ) { // You can set the house icon here using painterResource
+                Icon(
+                    imageVector = Icons.Default.Check,
+                    contentDescription = null
+                )
+            }
+            //Spacer(modifier = Modifier.padding(end = 15.dp, bottom = 12.dp, top = 5.dp))
+            FloatingActionButton(
+                onClick = { /*TO-DO: No button*/ },
+                modifier = Modifier.size(36.dp).align(Alignment.BottomEnd),
+                containerColor = md_theme_light_tertiary
+            ) { // You can set the house icon here using painterResource
+                Icon(
+                    imageVector = Icons.Default.Close,
+                    contentDescription = null
+                )
+            }
+        }
     }
-
-
-
 }
 
 @Composable
-fun ImageExample(faceType : Face, interactionState: InteractionState, question : String) {
+fun ImageExample(faceType : Face, interactionState: InteractionState, question : String, notUnderstood : Boolean) {
+    Log.d("Understood", "$notUnderstood")
     val imageEmotionsLoader = ImageLoader.Builder(LocalContext.current)
         .components {
             if (SDK_INT >= 28) {
@@ -97,42 +132,42 @@ fun ImageExample(faceType : Face, interactionState: InteractionState, question :
         when(faceType){
             Face.NEUTRAL -> {
                 Image(
-                    painter = rememberAsyncImagePainter(R.drawable.neutral,imageEmotionsLoader),
+                    painter = rememberAsyncImagePainter(R.drawable.blue_neutral,imageEmotionsLoader),
                     contentDescription = null,
                     modifier = Modifier.fillMaxSize()
                 )
             }
             Face.HAPPY -> {
                 Image(
-                    painter = rememberAsyncImagePainter(R.drawable.happy, imageEmotionsLoader),
+                    painter = rememberAsyncImagePainter(R.drawable.blue_happy, imageEmotionsLoader),
                     contentDescription = null,
                     modifier = Modifier.fillMaxSize()
                 )
             }
             Face.BORED -> {
                 Image(
-                    painter = rememberAsyncImagePainter(R.drawable.bored, imageEmotionsLoader),
+                    painter = rememberAsyncImagePainter(R.drawable.blue_bored, imageEmotionsLoader),
                     contentDescription = null,
                     modifier = Modifier.fillMaxSize()
                 )
             }
             Face.MAD -> {
                 Image(
-                    painter = rememberAsyncImagePainter(R.drawable.mad, imageEmotionsLoader),
+                    painter = rememberAsyncImagePainter(R.drawable.blue_mad, imageEmotionsLoader),
                     contentDescription = null,
                     modifier = Modifier.fillMaxSize()
                 )
             }
             Face.SAD -> {
                 Image(
-                    painter = rememberAsyncImagePainter(R.drawable.sad, imageEmotionsLoader),
+                    painter = rememberAsyncImagePainter(R.drawable.blue_sad, imageEmotionsLoader),
                     contentDescription = null,
                     modifier = Modifier.fillMaxSize()
                 )
             }
             Face.LOVE -> {
                 Image(
-                    painter = rememberAsyncImagePainter(R.drawable.love, imageEmotionsLoader),
+                    painter = rememberAsyncImagePainter(R.drawable.blue_love, imageEmotionsLoader),
                     contentDescription = null,
                     modifier = Modifier.fillMaxSize()
                 )
