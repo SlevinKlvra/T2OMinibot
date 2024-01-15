@@ -52,15 +52,7 @@ fun EyesScreen(navController: NavController, mqttViewModel: MqttViewModel, robot
     val isDriving by mqttViewModel.isDriving.collectAsState()
     val isPaused by mqttViewModel.isPaused.collectAsState()
     val question by mqttViewModel.question.collectAsState()
-    val openHomescreen by mqttViewModel.openHomeScreen.collectAsState()
     val notUnderstood by mqttViewModel.notUnderstood.collectAsState()
-
-
-    if(openHomescreen){
-        Log.d("openHomeScreen", "true")
-        navController.navigate(AppScreens.HomeScreen.route)
-        mqttViewModel.closeEyescreen()
-    }
 
     if(!mqttViewModel.getInitiatedStatus()){
         mqttViewModel.connect()
@@ -71,7 +63,6 @@ fun EyesScreen(navController: NavController, mqttViewModel: MqttViewModel, robot
     Box(
         Modifier
             .clickable {
-
                 if (isDriving) {
                     mqttViewModel.setPaused(true)
                     navController.navigate(AppScreens.DrivingScreen.route)
