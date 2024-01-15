@@ -27,7 +27,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.intec.telemedicina.navigation.AppScreens
-import com.intec.telemedicina.ui.color.md_theme_light_tertiary
+import com.intec.telemedicina.ui.theme.md_theme_light_tertiary
 import com.intec.telemedicina.viewmodels.MqttViewModel
 
 @Composable

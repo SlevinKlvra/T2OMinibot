@@ -1,9 +1,14 @@
 package com.intec.telemedicina.mqtt
 
 data class MQTTConfig (
-    val SERVER_URI : String, // Cambia a "ssl://" si usas SSL
-    val client_id: String,
-    val qos: Int, // 0, 1 o 2
-    val user: String,
-    val password: String
+    var SERVER_URI: String,
+    var client_id: String,
+    var qos: Int,
+    var user: String,
+    var password: String,
+    // Añadir nuevos campos
+    var apiUser: String,
+    var apiPassword: String,
+    var waitingIdleTime: Int,
+    var meetingTimeThreshold: Int
 )

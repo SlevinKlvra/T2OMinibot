@@ -10,6 +10,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -17,21 +18,17 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentHeight
+import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.Call
-import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.MailOutline
 import androidx.compose.material.icons.filled.Person
-import androidx.compose.material.icons.filled.PlayArrow
-import androidx.compose.material.icons.filled.Refresh
-import androidx.compose.material.icons.filled.Settings
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material.icons.filled.Place
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -50,7 +47,6 @@ import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -59,11 +55,10 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.ainirobot.coreservice.client.actionbean.Pose
 import com.intec.telemedicina.R
+import com.intec.telemedicina.components.TransparentButtonWithIconAndText
 import com.intec.telemedicina.navigation.AppScreens
 import com.intec.telemedicina.robotinterface.RobotManager
-import com.intec.telemedicina.ui.color.md_theme_light_onPrimary
-import com.intec.telemedicina.ui.color.md_theme_light_primary
-import com.intec.telemedicina.ui.color.md_theme_light_tertiary
+import com.intec.telemedicina.ui.theme.md_theme_light_tertiary
 import com.intec.telemedicina.viewmodels.MqttViewModel
 import com.intec.telemedicina.viewmodels.SplashScreenViewModel
 
@@ -81,6 +76,9 @@ fun HomeScreen(navController: NavController, splashScreenViewModel: SplashScreen
     val showDrivingScreenFace by mqttViewModel.showDrivingScreenFace.collectAsState()
     val closeDrivingScreenFace by mqttViewModel.closeDrivingScreenFace.collectAsState()
 
+    val adminMode by mqttViewModel.adminState.collectAsState(initial = false)
+
+
     /*if(!mqttViewModel.getInitiatedStatus()){
         mqttViewModel.connect()
         Log.d("Topicslist",mqttViewModel.resumeTopics().toString())
@@ -97,6 +95,14 @@ fun HomeScreen(navController: NavController, splashScreenViewModel: SplashScreen
         navController.navigateUp()
         mqttViewModel.deactivateCloseDrivingScreenFace()
     }*/
+
+    val openEyesScreen by mqttViewModel.openEyesScreen.collectAsState()
+
+    if(openEyesScreen){
+        Log.d("HomeScreen openEyes", "true")
+        navController.navigate(AppScreens.EyesScreen.route)
+        mqttViewModel.closeHomescreen()
+    }
 
     if (showDialog) {
         NavigationDialog(
@@ -135,12 +141,16 @@ fun HomeScreen(navController: NavController, splashScreenViewModel: SplashScreen
 
         Column(modifier = Modifier.fillMaxSize()) {
             Cabecera(navController = navController)
+            Spacer(Modifier.height(10.dp))
             Botones(navController = navController)
             Box(modifier = Modifier
                 .fillMaxWidth()
                 .weight(1f)) {
                 FloatingActionButton(
-                    onClick = { navController.popBackStack() },
+                    onClick = {
+                        mqttViewModel.robotMan.speak("Vuelvo a mi puesto. Muchas gracias", false)
+                        mqttViewModel.robotMan.goCharge()
+                        navController.popBackStack() },
                     modifier = Modifier
                         .size(36.dp)
                         .align(Alignment.BottomStart),
@@ -151,7 +161,9 @@ fun HomeScreen(navController: NavController, splashScreenViewModel: SplashScreen
                         contentDescription = null
                     )
                 }
-                LazyRowUbicaciones(mqttViewModel = mqttViewModel, modifier = Modifier.align(Alignment.BottomCenter), navController)
+                if(adminMode){
+                    LazyRowUbicaciones(mqttViewModel = mqttViewModel, modifier = Modifier.align(Alignment.BottomCenter), navController)
+                }
             }
         }
     }
@@ -165,11 +177,10 @@ fun Cabecera(navController: NavController){
         // El Row que contiene el título
         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween){
             MqttButton(navController = navController)
-            Text(text = "MENÚ PRINCIPAL", modifier = Modifier.padding(3.dp),color = Color.Black, fontWeight = FontWeight.Bold, fontFamily = FontFamily.SansSerif, fontSize = 30.sp)
-            SoundButton()
+            SoundButton(navController)
         }
         // El Text que contiene el subtítulo
-        Text(text = "Seleccione una opción", modifier = Modifier.fillMaxWidth(), color = Color.Black,fontSize = 15.sp, fontWeight = FontWeight.Light, textAlign = TextAlign.Center)
+        Text(text = "¿Cuál es el motivo de su visita?", modifier = Modifier.fillMaxWidth(), color = Color.White,fontSize = 20.sp, fontWeight = FontWeight.Light, textAlign = TextAlign.Center)
     }
 }
 
@@ -190,7 +201,7 @@ fun LazyRowUbicaciones(mqttViewModel: MqttViewModel, modifier : Modifier = Modif
         Modifier
             .background(Color.Transparent)
             .fillMaxWidth()
-            .padding(top = 4.dp, start = 40.dp)),
+            .padding(start = 40.dp)),
         verticalAlignment = Alignment.Bottom,
         horizontalArrangement = Arrangement.Center,
     ) {
@@ -200,19 +211,20 @@ fun LazyRowUbicaciones(mqttViewModel: MqttViewModel, modifier : Modifier = Modif
             // Un botón con el onClick y el estilo que quieras
             Box(
                 modifier = Modifier
-                    .size(width = 120.dp, height = 100.dp) // Establece un tamaño fijo para el botón
+
                     .clickable {
                         /*splashScreenViewModel.navigateToDestiny(item)*/
-                        mqttViewModel.robotMan.startNavigation(0,item.name,0.1,1000000)
+                        mqttViewModel.robotMan.startNavigation(0, item.name, 0.1, 1000000)
                         navController.navigate(AppScreens.EyesScreen.route)
                     }
-                    .padding(end = 15.dp, bottom = 12.dp, top = 5.dp)
+                    .padding(horizontal = 15.dp, vertical = 12.dp)
 
                     .background(
                         color = md_theme_light_tertiary,
                         shape = MaterialTheme.shapes.medium
                     ),
-                contentAlignment = Alignment.Center // Centra el contenido del Box
+                contentAlignment = Alignment.Center, // Centra el contenido del Box
+
             ) {
                 Text(
                     text = item.name,
@@ -233,41 +245,59 @@ fun Botones(navController: NavController) {
 
     val rutas = listOf(
         AppScreens.GamesScreen.route,
-        AppScreens.VideoCallScreen.route,
-        AppScreens.TourScreen.route,
-        AppScreens.HomeControlScreen.route,
-        AppScreens.IcariaScreen.route,
-        AppScreens.TestScreen.route
+        AppScreens.NumericPanelScreen.route,
+        AppScreens.TourScreen.route
     )
     // Una lista de iconos para los botones
-    val iconos = listOf(Icons.Default.PlayArrow, Icons.Default.Call, Icons.Default.Refresh, Icons.Default.Home, Icons.Default.Person, Icons.Default.Settings)
+    val iconos = listOf(Icons.Default.Person, Icons.Default.Place, Icons.Default.MailOutline)
     // Una lista de textos para los botones
-    val textos = listOf("JUEGOS", "VIDEOLLAMADA", "TOUR", "CONTROL DE CASA", "ICARIA", "TEST")
-    // Un LazyVerticalGrid con tres columnas
+    val textos = listOf("VISITA", "REUNIÓN", "MENSAJERÍA")
+    val indicaciones = listOf("\"tengo una visita..\"", "\"tengo una reunión..\"", "\"soy de mensajería\"")
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .wrapContentHeight() // Ajusta la altura al contenido,
+            .wrapContentWidth(),
+        contentAlignment = Alignment.Center
+    ){
 
-    Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center){
+        LazyVerticalGrid(
+            columns = GridCells.Fixed(3),
+            // Alineación y espaciado adicionales si son necesarios
+            contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
+            horizontalArrangement = Arrangement.Center,
+            verticalArrangement = Arrangement.Center) {
+            // Tre botones con los colores, iconos y textos correspondientes
+            items(3) { index ->
 
-        LazyVerticalGrid(columns = GridCells.Fixed(3)) {
-            // Seis botones con los colores, iconos y textos correspondientes
-            items(6) { index ->
-                // Un botón con el color de fondo, el canto redondeado y el onClick que quieras
-                Button(
+                TransparentButtonWithIconAndText(
+                    text = textos[index],
+                    indicacion = indicaciones[index],
+                    icon = iconos[index], // Reemplaza con tu icono
+                    onClick = {
+                        // Acción al hacer clic en el botón
+                        navController.navigate(rutas[index])
+                    }
+                )
+
+            // Un botón con el color de fondo, el canto redondeado y el onClick que quieras
+                /*Button(
                     modifier = Modifier
                         .height(100.dp)
 
                         .fillMaxWidth()
                         .padding(9.dp),
                     onClick = { navController.navigate(rutas[index]) },
-                    colors = ButtonDefaults.buttonColors(contentColor = md_theme_light_primary),
+                    colors = ButtonDefaults.buttonColors(contentColor = ),
                     shape = MaterialTheme.shapes.medium
                 ) {
                     // Un Row con el icono y el texto del botón
                     Column(verticalArrangement = Arrangement.Center, horizontalAlignment = Alignment.CenterHorizontally) {
-                        Icon(imageVector = iconos[index], contentDescription = textos[index], tint= md_theme_light_onPrimary, modifier = Modifier.size(45.dp))
+                        Icon(imageVector = iconos[index], contentDescription = textos[index], tint= md_theme_light_onPrimary, modifier = Modifier.size(65.dp))
                         Spacer(modifier = Modifier.width(30.dp))
-                        Text(textos[index], color = md_theme_light_onPrimary, fontSize = 12.sp, fontWeight = FontWeight.ExtraBold)
+                        Text(textos[index], color = md_theme_light_onPrimary, fontSize = 20.sp, fontWeight = FontWeight.ExtraBold)
                     }
-                }
+                }*/
             }
         }
     }
@@ -282,12 +312,12 @@ fun MqttButton(navController: NavController){
             modifier = Modifier
                 .padding(5.dp)
                 .size(dimensionResource(id = R.dimen.mqtt_button_size))
-                .clickable { navController.navigate(AppScreens.MqttScreen.route) })
+                .clickable { navController.navigate(AppScreens.AdminPanelScreen.route) })
     }
 }
 
 @Composable
-fun SoundButton() {
+fun SoundButton(navController: NavController) {
     // Una variable que guarda el estado del sonido (true = activado, false = desactivado)
     var soundOn by remember { mutableStateOf(true) }
     // El icono que se muestra según el estado del sonido
@@ -300,6 +330,7 @@ fun SoundButton() {
         contentAlignment = Alignment.TopEnd){
         IconButton(
             onClick = {
+
                 // Cambiar el estado del sonido
                 soundOn = !soundOn
                 // Reproducir el sonido de click si el sonido está activado
@@ -315,7 +346,7 @@ fun SoundButton() {
                 .padding(5.dp)
         ) {
             // Mostrar el icono del sonido con el color correspondiente
-            Icon(painter = soundIcon, contentDescription = "Sound", tint = Color.Black)
+            Icon(painter = soundIcon, contentDescription = "Sound", tint = Color.White)
         }
     }
 }

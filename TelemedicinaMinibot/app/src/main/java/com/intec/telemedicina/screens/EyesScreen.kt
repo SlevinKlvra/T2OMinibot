@@ -1,5 +1,6 @@
 package com.intec.telemedicina.screens
 
+import android.annotation.SuppressLint
 import android.os.Build.VERSION.SDK_INT
 import android.util.Log
 import androidx.compose.foundation.Image
@@ -36,11 +37,14 @@ import com.intec.telemedicina.R
 import com.intec.telemedicina.data.Face
 import com.intec.telemedicina.data.InteractionState
 import com.intec.telemedicina.navigation.AppScreens
-import com.intec.telemedicina.ui.color.md_theme_light_tertiary
+import com.intec.telemedicina.robotinterface.RobotManager
+import com.intec.telemedicina.ui.theme.md_theme_light_tertiary
 import com.intec.telemedicina.viewmodels.MqttViewModel
 
+@SuppressLint("StateFlowValueCalledInComposition")
 @Composable
-fun EyesScreen(navController: NavController, mqttViewModel: MqttViewModel){
+fun EyesScreen(navController: NavController, mqttViewModel: MqttViewModel, robotManager: RobotManager){
+    Log.d("Current Screen", "Eyes Screen")
     val mqttViewModel: MqttViewModel = mqttViewModel
 
     val faceType by mqttViewModel.faceType.collectAsState()
@@ -48,12 +52,14 @@ fun EyesScreen(navController: NavController, mqttViewModel: MqttViewModel){
     val isDriving by mqttViewModel.isDriving.collectAsState()
     val isPaused by mqttViewModel.isPaused.collectAsState()
     val question by mqttViewModel.question.collectAsState()
-    val openHomescreen by mqttViewModel.openHomescreen.collectAsState()
+    val openHomescreen by mqttViewModel.openHomeScreen.collectAsState()
     val notUnderstood by mqttViewModel.notUnderstood.collectAsState()
 
+
     if(openHomescreen){
+        Log.d("openHomeScreen", "true")
         navController.navigate(AppScreens.HomeScreen.route)
-        mqttViewModel.closeHomescreen()
+        mqttViewModel.closeEyescreen()
     }
 
     if(!mqttViewModel.getInitiatedStatus()){
@@ -235,6 +241,7 @@ fun ImageExample(faceType : Face, interactionState: InteractionState, question :
             )
         }
     }
+
 
 
 }

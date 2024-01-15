@@ -19,7 +19,7 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.intec.telemedicina.AppBottomBar
 import com.intec.telemedicina.R
-import com.intec.telemedicina.ui.color.md_theme_light_tertiary
+import com.intec.telemedicina.ui.theme.md_theme_light_tertiary
 import com.intec.telemedicina.viewmodels.SplashScreenViewModel
 
 

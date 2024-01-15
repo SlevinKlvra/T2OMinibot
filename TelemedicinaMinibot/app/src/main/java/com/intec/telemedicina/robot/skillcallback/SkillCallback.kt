@@ -7,6 +7,7 @@ import com.ainirobot.coreservice.client.speech.SkillCallback
 
 
 var mSkillCallback: SkillCallback = object : SkillCallback() {
+
     @Throws(RemoteException::class)
     override fun onSpeechParResult(s: String) {
         //The result of temporary speech recognition

@@ -8,15 +8,23 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import com.intec.telemedicina.ui.color.md_theme_light_onBackground
+import androidx.compose.ui.tooling.preview.Preview
+import com.intec.telemedicina.ui.theme.md_theme_dark_primary
+import com.intec.telemedicina.ui.theme.md_theme_light_inversePrimary
+import com.intec.telemedicina.ui.theme.md_theme_light_primary
+import com.intec.telemedicina.ui.theme.md_theme_light_primaryContainer
+import com.intec.telemedicina.ui.theme.md_theme_light_secondary
+import com.intec.telemedicina.ui.theme.md_theme_light_tertiary
+import com.intec.telemedicina.ui.theme.seed
 
 @Composable
 fun FuturisticGradientBackground(content: @Composable () -> Unit) {
     // Definimos los colores del gradiente
     val gradientColors = listOf(
-        Color(0xFFFFFAF0),  // Crema más claro
-        Color(0xFFFFF5E1),  // Crema base
-        Color(0xFFFFEBCD)   // Crema ligeramente más oscuro
+        seed,  // Azul principal
+        md_theme_dark_primary,
+
+        //md_theme_light_primaryContainer  // Terciario para añadir variedad
     )
 
     // Crear el gradiente
@@ -32,4 +40,10 @@ fun FuturisticGradientBackground(content: @Composable () -> Unit) {
         .background(brush = brush)) {
         content()
     }
+}
+
+@Preview
+@Composable
+fun FuturisticGradientBackgroundPreview() {
+    FuturisticGradientBackground {}
 }

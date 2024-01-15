@@ -13,7 +13,7 @@ import org.eclipse.paho.client.mqttv3.MqttConnectOptions
 import org.eclipse.paho.client.mqttv3.MqttMessage
 import org.eclipse.paho.client.mqttv3.persist.MqttDefaultFilePersistence
 
-class MqttManager(private val context: Context, private val callback: MqttManagerCallback, private val mqttConfig: MQTTConfig, application: Application) : AndroidViewModel(application){
+class MqttManager(private val context: Context, private val callback: MqttManagerCallback, private var mqttConfig: MQTTConfig, application: Application) : AndroidViewModel(application){
     private var mqttAndroidClient: MqttAndroidClient
     private val app = getApplication<Application>()
     private val persistence = MqttDefaultFilePersistence(app.filesDir.path)
@@ -30,10 +30,21 @@ class MqttManager(private val context: Context, private val callback: MqttManage
     ){
 
         val mqttConnectOptions = MqttConnectOptions()
+        mqttConnectOptions.userName = mqttConfig.user
+        Log.d("MQTTManager connect", "User: ${mqttConfig.user}")
+        mqttConnectOptions.password = mqttConfig.password.toCharArray()
+        Log.d("MQTTManager connect", "Pwd: ${mqttConfig.password}")
         mqttConnectOptions.isAutomaticReconnect = true
+        Log.d("MQTTManager connect", "AutomaticReconnect: ${mqttConnectOptions.isAutomaticReconnect}")
         mqttConnectOptions.isCleanSession = false
+        Log.d("MQTTManager connect", "CleanSession: ${mqttConnectOptions.isCleanSession}")
 
         try {
+            Log.d("Connect", "Trying to connect")
+            Log.d("MQTTManager", "Connecting to broker: ${mqttConfig.SERVER_URI}")
+            Log.d("MQTTManager", "Client id: ${mqttConfig.client_id}")
+            Log.d("MQTTManager", "User: ${mqttConfig.user}")
+            Log.d("MQTTManager", "Pwd: ${mqttConfig.password}")
             mqttAndroidClient.connect(mqttConnectOptions, null, object : IMqttActionListener {
                 override fun onSuccess(asyncActionToken: IMqttToken) {
                     // We are connected
@@ -51,7 +62,7 @@ class MqttManager(private val context: Context, private val callback: MqttManage
                 }
                 override fun onFailure(asyncActionToken: IMqttToken?, exception: Throwable) {
                     // Something went wrong e.g. connection timeout or firewall problems
-                    Log.d("MQTT CONNECTION", "onFailure")
+                    Log.d("MQTT CONNECTION", "onFailure: ${exception.message}")
                     onFailure?.invoke(exception)
                     //addToHistory("Failed to connect: $serverUri")
                 }
@@ -60,6 +71,24 @@ class MqttManager(private val context: Context, private val callback: MqttManage
             e.printStackTrace()
             Log.d("MQTT CONNECTION", "ERROR: ${e.message}")
         }
+    }
+
+    fun actualizarConfiguracion(nuevaConfig: MQTTConfig) {
+        Log.d("MQTTManager", "Actualizando configuración: $nuevaConfig")
+
+        if (isConnected()) {
+            disconnect()
+        }
+
+        mqttConfig = nuevaConfig
+        mqttAndroidClient.unregisterResources()
+        mqttAndroidClient.close()
+        mqttAndroidClient = MqttAndroidClient(context, mqttConfig.SERVER_URI, mqttConfig.client_id, persistence)
+        mqttAndroidClient.setCallback(callback)
+        mqttAndroidClient.registerResources(context)
+
+        // Reconectar con la nueva configuración
+        connect()
     }
 
     fun disconnect(){
@@ -77,6 +106,11 @@ class MqttManager(private val context: Context, private val callback: MqttManage
             e.printStackTrace()
             Log.d("MQTT DISCONNECTION", "ERROR: ${e.message}")
         }
+    }
+
+    private fun isConnected(): Boolean {
+        // Verificar si actualmente está conectado
+        return mqttAndroidClient?.isConnected ?: false
     }
 
     fun getTopics(): MutableList<String>{
@@ -122,6 +156,7 @@ class MqttManager(private val context: Context, private val callback: MqttManage
         listaTopics.add(33,"robot/voice_cmds/remove_question")
         listaTopics.add(34,"robot/open_homescreen")
         listaTopics.add(35,"robot/nav_cmds/request_move")
+        listaTopics.add(36,"zigbee2mqtt/Pulsador/action")
         return listaTopics
     }
 
@@ -159,7 +194,7 @@ class MqttManager(private val context: Context, private val callback: MqttManage
         try {
             val message = MqttMessage()
             message.payload = mensage.toByteArray()
-            Log.d("PUBLISH", (message.payload).toString())
+            //Log.d("PUBLISH", (message.payload).toString())
             if (mqttAndroidClient.isConnected) {
                 Log.d("PUBLISH","SENDING MESSAGE")
                 mqttAndroidClient.publish(topic, message)

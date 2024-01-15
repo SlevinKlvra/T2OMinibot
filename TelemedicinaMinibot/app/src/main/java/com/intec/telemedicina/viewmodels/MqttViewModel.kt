@@ -6,6 +6,8 @@ import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.Observer
+import androidx.lifecycle.viewModelScope
 import com.ainirobot.coreservice.client.RobotApi
 import com.ainirobot.coreservice.client.actionbean.Pose
 import com.ainirobot.coreservice.client.listener.Person
@@ -19,17 +21,31 @@ import com.intec.telemedicina.mqtt.MQTTConfig
 import com.intec.telemedicina.mqtt.MqttManager
 import com.intec.telemedicina.mqtt.MqttManagerCallback
 import com.intec.telemedicina.mqtt.MqttMessageListener
+import com.intec.telemedicina.navigation.AppScreens
+import com.intec.telemedicina.preferences.PreferencesRepository
 import com.intec.telemedicina.robotinterface.RobotManager
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.isActive
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 
 @HiltViewModel
 class MqttViewModel @Inject constructor(
     application: Application,
-    robotMan : RobotManager
+    robotMan : RobotManager,
+    private val preferencesRepository: PreferencesRepository
 ) : AndroidViewModel(application), MqttMessageListener {
+
+    private var detectionJob: Job? = null
+
+    //Admin Mode
+    val adminState = MutableStateFlow(false)
 
     var robotMan = robotMan
 
@@ -52,14 +68,14 @@ class MqttViewModel @Inject constructor(
     var question = MutableStateFlow("")
     var notUnderstood = MutableStateFlow(false)
 
-
     val showQuestionsDialog = MutableStateFlow(false)
     val showWelcomeDialog = MutableStateFlow(false)
 
     val showDrivingScreenFace = MutableStateFlow(false)
     val closeDrivingScreenFace = MutableStateFlow(false)
 
-    val openHomescreen = MutableStateFlow(false)
+    val openHomeScreen = MutableStateFlow(false)
+    val openEyesScreen = MutableStateFlow(false)
 
     var initiated_status = false
 
@@ -68,20 +84,409 @@ class MqttViewModel @Inject constructor(
         updatedMessages.add(it)
         _incomingMessages.value = updatedMessages
     }, this)
+
+    // LiveData para cada configuración
+    val brokerIp: MutableLiveData<String> = MutableLiveData()
+    val brokerPort: MutableLiveData<String> = MutableLiveData()
+    val brokerUser: MutableLiveData<String> = MutableLiveData()
+    val brokerPassword: MutableLiveData<String> = MutableLiveData()
+    val brokerQoS: MutableLiveData<String> = MutableLiveData()
+    val brokerClient: MutableLiveData<String> = MutableLiveData()
+    val idleWaitingTime: MutableLiveData<Int> = MutableLiveData()
+    val meetingTimeThreshold: MutableLiveData<Int> = MutableLiveData()
+    val apiUser: MutableLiveData<String> = MutableLiveData()
+    val apiPassword: MutableLiveData<String> = MutableLiveData()
+
     private val mqttManager : MqttManager
     private var mqttConfigInstance = MQTTConfig(
-        SERVER_URI ="tcp://192.168.47.116:1883",
+        SERVER_URI = "tcp://192.168.2.243:1883",
         client_id = "Robot",
         qos = 0,
-        user = "telegraf",
-        password = "metricsmetricsmetricsmetrics"
+        user = "intecfull",
+        password = "intecfullpassword",
+        waitingIdleTime = 10,
+        meetingTimeThreshold = 10,
+        apiUser = "api_default_user",
+        apiPassword = "api_default_pass"
     )
+
+    private val _navigationState = MutableStateFlow(NavigationState.EyesScreen)
+    val navigationState: StateFlow<NavigationState> = _navigationState.asStateFlow()
+
+    private val _currentResponse = MutableStateFlow("")
+    var currentResponse: String? = _currentResponse.value
+
+    enum class NavigationState {
+        EyesScreen, HomeScreen, NumericPanelScreen, MeetingScreen
+    }
+
+    // Observador para cambios en brokerIp
+    private val brokerIpObserver = Observer<String> { nuevaIp ->
+        actualizarConfiguracionMQTT()
+    }
+
+    // Observador para cambios en brokerPort
+    private val brokerPortObserver = Observer<String> { nuevoPuerto ->
+        actualizarConfiguracionMQTT()
+    }
+
+    // Observador para cambios en brokerUser
+    private val brokerUserMqttObserver = Observer<String> { nuevoUser ->
+        actualizarConfiguracionMQTT()
+    }
+
+    // Observador para cambios en brokerPassword
+    private val brokerPasswordMqttObserver = Observer<String> { nuevoPassword ->
+        actualizarConfiguracionMQTT()
+    }
+
+    // Observador para cambios en brokerQoS
+    private val brokerQoSMqttObserver = Observer<String> { nuevoQoS ->
+        actualizarConfiguracionMQTT()
+    }
+
+    // Observador para cambios en brokerClient
+    private val brokerClientMqttObserver = Observer<String> { nuevoClient ->
+        actualizarConfiguracionMQTT()
+    }
+
+    // Observador para cambios en waiting Idle Time
+    private val waitingIdleTimeObserver = Observer<Int> { nuevoWaitingIdleTime ->
+        actualizarConfiguracionMQTT()
+    }
+
+    // Observador para cambios en Meeting time
+    private val meetingTimeThresholdObserver = Observer<Int> { nuevomeetingTimeThreshold ->
+        actualizarConfiguracionMQTT()
+    }
+
+    // Observador para cambios en API User
+    private val apiUserObserver = Observer<String> { nuevoApiUser ->
+        actualizarConfiguracionMQTT()
+    }
+
+    // Observador para cambios en API Password
+    private val apiPasswordObserver = Observer<String> { nuevoApiPassword ->
+        actualizarConfiguracionMQTT()
+    }
+
+    fun getBrokerIpDefaultValue(): String {
+        return preferencesRepository.getBrokerIp()
+    }
+
+    fun getBrokerPortDefaultValue(): String {
+        return preferencesRepository.getBrokerPort()
+    }
+
+    fun getBrokerUserDefaultValue(): String {
+        return preferencesRepository.getMqttUsuario()
+    }
+
+    fun getBrokerPasswordDefaultValue(): String {
+        return preferencesRepository.getMqttPassword()
+    }
+
+    fun getBrokerQoSDefaultValue(): String {
+        return preferencesRepository.getMqttQoS()
+    }
+
+    fun getBrokerClientDefaultValue(): String {
+        return preferencesRepository.getMqttClient()
+    }
+
+    fun getWaitingTimeDefaultValue(): Int {
+        return preferencesRepository.getIdleWaitingTime()
+    }
+
+    fun getApiUserDefaultValue(): String {
+        return preferencesRepository.getApiUsuario()
+    }
+
+    fun getApiPasswordDefaultValue(): String {
+        return preferencesRepository.getApiPassword()
+    }
+
+    fun getApiIdleWaitingTimeDefaultValue(): Int {
+        return preferencesRepository.getIdleWaitingTime()
+    }
+
+    fun getMeetingTimeThresholdDefaultValue(): Int {
+        return preferencesRepository.getMeetingTimeThreshold()
+    }
+
 
     init {
         mqttManager = MqttManager(getApplication(), mqttCallback, mqttConfigInstance, application)
-        Log.d("MQTTManager", "MqttManager created: $mqttManager")
+
+        Log.d("Init MqttViewModel", "MqttManager created: $mqttManager")
+        brokerIp.value = preferencesRepository.getBrokerIp()
+        brokerPort.value = preferencesRepository.getBrokerPort()
+        brokerUser.value = preferencesRepository.getMqttUsuario()
+        brokerPassword.value = preferencesRepository.getMqttPassword()
+        brokerQoS.value = preferencesRepository.getMqttQoS()
+        brokerClient.value = preferencesRepository.getMqttClient()
+        idleWaitingTime.value = preferencesRepository.getIdleWaitingTime()
+        meetingTimeThreshold.value = preferencesRepository.getMeetingTimeThreshold()
+        apiUser.value = preferencesRepository.getApiUsuario()
+        apiPassword.value = preferencesRepository.getApiPassword()
+
+        // Configurar la observación de cambios
+        brokerIp.observeForever(brokerIpObserver)
+        brokerPort.observeForever(brokerPortObserver)
+        brokerUser.observeForever(brokerUserMqttObserver)
+        brokerPassword.observeForever(brokerPasswordMqttObserver)
+        brokerQoS.observeForever(brokerQoSMqttObserver)
+        brokerClient.observeForever(brokerClientMqttObserver)
+        idleWaitingTime.observeForever(waitingIdleTimeObserver)
+        meetingTimeThreshold.observeForever(meetingTimeThresholdObserver)
+        apiUser.observeForever(apiUserObserver)
+        apiPassword.observeForever(apiPasswordObserver)
+        actualizarConfiguracionMQTT()
+        //TODO Inicializar los LiveData para cada configuración
+
+        robotMan.onPersonDetected = { personList ->
+            if (!personList.isNullOrEmpty() && !hasHandledPersonDetection) {
+                hasHandledPersonDetection = true
+                detectionJob?.cancel()
+                navigateToHomeScreen()
+                robotMan.questionPrueba()
+                listenToSpeechResult()
+            } else {
+                startPersonDetection(20)
+            }
+        }
     }
 
+    /*SERVER_URI = "",
+        client_id = "Robot",
+        qos = 0,
+        user = "intecfull",
+        password = "intecfullpassword"*/
+
+    private fun actualizarConfiguracionMQTT() {
+        brokerIp.value?.let {serverUri ->
+
+            val port = preferencesRepository.getBrokerPort()
+            val clientId = preferencesRepository.getMqttClient()
+            val user = preferencesRepository.getMqttUsuario()
+            val password = preferencesRepository.getMqttPassword()
+            // Obtener otros campos
+            val apiUser = preferencesRepository.getApiUsuario()
+            val apiPassword = preferencesRepository.getApiPassword()
+            val idleWaitingTime = preferencesRepository.getIdleWaitingTime()
+            val meetingTimeThreshold = preferencesRepository.getMeetingTimeThreshold()
+
+            val fullServerUri = "$serverUri:$port"
+
+            // Actualizar la configuración
+            mqttConfigInstance = mqttConfigInstance.copy(
+                SERVER_URI = fullServerUri,
+                client_id = clientId,
+                user = user,
+                password = password,
+                apiUser = apiUser,
+                apiPassword = apiPassword,
+                waitingIdleTime = idleWaitingTime,
+                meetingTimeThreshold = meetingTimeThreshold
+            )
+
+            mqttManager.actualizarConfiguracion(mqttConfigInstance)  // Suponiendo que tienes un método para actualizar la configuración
+        }
+    }
+    fun guardarConfiguracion(
+        ip: String,
+        port: String,
+        mqttUser: String,
+        mqttPassword: String,
+        mqttQoS: String,
+        mqttClient: String,
+        waitingIdleTime: Int,
+        receivedMeetingTimeThreshold: Int,
+        receivedApiUser: String,
+        receivedApiPassword: String
+    ) {
+        Log.d("MqttViewModel", "Guardando configuración: $ip")
+        preferencesRepository.setBrokerIp(ip)
+        preferencesRepository.setBrokerPort(port)
+        preferencesRepository.setMqttUsuario(mqttUser)
+        preferencesRepository.setMqttPassword(mqttPassword)
+        preferencesRepository.setMqttQoS(mqttQoS)
+        preferencesRepository.setMqttClient(mqttClient)
+        preferencesRepository.setIdleWaitingTime(waitingIdleTime)
+        preferencesRepository.setMeetingTimeThreshold(receivedMeetingTimeThreshold)
+        preferencesRepository.setApiUsuario(receivedApiUser)
+        preferencesRepository.setApiPassword(receivedApiPassword)
+        // Guardar otros campos en SharedPreferences
+        // No olvides actualizar los LiveData
+        brokerIp.value = ip
+        brokerPort.value = port
+        brokerUser.value = mqttUser
+        brokerPassword.value = mqttPassword
+        brokerQoS.value = mqttQoS
+        brokerClient.value = mqttClient
+        idleWaitingTime.value = waitingIdleTime
+        meetingTimeThreshold.value = receivedMeetingTimeThreshold
+        apiUser.value = receivedApiUser
+        apiPassword.value = receivedApiPassword
+        // ...
+    }
+    override fun onCleared() {
+        super.onCleared()
+        brokerIp.removeObserver(brokerIpObserver)
+        brokerPort.removeObserver(brokerPortObserver)
+        brokerUser.removeObserver(brokerUserMqttObserver)
+        brokerPassword.removeObserver(brokerPasswordMqttObserver)
+        brokerQoS.removeObserver(brokerQoSMqttObserver)
+        brokerClient.removeObserver(brokerClientMqttObserver)
+        idleWaitingTime.removeObserver(waitingIdleTimeObserver)
+        meetingTimeThreshold.removeObserver(meetingTimeThresholdObserver)
+        apiUser.removeObserver(apiUserObserver)
+        apiPassword.removeObserver(apiPasswordObserver)
+    }
+
+    private fun listenToSpeechResult() {
+        robotMan.onSpeechResultReceived = { speechResult ->
+            if (speechResult.isNotEmpty()) {
+                processSpeechResult(speechResult)
+            }
+        }
+    }
+
+    private fun processSpeechResult(speechResult: String) {
+        Log.d("processSpeechResult", "speechResult: $speechResult")
+        if (containsMeetingKeyword(speechResult)) {
+            // Lógica cuando se detectan palabras clave
+            navigateToNumericPanelScreen()
+        }
+        else if(containsVisitKeyword(speechResult)){
+            Log.d("speechResult", "Se ha detectado una visita")
+        }
+        else if(containsDealerKeyword(speechResult)){
+            Log.d("speechResult", "Se ha detectado un repartidor")
+        }
+        else if(containSiWord(speechResult)){
+            Log.d("speechResult", "Se ha detectado un si")
+            robotMan.stopFocusFollow()
+            robotMan.speak("Deacuerdo, por aquí por favor", false)
+            robotMan.startNavigation(0,"reunion",0.1234,0)
+        }
+        else {
+            // Lógica cuando no se detectan palabras clave
+            repeatCommand()
+        }
+    }
+
+    // Variable de control
+    private var hasHandledPersonDetection = false
+
+    private fun navigateToHomeScreen() {
+        detectionJob?.cancel()
+        robotMan.speak("Bienvenidos a t, dos, o media. Dígame en qué puedo ayudarle", true)
+        _navigationState.value = NavigationState.HomeScreen
+    }
+
+    private fun navigateToNumericPanelScreen() {
+        detectionJob?.cancel()
+        robotMan.speak("Deacuerdo, introduce el código que se te ha proporcionado", false)
+        _navigationState.value = NavigationState.NumericPanelScreen
+    }
+
+    private fun repeatCommand() {
+        robotMan.speak("Por favor repita el comando", true)
+        _navigationState.value = NavigationState.HomeScreen // Solo navegar aquí si es necesario
+    }
+
+    fun startPersonDetection(waitTimeInSeconds: Int) {
+        //Log.d("startPersonDetection", "$waitTimeInSeconds")
+        //detectionJob?.cancel()
+        detectionJob = viewModelScope.launch {
+            val waitTimeInMillis = waitTimeInSeconds * 1000L
+            var elapsedTime = 0L // Reinicia el temporizador
+            var detectedPerson : List<Person>? = robotMan.detectPerson(0)
+
+            while (detectedPerson.isNullOrEmpty() && elapsedTime < waitTimeInMillis) {
+
+                delay(1000)
+                elapsedTime += 1000
+                //Log.d("startDetection", "CURRENT ELAPSED TIME: $elapsedTime is less than $waitTimeInMillis. current detection state: ${detectedPerson.isNullOrEmpty()}")
+
+            }
+
+            if(!detectedPerson.isNullOrEmpty()){
+                //Log.d("startDetection", "PERSONS LIST IS NOT NULL NEITHER EMPTY. RESTARTING TIME")
+                detectionJob?.cancel()
+                elapsedTime = 0 // Reinicia el temporizador
+                //detectionJob?.cancel()
+            }
+
+            if (detectedPerson.isNullOrEmpty() && elapsedTime >= waitTimeInMillis) {
+                Log.d("startDetection", "ELAPSED TIME: $elapsedTime, detection state: ${detectedPerson.isNullOrEmpty()}")
+                robotMan.unregisterPersonListener()
+                _navigationState.value = NavigationState.EyesScreen
+                //robotMan.goCharge()
+            }
+        }
+    }
+
+    private fun containSiWord(text: String): Boolean {
+        val keywords = listOf(
+            "si", "sí", "Si", "Sí"
+        )
+        return keywords.any { text.contains(it, ignoreCase = true) }
+    }
+
+    private fun containsDealerKeyword(text: String): Boolean {
+        val keywords = listOf(
+            "mensajero", "mensajería",
+            "paquete", "envío","repartidor","reparto",
+            "entrega", "recogida",
+            "courier", "paquetería",
+            "envío express", "envío urgente",
+            "correspondencia", "bulto",
+            "caja", "envoltorio",
+            "sobre", "remesa",
+            "postal", "carta",
+            "parcelservice", "delivery service",
+            "shipping", "shipment",
+            "mail", "package delivery",
+            "freight", "cargo",
+            "consignment", "dispatch",
+            "postal service", "express delivery"
+        )
+        return keywords.any { text.contains(it, ignoreCase = true) }
+    }
+
+    private fun containsVisitKeyword(text: String): Boolean {
+        val keywords = listOf("visita") // Agrega más palabras clave según sea necesario
+        return keywords.any { text.contains(it, ignoreCase = true) }
+    }
+
+    private fun containsMeetingKeyword(text: String): Boolean {
+        val keywords = listOf(
+            "reunión", "meeting",
+            "encuentro", "asamblea",
+            "junta", "congregación",
+            "convocatoria", "sesión",
+            "conferencia", "simposio",
+            "cónclave", "foro",
+            "seminario", "taller",
+            "charla", "coloquio",
+            "conclave", "plenaria",
+            "mesa redonda", "panel",
+            "conversatorio", "debate",
+            "simposium", "webinar",
+            "videoconferencia", "teleconferencia",
+            "meet", "gathering",
+            "assembly", "symposium",
+            "conference", "seminar",
+            "workshop", "discussion",
+            "talk", "forum",
+            "roundtable", "panel discussion",
+            "webinar", "video call",
+            "teleconference"
+        )
+        return keywords.any { text.contains(it, ignoreCase = true) }
+    }
 
     // State para mensajes entrantes
     private val _incomingMessages = mutableStateOf(emptyList<String>())
@@ -96,6 +501,9 @@ class MqttViewModel @Inject constructor(
 
     fun connect() {
         Log.d("MQTTViewModel", "Connecting to broker: ${mqttConfigInstance.SERVER_URI}")
+        Log.d("MQTTViewModel", "Client id: ${mqttConfigInstance.client_id}")
+        Log.d("MQTTViewModel", "User: ${mqttConfigInstance.user}")
+        Log.d("MQTTViewModel", "Pwd: ${mqttConfigInstance.password}")
         addIncomingMessage("Connecting to broker: ${mqttConfigInstance.SERVER_URI}")
         mqttManager.connect()
         initiated_status = true
@@ -328,7 +736,7 @@ class MqttViewModel @Inject constructor(
                 isDriving.value = false
             }
             "robot/open_homescreen" -> {
-                openHomescreen.value = true
+                openHomeScreen.value = true
             }
             "robot/notUnderstood" -> {
                 notUnderstood.value = true
@@ -336,11 +744,25 @@ class MqttViewModel @Inject constructor(
             "robot/nav_cmds/request_move" -> {
                 robotMan.question_move()
             }
+            "zigbee2mqtt/Pulsador/action" -> {
+                Log.d("ZIGBEE", message.toString())
+                if(message.toString() == "single"){
+                    if(RobotApi.getInstance().chargeStatus) {
+                        robotMan.scheduleWithCoroutine()
+                    }else{
+                        robotMan.startNavigation(0,"entrada",0.1234,0)
+                    }
+                }
+            }
         }
     }
 
+    fun closeEyescreen(){
+        openEyesScreen.value = false
+    }
+
     fun closeHomescreen(){
-        openHomescreen.value = false
+        openHomeScreen.value = false
     }
 
     fun getListPoses(){
@@ -393,5 +815,11 @@ class MqttViewModel @Inject constructor(
     fun setPaused(isPaused_temp : Boolean) {
         isPaused.value = isPaused_temp
         robotMan.pauseNavigation(0)
+    }
+
+
+    fun setAdminState(newState: Boolean) {
+        adminState.value = newState
+        Log.d("ADMIN STATE", adminState.value.toString())
     }
 }

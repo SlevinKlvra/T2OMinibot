@@ -24,7 +24,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.navigation.NavController
-import com.intec.telemedicina.ui.color.md_theme_light_tertiary
+import com.intec.telemedicina.ui.theme.md_theme_light_tertiary
 
 @Composable
 fun IcariaScreen(navController: NavController) {

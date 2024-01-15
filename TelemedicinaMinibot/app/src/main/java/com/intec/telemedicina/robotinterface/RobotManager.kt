@@ -11,7 +11,10 @@ import com.ainirobot.coreservice.client.RobotApi
 import com.ainirobot.coreservice.client.actionbean.Pose
 import com.ainirobot.coreservice.client.listener.ActionListener
 import com.ainirobot.coreservice.client.listener.CommandListener
+import com.ainirobot.coreservice.client.listener.Person
 import com.ainirobot.coreservice.client.listener.TextListener
+import com.ainirobot.coreservice.client.person.PersonApi
+import com.ainirobot.coreservice.client.person.PersonListener
 import com.ainirobot.coreservice.client.speech.SkillApi
 import com.ainirobot.coreservice.client.speech.SkillCallback
 import com.ainirobot.coreservice.client.speech.entity.TTSEntity
@@ -26,14 +29,16 @@ import com.intec.telemedicina.repositories.dto.Place
 import com.intec.telemedicina.robot.modulecallback.ModuleCallback
 import dagger.hilt.android.internal.Contexts.getApplication
 import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import org.json.JSONArray
 import org.json.JSONException
 import javax.inject.Inject
 
-
 class RobotManager @Inject constructor(skillApi: SkillApi, @ApplicationContext applicationContext: Context) :
-    MqttMessageListener {
+    MqttMessageListener{
 
     var skillApi = skillApi
 
@@ -72,6 +77,9 @@ class RobotManager @Inject constructor(skillApi: SkillApi, @ApplicationContext a
 
     var initiated_status = false
 
+    var fraseInteraccion = ""
+
+    var hideEyesScreen = false
 
     private val _incomingMessages = mutableStateOf(emptyList<String>())
     val incomingMessages: State<List<String>> get() = _incomingMessages
@@ -87,18 +95,37 @@ class RobotManager @Inject constructor(skillApi: SkillApi, @ApplicationContext a
         client_id = "Robot",
         qos = 0,
         user = "telegraf",
-        password = "metricsmetricsmetricsmetrics"
+        password = "metricsmetricsmetricsmetrics",
+        apiUser = "",
+        apiPassword = "",
+        waitingIdleTime = 0,
+        meetingTimeThreshold = 0,
     )
 
     lateinit var textListener : TextListener
 
+    var personListener: PersonListener
+
     var questionIsSiNo : Boolean = false
 
+    val isFollowing = MutableStateFlow(false)
+
+    var onPersonDetected: ((List<Person>?) -> Unit)? = null
+    var onSpeechResultReceived : ((String) -> Unit)? = null
     init {
         mqttManager = MqttManager(getApplication(applicationContext), mqttCallback, mqttConfigInstance, getApplication(applicationContext))
         mqttManager.connect()
         setupActionListener()
         getPlaceList()
+
+        personListener = object : PersonListener() {
+            override fun personChanged() {
+                val personList = PersonApi.getInstance().allPersons
+                onPersonDetected?.invoke(personList)
+            }
+        }
+
+        /*PersonApi.getInstance().registerPersonListener(listener)*/
 
         textListener = object : TextListener() {
             override fun onStart() {
@@ -122,8 +149,98 @@ class RobotManager @Inject constructor(skillApi: SkillApi, @ApplicationContext a
         //robotInterface = RobotNavigationManager(robotApi)
     }
 
+    fun startFocusFollow(faceId: Int) {
+        // Define los parámetros necesarios para el método startFocusFollow
+        val reqId = 1 // Define o calcula un ID de solicitud adecuado
+        val lostTimeout = 10 // Define el tiempo en segundos antes de reportar la pérdida del objetivo
+        val maxDistance = 2.5F //Define la distancia máxima en metros para el seguimiento
+
+        // Inicia el seguimiento de la persona con el ID de cara dado
+        RobotApi.getInstance().startFocusFollow(reqId, faceId,
+            lostTimeout.toLong(), maxDistance, object : ActionListener() {
+            override fun onStatusUpdate(status: Int, data: String?) {
+                when (status) {
+                    Definition.STATUS_TRACK_TARGET_SUCCEED -> {
+                        // El seguimiento del objetivo ha tenido éxito
+                        isFollowing.value = true
+                        //Log.d("TAG", "Seguimiento del objetivo exitoso ${isFollowing.value}")
+
+                    }
+                    Definition.STATUS_GUEST_LOST -> {
+                        // El objetivo se ha perdido
+                        isFollowing.value = false
+                        //Log.d("TAG", "Objetivo perdido : ${isFollowing.value}")
+                    }
+                    Definition.STATUS_GUEST_FARAWAY -> {
+                        // El objetivo está fuera de rango
+                        //Log.d("TAG", "Objetivo fuera de rango")
+                    }
+                    Definition.STATUS_GUEST_APPEAR -> {
+                        // El objetivo está en rango nuevamente
+
+                        isFollowing.value = true
+                        //Log.d("TAG", "Objetivo detectado nuevamente: ${isFollowing.value}")
+                    }
+                }
+            }
+
+            override fun onError(errorCode: Int, errorString: String?) {
+                // Maneja los errores aquí
+                //Log.e("TAG", "Error en el seguimiento: $errorString")
+            }
+
+            override fun onResult(status: Int, responseString: String?) {
+                // Maneja el resultado aquíPerson
+                Log.d("TAG", "Respuesta del seguimiento: $responseString")
+            }
+        })
+    }
+
+    fun stopFocusFollow() {
+        // Código para detener el enfoque
+        // ...
+        RobotApi.getInstance().stopFocusFollow(1);
+        isFollowing.value = false
+    }
+
+    private val personApi = PersonApi.getInstance()
+
+    fun unregisterPersonListener(){
+        Log.d("RobotMan PersonListener", "Unregistering Person")
+        personApi.unregisterPersonListener(personListener)
+    }
+
+    fun registerPersonListener(){
+        Log.d("RobotMan PersonListener", "Registering Person")
+        personApi.registerPersonListener(personListener)
+        detectPerson(0)
+    }
+
+    fun detectPerson(faceId: Int): List<Person>? {
+        startFocusFollow(faceId)
+        //Log.d("RobotMan detectPerson", "${personApi.allPersons}")
+        return personApi?.allPersons
+    }
+
+
     fun callback_speech_to_speech(speechResult: String){
         Log.d("STT",speechResult)
+        onSpeechResultReceived?.invoke(speechResult)
+        /*if(speechResult == "reunión") {
+            fraseInteraccion = "Vale, acompáñame por favor."
+            startNavigation(0, "reunión", 0.1234, 100000)
+        }
+
+        if(speechResult == "sí"){
+            fraseInteraccion = "Vale, acompáñame por favor."
+            startNavigation(0, "reunión", 0.1234, 100000)
+
+        }else if(speechResult == "no"){
+            startNavigation(0, "entrada", 0.1234, 100000)
+            speak("Está bien, vuelvo a mi puesto. Buenos días.", false)
+        }*/
+
+
         addIncomingMessage("Publishing message: $speechResult to topic: test/speech")
         mqttManager.publishMessage("robot/voice_cmds/question_answer",speechResult.toString())
         questionIsSiNo = false
@@ -134,6 +251,7 @@ class RobotManager @Inject constructor(skillApi: SkillApi, @ApplicationContext a
         addIncomingMessage("Publishing message: $isSiNo to topic: test/speech")
         if (isSiNo){
             mqttManager.publishMessage("robot/voice_cmds/question_si_no_answer","YES")
+
         }
         else {
             mqttManager.publishMessage("robot/voice_cmds/question_si_no_answer","NO")
@@ -150,7 +268,6 @@ class RobotManager @Inject constructor(skillApi: SkillApi, @ApplicationContext a
     override fun onMessageReceived(topic: String, message: String){
 
     }
-
 
     private fun setupActionListener() {
         actionListener = object : ActionListener() {
@@ -226,7 +343,8 @@ class RobotManager @Inject constructor(skillApi: SkillApi, @ApplicationContext a
         time: Long
     ){
         Log.d("START NAVIGATION", "Comenzando navegación")
-
+        unregisterPersonListener()
+        stopCharging()
 
         RobotApi.getInstance().goPosition(0, RobotApi.getInstance().getSpecialPose(destName).toJson(), object : CommandListener(){
             override fun onError(errorCode: Int, errorString: String?, extraData: String?) {
@@ -239,7 +357,6 @@ class RobotManager @Inject constructor(skillApi: SkillApi, @ApplicationContext a
 
                 val json = gson.toJson(robotStatus)
                 mqttManager.publishMessage("robot/nav_cmds/status",json.toString())
-
                 mqttManager.publishMessage("test/log_error","$errorCode, $errorString, $extraData")
             }
 
@@ -248,6 +365,7 @@ class RobotManager @Inject constructor(skillApi: SkillApi, @ApplicationContext a
                 mqttManager.publishMessage("test/log_status","$status, $data, $extraData")
                 var status_ : String = ""
                 var gson = Gson()
+                Log.d("INFO UPDATE", extraData.toString())
                 when (status) {
                     Definition.STATUS_INFO_UPDATE -> {
 
@@ -292,10 +410,24 @@ class RobotManager @Inject constructor(skillApi: SkillApi, @ApplicationContext a
                     status_ = "END"
                     var gson = Gson()
                     val robotStatus = RobotStatus(destName, status_)
+                    Log.d("ROBOT STATUS NUEVO", robotStatus.toString())
 
+                    if (robotStatus.destName == "reunión" && robotStatus.status == "END"){
+                        registerPersonListener()
+                        fraseInteraccion = "Ya hemos llegado. ¿Deseas alguna otra cosa?"
+                        speak(fraseInteraccion, true)
+                    }
+                    if (robotStatus.destName == "entrada" && robotStatus.status == "END"){
+                        registerPersonListener()
+                        setRecognizable(true)
+                    }
+                    if (robotStatus.destName == "reunion" && robotStatus.status == "END"){
+                        speak("Hemos llegado. Póngase cómodo y Gloria llegará enseguida. Yo vuelvo a mi puesto. Muchas gracias.", false)
+                        scheduleWithCoroutine()
+
+                    }
                     val json = gson.toJson(robotStatus)
                     mqttManager.publishMessage("robot/nav_cmds/status",json.toString())
-                    speak("Ya he llegado",false)
                     mqttManager.publishMessage("robot/faceType", Face.NEUTRAL.toString())
                     mqttManager.publishMessage("robot/nav_cmds/driving_finished", "0")
                 }
@@ -327,6 +459,13 @@ class RobotManager @Inject constructor(skillApi: SkillApi, @ApplicationContext a
         Log.d("STOP NAVIGATION", "Deteniendo navegación")
         //robotApi.stopNavigation(reqId)
         RobotApi.getInstance().stopGoPosition(0)
+    }
+
+    fun stopCharging(){
+        while(RobotApi.getInstance().chargeStatus){
+            RobotApi.getInstance().stopChargingByApp()
+            //Log.d("IS CHARGING", RobotApi.getInstance().chargeStatus.toString())
+        }
     }
 
     fun returnToPosition(){
@@ -365,6 +504,22 @@ class RobotManager @Inject constructor(skillApi: SkillApi, @ApplicationContext a
                 else{
                     mqttManager.publishMessage("robot/interactionState", InteractionState.NONE.toString())
                 }
+            }
+        })
+    }
+
+    fun questionPrueba(){
+        RobotApi.getInstance().setCallback(object : ModuleCallback() {
+            override fun onSendRequest(
+                reqId: Int,
+                reqType: String,
+                reqText: String,
+                reqParam: String
+            ): Boolean {
+                Log.d("onSendRequest Prueba","$reqId, $reqType, $reqText, $reqParam")
+                callback_speech_to_speech(reqText)
+                mqttManager.publishMessage("test/log","$reqId, $reqType, $reqText, $reqParam")
+                return false
             }
         })
     }
@@ -429,7 +584,7 @@ class RobotManager @Inject constructor(skillApi: SkillApi, @ApplicationContext a
                 reqText: String,
                 reqParam: String
             ): Boolean {
-                Log.d("QUESTION onSendRequestN","Is SiNo: $questionIsSiNo")
+                Log.d("QUESTION onSendRequest","Is SiNo: $questionIsSiNo")
                 Log.d("onSendRequestN","$reqText")
                 if(questionIsSiNo) {
                     if(reqText.contains("si") || reqText.contains("no") || reqText.contains("sí")) {
@@ -474,7 +629,8 @@ class RobotManager @Inject constructor(skillApi: SkillApi, @ApplicationContext a
         reqText: String,
         reqParam: String
     ): Boolean {
-        Log.d("onSendRequest","$reqId, $reqType, $reqText, $reqParam")
+        Log.d("onSendRequest robotMan","$reqId, $reqType, $reqText, $reqParam")
+        callback_speech_to_speech(reqText)
         mqttManager.publishMessage("test/log","$reqId, $reqType, $reqText, $reqParam")
         Log.d("QUESTION onSendRequest","Is SiNo: $questionIsSiNo")
         if(questionIsSiNo) {
@@ -495,6 +651,7 @@ class RobotManager @Inject constructor(skillApi: SkillApi, @ApplicationContext a
     }
 
     fun setRecognizable(listen: Boolean){
+        Log.d("SET RECOGNIZABLE","$listen")
         skillApi.setRecognizeMode(listen)
         skillApi.setRecognizable(listen)
     }
@@ -547,6 +704,8 @@ class RobotManager @Inject constructor(skillApi: SkillApi, @ApplicationContext a
     }
 
     fun goCharge() {
+        speak("He esperado demasiado tiempo. Vuelvo a mi puesto.", false)
+        unregisterPersonListener()
         RobotApi.getInstance().goCharging(0)
     }
     
@@ -558,4 +717,14 @@ class RobotManager @Inject constructor(skillApi: SkillApi, @ApplicationContext a
         lastDestination = currentDestination
         currentDestination = _currentDestination
     }
+
+    fun scheduleWithCoroutine() = runBlocking {
+
+        launch {
+            //stopCharging()
+            delay(6000L)
+            startNavigation(0,"entrada",0.1234,0)
+        }
+    }
+
 }

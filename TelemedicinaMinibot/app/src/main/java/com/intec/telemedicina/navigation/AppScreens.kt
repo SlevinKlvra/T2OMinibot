@@ -14,4 +14,8 @@ sealed class AppScreens(val route:String){
     object TestScreen: AppScreens("test_screen")
     object DrivingScreen: AppScreens("driving_screen")
     object EyesScreen: AppScreens("eyes_screen")
+    object NumericPanelScreen: AppScreens("numeric_panel_screen")
+    object MainScreen: AppScreens("main_screen")
+    object AdminPanelScreen: AppScreens("admin_panel_screen")
+    object MeetingScreen: AppScreens("meeting_screen")
 }
