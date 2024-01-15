@@ -42,6 +42,32 @@ class MqttViewModel @Inject constructor(
     private val preferencesRepository: PreferencesRepository
 ) : AndroidViewModel(application), MqttMessageListener {
 
+
+    private val _countdownState = MutableStateFlow(5)
+    val countdownState: StateFlow<Int> = _countdownState
+
+    val countdownFlag = MutableStateFlow(false)
+
+    fun setCountdownFlagState(newState: Boolean) {
+        countdownFlag.value = newState
+        Log.d("ADMIN STATE", adminState.value.toString())
+    }
+
+    var coutndownJob : Job? = null
+    fun startCountdown() {
+        coutndownJob = viewModelScope.launch {
+            var currentCount = 5
+            while (currentCount >= 0) {
+                _countdownState.value = currentCount
+                delay(1000)
+                currentCount--
+            }
+            coutndownJob?.cancel()
+            robotMan.resumeNavigation(0)
+            setCountdownFlagState(true)
+        }
+    }
+
     private var detectionJob: Job? = null
 
     //Admin Mode
