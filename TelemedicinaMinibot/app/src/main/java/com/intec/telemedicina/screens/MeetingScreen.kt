@@ -1,5 +1,6 @@
 package com.intec.telemedicina.screens
 
+import android.util.Log
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.Text
@@ -19,21 +20,26 @@ import com.intec.telemedicina.viewmodels.SplashScreenViewModel
 import kotlinx.coroutines.delay
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 
 @Composable
 fun MeetingScreen(navController : NavController, mqttViewModel : MqttViewModel, numericPanelViewModel : NumericPanelViewModel, robotManager : RobotManager){
-    val meetingInfo = numericPanelViewModel.collectedMeetingInfo.value // Directamente accede al valor
+    val meetingInfo = numericPanelViewModel.collectedMeetingInfo.value
+    var message by remember { mutableStateOf("Hola, ${meetingInfo.visitante}.") }
 
-    // Preparar el mensaje para el robot y el texto en pantalla
-    val message = if (meetingInfo.id != 0) {
-        "Hola, ${meetingInfo.nombre}. Veo que tienes programada una reunión a las ${meetingInfo.start_time}."
-    } else {
-        "Bienvenido. No tengo información sobre reuniones próximas."
-    }
-
-    // Efecto para activar el speak del robot
     LaunchedEffect(meetingInfo.id) {
+        delay(2000)  // Espera 3 segundos
+        message = if (meetingInfo.id != 0) {
+            if (numericPanelViewModel.isMeetingTimeWithinThreshold()) {
+                "Su código ha sido verificado. He notificado a ${meetingInfo.anfitrion} de su llegada. Veo que ha sido puntual. ¿Quiere que le acompañe a la sala?"
+            } else {
+                "Su código ha sido verificado. He notificado a ${meetingInfo.anfitrion} de su llegada. Por favor, diríjase a la sala de espera"
+            }
+        } else {
+            "Bienvenido. No tengo información sobre reuniones próximas. Por favor, contacte con un miembro del staff"
+        }
         robotManager.speak(message, false)
     }
 
