@@ -150,7 +150,7 @@ fun HomeScreen(navController: NavController, splashScreenViewModel: SplashScreen
                     onClick = {
                         mqttViewModel.robotMan.speak("Vuelvo a mi puesto. Muchas gracias", false)
                         mqttViewModel.robotMan.goCharge()
-                        navController.popBackStack() },
+                        navController.navigate(AppScreens.EyesScreen.route) },
                     modifier = Modifier
                         .size(36.dp)
                         .align(Alignment.BottomStart),

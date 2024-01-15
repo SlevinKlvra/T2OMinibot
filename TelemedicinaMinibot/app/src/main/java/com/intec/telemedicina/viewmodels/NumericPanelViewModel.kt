@@ -1,8 +1,13 @@
 package com.intec.telemedicina.viewmodels
 
 import android.app.Application
+import android.content.Context
 import android.util.Log
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.gson.Gson
@@ -10,6 +15,8 @@ import com.google.gson.JsonSyntaxException
 import com.google.gson.reflect.TypeToken
 import com.intec.telemedicina.data.MeetingResponse
 import com.intec.telemedicina.robotinterface.RobotManager
+import dagger.hilt.android.internal.Contexts.getApplication
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -26,9 +33,9 @@ import java.time.LocalTime
 class NumericPanelViewModel(
     application: Application,
     robotMan : RobotManager
-) : ViewModel() {
+) : AndroidViewModel(application) {
 
-    var collectedMeetingInfo = mutableStateOf(MeetingResponse(0,"","","","", "", "", ""))
+    var collectedMeetingInfo = mutableStateOf(MeetingResponse(0,"","","","", "", "", "", "", ""))
 
     private val _navigationState = MutableStateFlow(MqttViewModel.NavigationState.NumericPanelScreen)
     val navigationState: StateFlow<MqttViewModel.NavigationState> = _navigationState.asStateFlow()
@@ -87,14 +94,13 @@ class NumericPanelViewModel(
     private val _isCodeCorrect = MutableStateFlow(false)
     val isCodeCorrect: StateFlow<Boolean> = _isCodeCorrect.asStateFlow()
 
-
     fun checkForTaskExecution() {
         viewModelScope.launch(Dispatchers.IO) {
             try {
                 val client = OkHttpClient()
                 val request = Request.Builder()
-                    .url("https://t2o.intecrobots.com/api/visitas/consultarcodigo?codigo=${enteredCode.value}")
-                    .addHeader("Authorization", "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9.eyJhdWQiOiIxIiwianRpIjoiNDIyYWJmN2VkNDRiZTExNjJmMzVjMjRhZTlkMjY0YzAwODIyMmFhYjA3ZWNjMjExMTYxMmViYmQ0MGRkODcxNTgxNDllNGFiODJiY2ZjMjEiLCJpYXQiOjE3MDQ4MDY3MjAuNTc5MzA5OTQwMzM4MTM0NzY1NjI1LCJuYmYiOjE3MDQ4MDY3MjAuNTc5MzEyMDg2MTA1MzQ2Njc5Njg3NSwiZXhwIjoxNzM2NDI5MTIwLjU3MzA0OTA2ODQ1MDkyNzczNDM3NSwic3ViIjoiMSIsInNjb3BlcyI6W119.MZICikIr9fKmcMYBLetdkSEO_gL_IX3UmRKUtNW1ASiBfFYpW7_ZRMaXmKsqLqcU94KYF8oK3sgNwfd9njfHw8dxSEiDpyNqcgN0csQMYEPODHo-x0OCRPf0UNwta19UT5k6ZLlvn0p1CcSkUXVwUZAWI3lKlu5-seeoQ9btxbQAlaSTJL9kIGBXB_mg4TKWgtMjl2dq1neqZ1F97d-AwtNc1BYqi6HiQw1CbFAzDjMKdLTqJozLBtzvb3V8g53jR2hJNHbJGdI6DKSWvHKgBCxOQCHz9aDqEkqpVLNmfeLLH2-TkDn5cm4JabFcRuQtkwFozhKHgS4IHV8LrAv-yxc4Ve2BFpPjOm9LmFarxhZvV-8F1soIKkg5RNGooZvXzY2-t4Hx7mKhfWjlmucnNsSULe0mWyJfrs_EACZrMap8LZ4bt8AvU0NwPzlMEOwD7xkBxghuUV9eqh1brUk0X-ZJoGdm-vwPXnaslds2v8WiWNsyhJy9BqODDCnBscjYiHLxSs61oJyvR2en9idBNS3H9DOoN7Y7jEHiHlhvqB3_ARhbEra_wtOBYJo-VQ0lB0IOCebtyuP2SboJ_e0pB7vxfsKH0-o7huAVCL9x1X94t6cETeud9eKHqVmqBdkv5K5renmGN4c-jYscEPPNv8N5jAIRCWBEL_DAQEwG5yU")
+                    .url("https://t2o.intecrobots.com/api/visitas/consultacodigototal?codigo=${enteredCode.value}")
+                    .addHeader("Authorization", "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9.eyJhdWQiOiI1IiwianRpIjoiMTM1NjZjOWQ4NmM2Nzc2YWI1ODYwMTI5NTAzYWIwOWNiNzZlMWNhNzlhZGVkOTg3NTM2MTU0NmE1MmUyNGU2MmIzM2YxOWIyMGI2MzI4YWQiLCJpYXQiOjE3MDUzMTI5NDEuNTM4MTQyOTE5NTQwNDA1MjczNDM3NSwibmJmIjoxNzA1MzEyOTQxLjUzODE0NTA2NTMwNzYxNzE4NzUsImV4cCI6MTczNjkzNTM0MS41MzI1OTk5MjU5OTQ4NzMwNDY4NzUsInN1YiI6IjEiLCJzY29wZXMiOltdfQ.P6Sah1BK-FyV3taMI8hK5VH5qZWdwBbh25qZOy7ejWI-tow0qSs9S0a5DR9rp1TQOCFR1sTT0Cvn-rlH_0jcfpQ8atvzmbGOXEmq-18LrVhNcKiHzM71vnOYdl-YPPd77wGqNpsR3hLJecUCvSitKF-dtmqnfsjHgJGERdEA0cQtEw_XNG6gUoJoT9_ZEbp1aALb9M6WX1OD6xGyqysH3em-qbEcLh66h7vEWuo3IohbQLl1XaPvUqb7g4EFCEYd300Hj24IRJ7F6rxjeLapjTpy8zFZRjL5L_BT2EpHFaHYY0XnOZ9FY6_YsLFNfG-s3HRr2yPtNwDs_7rJN6fmo0zycaJZyiW7lUPC06pFCMIUOoetwZ2Z3BcxVqsKoy0nkWq2TxE7TevToqsAh0_1XkYrOlbfk0V7HNbP9IbVEYfDY_gUOwZW0y_kbSR5rc_IrQX7Fp8GjDzmZLSOI2WqyG7vpQGAbFeJGk5D3zxwnj0aeD_QpvrVG3zjnSwp-cZjIGx_B_CYoAwNPlPicYjO2KXPU8hUPM-X_2DPbZDHYM56aimXSX6Io-q7Z8qzXw6Gqxpp3ruFzGezMIeSJ3GQ5Yn5z8QmbTp2Kj1X4gUPR9bXmh3mrKvg3dS0fRm7w4LMJSGEPc5F_aJm2nVm9yJwtpuAWLcaFN8m2fUxiSwda3k")
                     .get()
                     .build()
 
@@ -141,10 +147,19 @@ class NumericPanelViewModel(
         }
     }
 
+    fun getMeetingTimeThreshold(): Long {
+        val sharedPrefs = getApplication<Application>().getSharedPreferences("MyPrefs", Context.MODE_PRIVATE)
+        return sharedPrefs.getLong("meetingTimeThreshold", 10)
+    }
+
     fun isMeetingTimeWithinThreshold(): Boolean {
         val meetingTime = LocalTime.parse(collectedMeetingInfo.value.start_time)
         val currentTime = LocalTime.now()
-        val threshold = Duration.ofMinutes(15)
+        Log.d("MeetingTime", "$meetingTime - $currentTime")
+        val thresholdMinutes = getMeetingTimeThreshold()
+        val threshold = Duration.ofMinutes(thresholdMinutes)
+
+        Log.d("MeetingTime", "${!currentTime.isBefore(meetingTime.minus(threshold)) && !currentTime.isAfter(meetingTime.plus(threshold))}")
 
         return !currentTime.isBefore(meetingTime.minus(threshold)) && !currentTime.isAfter(meetingTime.plus(threshold))
     }

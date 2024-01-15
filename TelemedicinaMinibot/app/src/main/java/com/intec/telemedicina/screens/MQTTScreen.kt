@@ -268,6 +268,26 @@ fun MqttScreen(navController: NavController, mqttViewModel: MqttViewModel) {
                     )
                 }
             }
+            Spacer(modifier = Modifier.height(16.dp))
+            Box {
+                Row(
+                    modifier = Modifier.fillMaxWidth(), // Asegura que el Row ocupe todo el ancho disponible
+                    verticalAlignment = Alignment.CenterVertically // Alinea verticalmente los elementos en el centro
+                ) {
+                    Text(
+                        text = "Margen de impuntualidad",
+                        modifier = Modifier.weight(1f) // Ocupa todo el espacio disponible empujando el Switch hacia la derecha
+                    )
+                    Spacer(modifier = Modifier.width(16.dp)) // Espacio entre el Text y el Switch
+                    TextField(
+                        value = meetingMeetingThreshold.toString(),
+                        onValueChange = {
+                            meetingMeetingThreshold = it.toIntOrNull() ?: 0 // Convierte de nuevo a Int, usa 0 si no es un número
+                        },
+                        label = { Text("Margen de impuntualidad") }
+                    )
+                }
+            }
             Spacer(modifier = Modifier.height(8.dp))
             Text(fontWeight = FontWeight.Bold, text = "API Connection params")
             Spacer(modifier = Modifier.height(16.dp))

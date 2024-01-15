@@ -464,6 +464,7 @@ class RobotManager @Inject constructor(skillApi: SkillApi, @ApplicationContext a
     fun stopCharging(){
         while(RobotApi.getInstance().chargeStatus){
             RobotApi.getInstance().stopChargingByApp()
+            //TO DO NAVIGATE TO A SETTLED POINT
             //Log.d("IS CHARGING", RobotApi.getInstance().chargeStatus.toString())
         }
     }
