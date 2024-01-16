@@ -4,6 +4,7 @@ import android.app.Application
 import android.util.Log
 import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
+import androidx.constraintlayout.motion.utils.ViewState
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
@@ -51,13 +52,17 @@ class MqttViewModel @Inject constructor(
 
     val countdownFlag = MutableStateFlow(false)
 
-
     //VARIABLES PARA LA ESCUCHA ACTIVA DE UNKNOWN VISITS
-    private var _capturedText = MutableLiveData<String>()
-    val capturedText: LiveData<String> = _capturedText
+    private val _capturedText = MutableStateFlow("")
+    val capturedText: StateFlow<String> = _capturedText
 
     private val _isListening = MutableLiveData<Boolean>()
     val isListening: LiveData<Boolean> = _isListening
+
+    fun stopListening() {
+        // Detener el reconocimiento de voz
+        _isListening.value = false
+    }
 
     fun setCountdownFlagState(newState: Boolean) {
         countdownFlag.value = newState
@@ -92,7 +97,6 @@ class MqttViewModel @Inject constructor(
     private val _connectionState = mutableStateOf("Disconnected")
     val connectionState get()= _connectionState
     var navigation : Boolean = false
-    val listeningTopics : String = "robot/nav_cmds/stop_navigation"
     private var _mqttQuestion = MutableLiveData<String>()
     val mqttQuestion : MutableLiveData<String> get() = _mqttQuestion
 
@@ -149,9 +153,6 @@ class MqttViewModel @Inject constructor(
 
     private val _navigationState = MutableStateFlow(NavigationState.EyesScreen)
     val navigationState: StateFlow<NavigationState> = _navigationState.asStateFlow()
-
-    private val _currentResponse = MutableStateFlow("")
-    var currentResponse: String? = _currentResponse.value
 
     enum class NavigationState {
         EyesScreen, HomeScreen, NumericPanelScreen, MeetingScreen, UnknownVisitsScreen
@@ -378,10 +379,19 @@ class MqttViewModel @Inject constructor(
     fun listenToSpeechResult() {
         robotMan.onSpeechResultReceived = { speechResult ->
             if (speechResult.isNotEmpty()) {
-                _capturedText.value = speechResult
+                Log.d("listenToSpeechResult", "speechResult: $speechResult")
+                onResultUnknownVisitor(speechResult)
+                Log.d("listenToSpeechResult", "actualiza capturedText $_capturedText")
                 processSpeechResult(speechResult)
             }
         }
+    }
+
+    fun onResultUnknownVisitor(text: String){
+        // Actualizar el texto cuando se recibe un resultado
+        Log.d("onResultUnknownVisitor", "text: $text")
+        _capturedText.value = text
+        Log.d("onResultUnknownVisitor", "actualiza capturedText $_capturedText")
     }
 
     private fun processSpeechResult(speechResult: String) {
@@ -404,6 +414,7 @@ class MqttViewModel @Inject constructor(
             robotMan.startNavigation(0,"reunion",0.1234,0)
         }
         else {
+            Log.d("speechResult", "No se ha detectado nada")
             // Lógica cuando no se detectan palabras clave
             repeatCommand()
         }
@@ -426,7 +437,7 @@ class MqttViewModel @Inject constructor(
 
     private fun navigateToUnknownVisitsScreen() {
         detectionJob?.cancel()
-        robotMan.speak("Deacuerdo, introduce el código que se te ha proporcionado", false)
+        //robotMan.speak("Deacuerdo, introduce el código que se te ha proporcionado", false)
         _navigationState.value = NavigationState.UnknownVisitsScreen
     }
 
@@ -586,50 +597,6 @@ class MqttViewModel @Inject constructor(
         addIncomingMessage("Publishing message: $message to topic: $topic")
         mqttManager.publishMessage(topic, message)
     }
-
-    fun playTextViaTTS(text: String) {
-
-        /*skillApi.playText(TTSEntity(text), object : TextListener() {
-            override fun onStart() {
-                // Iniciar reproducción
-            }
-
-            override fun onStop() {
-                // Detener reproducción
-            }
-
-            override fun onError() {
-                // Manejar error
-            }
-
-            override fun onComplete() {
-                // Reproducción completada
-                skillApi.setRecognizeMode(true);
-                skillApi.setRecognizable(true);
-            }
-        })*/
-
-        SkillApi().playText(TTSEntity("sid-012345",text), object : TextListener() {
-            override fun onStart() {
-                // Iniciar reproducción
-            }
-
-            override fun onStop() {
-                // Detener reproducción
-            }
-
-            override fun onError() {
-                // Manejar error
-            }
-
-            override fun onComplete() {
-                // Reproducción completada
-                skillApi.setRecognizeMode(true);
-                skillApi.setRecognizable(true);
-            }
-        })
-    }
-
     override fun onMessageReceived(topic: String, message: String) {
         addIncomingMessage(message)
         Log.d("MQTT Message","$topic: $message")
@@ -690,14 +657,12 @@ class MqttViewModel @Inject constructor(
             }
 
             "robot/voice_cmds/question_si_no" -> {
-                robotMan.question_si_no(message, true)
                 question.value = message
             }
 
             "robot/voice_cmds/question" -> {
                 //Log.d("Question",message)
                 //_mqttQuestion.value = message
-                robotMan.question_si_no(message,false)
                 question.value = message
                 //showQuestionsDialog()
                 //Open window with question --> Yes/No
@@ -781,7 +746,6 @@ class MqttViewModel @Inject constructor(
                 notUnderstood.value = true
             }
             "robot/nav_cmds/request_move" -> {
-                robotMan.question_move()
             }
             "zigbee2mqtt/Pulsador/action" -> {
                 Log.d("ZIGBEE", message.toString())
@@ -830,7 +794,6 @@ class MqttViewModel @Inject constructor(
         _shouldHideKeyboard.value = false
     }
 
-
     fun showQuestionsDialog(){
         Log.d("MQTTViewModel", "Showing questions dialog")
         showQuestionsDialog.value = true
@@ -855,7 +818,6 @@ class MqttViewModel @Inject constructor(
         isPaused.value = isPaused_temp
         robotMan.pauseNavigation(0)
     }
-
 
     fun setAdminState(newState: Boolean) {
         adminState.value = newState

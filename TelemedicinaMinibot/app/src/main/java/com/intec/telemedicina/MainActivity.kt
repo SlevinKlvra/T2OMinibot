@@ -57,19 +57,8 @@ class MainActivity : ComponentActivity() {
             ApiListener {
             override fun handleApiDisabled() {}
             override fun handleApiConnected() {
-                robotMan.setRecognizable(true)
+                //robotMan.setRecognizable(true)
                 // Server is connected, set the callback for receiving requests, including voice commands, system events, etc.
-                RobotApi.getInstance().setCallback(object : ModuleCallback() {
-                    override fun onSendRequest(
-                        reqId: Int,
-                        reqType: String,
-                        reqText: String,
-                        reqParam: String
-                    ): Boolean {
-                        Log.d("REQUEST MainActivity", "reqId: $reqId, reqType: $reqType, reqText: $reqText, reqParam: $reqParam")
-                        return robotMan.onSendRequest(reqId, reqType, reqText, reqParam)
-                    }
-                })
                 skillApi.connectApi(applicationContext, object : ApiListener {
                     override fun handleApiDisabled() {
                         TODO("Not yet implemented")
@@ -77,14 +66,15 @@ class MainActivity : ComponentActivity() {
 
                     override fun handleApiConnected() {
                         robotMan.registerCallback()
-                        Log.d("SKILLAPI","Skill api connected!")
+                        Log.d("SKILLAPI","Skill api connected! Creating robot Manager")
+                        robotMan = RobotManager(skillApi,applicationContext)
                     }
 
                     override fun handleApiDisconnected() {
                         TODO("Not yet implemented")
                     }
                 })
-                robotMan = RobotManager(skillApi,applicationContext)
+
             }
 
             override fun handleApiDisconnected() {
