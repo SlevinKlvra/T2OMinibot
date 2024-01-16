@@ -7,6 +7,7 @@ import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -21,6 +22,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -38,6 +40,7 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
@@ -47,11 +50,16 @@ import com.intec.telemedicina.robotinterface.RobotManager
 import com.intec.telemedicina.viewmodels.NumericPanelViewModel
 
 @Composable
-fun NumericPanelScreen(navController: NavController, numericPanelViewModel: NumericPanelViewModel, robotManager: RobotManager) {
+fun NumericPanelScreen(
+    navController: NavController,
+    numericPanelViewModel: NumericPanelViewModel,
+    robotManager: RobotManager
+) {
 
     val shouldCheckCode = remember { mutableStateOf(false) }
-
     val isCodeCorrect by numericPanelViewModel.isCodeCorrect.collectAsState()
+    val isLoading by numericPanelViewModel.isLoading.collectAsState()
+
 
     LaunchedEffect(shouldCheckCode.value) {
         if (shouldCheckCode.value) {
@@ -98,52 +106,58 @@ fun NumericPanelScreen(navController: NavController, numericPanelViewModel: Nume
     FuturisticGradientBackground {
         Box(modifier = shakeModifier) {
             // Contenido de tu pantalla
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(8.dp),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Center
-            ) {
-                // Texto explicativo
-                Text(
-                    text = "Por favor, introduce el código que se te ha proporcionado: ",
-                    style = textStyle.copy(fontSize = 15.sp),
-                    modifier = Modifier.padding(bottom = 4.dp),
-                    color = Color.White
-                )
-                // Muestra el código ingresado
-                Text(
-                    text = numericPanelViewModel.enteredCode.value,
-                    style = textStyle.copy(fontSize = 12.sp),
-                    modifier = Modifier.padding(6.dp),
-                    color = Color.White
-                )
+            if (isLoading) LoadingSpinner()
+            else {
 
-                // Teclado numérico
-                val buttons = listOf("1", "2", "3", "4", "5", "6", "7", "8", "9", "Borrar", "0", "Enviar")
-                buttons.chunked(3).forEach { row ->
-                    Row(
-                        horizontalArrangement = Arrangement.SpaceEvenly,
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        row.forEach { number ->
-                            if (number.isNotBlank()) {
-                                TransparentButton(
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(8.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center
+                ) {
+                    // Texto explicativo
+                    Text(
+                        text = "Por favor, introduce el código que se te ha proporcionado: ",
+                        style = textStyle.copy(fontSize = 15.sp),
+                        modifier = Modifier.padding(bottom = 4.dp),
+                        color = Color.White
+                    )
+                    // Muestra el código ingresado
+                    Text(
+                        text = numericPanelViewModel.enteredCode.value,
+                        style = textStyle.copy(fontSize = 12.sp),
+                        modifier = Modifier.padding(6.dp),
+                        color = Color.White
+                    )
 
-                                    text = number,
-                                    onClick = {
-                                        when(number){
-                                            "Borrar" -> numericPanelViewModel.removeLastDigit()
-                                            "Enviar" -> {
-                                                shouldCheckCode.value = true
+                    // Teclado numérico
+                    val buttons =
+                        listOf("1", "2", "3", "4", "5", "6", "7", "8", "9", "Borrar", "0", "Enviar")
+                    buttons.chunked(3).forEach { row ->
+                        Row(
+                            horizontalArrangement = Arrangement.SpaceEvenly,
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            row.forEach { number ->
+                                if (number.isNotBlank()) {
+                                    TransparentButton(
+
+                                        text = number,
+                                        onClick = {
+                                            when (number) {
+                                                "Borrar" -> numericPanelViewModel.removeLastDigit()
+                                                "Enviar" -> {
+                                                    shouldCheckCode.value = true
+                                                }
+
+                                                else -> numericPanelViewModel.addDigit(number.first())
                                             }
-                                            else -> numericPanelViewModel.addDigit(number.first())
-                                        }
-                                    },
-                                )
-                            } else {
-                                Spacer(modifier = buttonModifier)
+                                        },
+                                    )
+                                } else {
+                                    Spacer(modifier = buttonModifier)
+                                }
                             }
                         }
                     }
@@ -160,5 +174,23 @@ fun NumericPanelScreen(navController: NavController, numericPanelViewModel: Nume
         ) {
             Icon(imageVector = Icons.Default.ArrowBack, contentDescription = null)
         }
+    }
+}
+
+@Preview
+@Composable
+fun LoadingSpinner() {
+    // Column para centrar el CircularProgressIndicator
+    Column(
+        modifier = Modifier.fillMaxSize(),
+        verticalArrangement = Arrangement.Center,
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        CircularProgressIndicator(
+            modifier = Modifier
+                .size(120.dp),
+            strokeWidth = 3.dp,
+            color = Color.White
+        ) // Muestra el indicador de carga
     }
 }

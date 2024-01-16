@@ -32,12 +32,14 @@ import java.time.LocalTime
 
 class NumericPanelViewModel(
     application: Application,
-    robotMan : RobotManager
+    robotMan: RobotManager
 ) : AndroidViewModel(application) {
 
-    var collectedMeetingInfo = mutableStateOf(MeetingResponse(0,"","","","", "", "", "", "", ""))
+    var collectedMeetingInfo =
+        mutableStateOf(MeetingResponse(0, "", "", "", "", "", "", "", "", ""))
 
-    private val _navigationState = MutableStateFlow(MqttViewModel.NavigationState.NumericPanelScreen)
+    private val _navigationState =
+        MutableStateFlow(MqttViewModel.NavigationState.NumericPanelScreen)
     val navigationState: StateFlow<MqttViewModel.NavigationState> = _navigationState.asStateFlow()
 
     var robotMan = robotMan
@@ -47,6 +49,10 @@ class NumericPanelViewModel(
 
     // Estado para controlar si se debe mostrar la animación de error
     var showErrorAnimation = mutableStateOf(false)
+
+    // Nuevo estado para indicar si la carga está en progreso
+    private val _isLoading = MutableStateFlow(false)
+    val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()
 
     // Función para activar la animación de error
     fun triggerErrorAnimation() {
@@ -77,10 +83,10 @@ class NumericPanelViewModel(
     // Función para verificar el código para configuración avanzada
     fun checkForAdvancedSettingsAccess(): Boolean {
         // Aquí iría la lógica para verificar el código
-        if(enteredCode.value == "8998"){
+        if (enteredCode.value == "8998") {
             resetDigits()
             return true
-        }else{
+        } else {
             return false
         }
     }
@@ -97,10 +103,16 @@ class NumericPanelViewModel(
     fun checkForTaskExecution() {
         viewModelScope.launch(Dispatchers.IO) {
             try {
+
+                _isLoading.value = true
+
                 val client = OkHttpClient()
                 val request = Request.Builder()
                     .url("https://t2o.intecrobots.com/api/visitas/consultacodigototal?codigo=${enteredCode.value}")
-                    .addHeader("Authorization", "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9.eyJhdWQiOiI1IiwianRpIjoiMTM1NjZjOWQ4NmM2Nzc2YWI1ODYwMTI5NTAzYWIwOWNiNzZlMWNhNzlhZGVkOTg3NTM2MTU0NmE1MmUyNGU2MmIzM2YxOWIyMGI2MzI4YWQiLCJpYXQiOjE3MDUzMTI5NDEuNTM4MTQyOTE5NTQwNDA1MjczNDM3NSwibmJmIjoxNzA1MzEyOTQxLjUzODE0NTA2NTMwNzYxNzE4NzUsImV4cCI6MTczNjkzNTM0MS41MzI1OTk5MjU5OTQ4NzMwNDY4NzUsInN1YiI6IjEiLCJzY29wZXMiOltdfQ.P6Sah1BK-FyV3taMI8hK5VH5qZWdwBbh25qZOy7ejWI-tow0qSs9S0a5DR9rp1TQOCFR1sTT0Cvn-rlH_0jcfpQ8atvzmbGOXEmq-18LrVhNcKiHzM71vnOYdl-YPPd77wGqNpsR3hLJecUCvSitKF-dtmqnfsjHgJGERdEA0cQtEw_XNG6gUoJoT9_ZEbp1aALb9M6WX1OD6xGyqysH3em-qbEcLh66h7vEWuo3IohbQLl1XaPvUqb7g4EFCEYd300Hj24IRJ7F6rxjeLapjTpy8zFZRjL5L_BT2EpHFaHYY0XnOZ9FY6_YsLFNfG-s3HRr2yPtNwDs_7rJN6fmo0zycaJZyiW7lUPC06pFCMIUOoetwZ2Z3BcxVqsKoy0nkWq2TxE7TevToqsAh0_1XkYrOlbfk0V7HNbP9IbVEYfDY_gUOwZW0y_kbSR5rc_IrQX7Fp8GjDzmZLSOI2WqyG7vpQGAbFeJGk5D3zxwnj0aeD_QpvrVG3zjnSwp-cZjIGx_B_CYoAwNPlPicYjO2KXPU8hUPM-X_2DPbZDHYM56aimXSX6Io-q7Z8qzXw6Gqxpp3ruFzGezMIeSJ3GQ5Yn5z8QmbTp2Kj1X4gUPR9bXmh3mrKvg3dS0fRm7w4LMJSGEPc5F_aJm2nVm9yJwtpuAWLcaFN8m2fUxiSwda3k")
+                    .addHeader(
+                        "Authorization",
+                        "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9.eyJhdWQiOiI1IiwianRpIjoiMTM1NjZjOWQ4NmM2Nzc2YWI1ODYwMTI5NTAzYWIwOWNiNzZlMWNhNzlhZGVkOTg3NTM2MTU0NmE1MmUyNGU2MmIzM2YxOWIyMGI2MzI4YWQiLCJpYXQiOjE3MDUzMTI5NDEuNTM4MTQyOTE5NTQwNDA1MjczNDM3NSwibmJmIjoxNzA1MzEyOTQxLjUzODE0NTA2NTMwNzYxNzE4NzUsImV4cCI6MTczNjkzNTM0MS41MzI1OTk5MjU5OTQ4NzMwNDY4NzUsInN1YiI6IjEiLCJzY29wZXMiOltdfQ.P6Sah1BK-FyV3taMI8hK5VH5qZWdwBbh25qZOy7ejWI-tow0qSs9S0a5DR9rp1TQOCFR1sTT0Cvn-rlH_0jcfpQ8atvzmbGOXEmq-18LrVhNcKiHzM71vnOYdl-YPPd77wGqNpsR3hLJecUCvSitKF-dtmqnfsjHgJGERdEA0cQtEw_XNG6gUoJoT9_ZEbp1aALb9M6WX1OD6xGyqysH3em-qbEcLh66h7vEWuo3IohbQLl1XaPvUqb7g4EFCEYd300Hj24IRJ7F6rxjeLapjTpy8zFZRjL5L_BT2EpHFaHYY0XnOZ9FY6_YsLFNfG-s3HRr2yPtNwDs_7rJN6fmo0zycaJZyiW7lUPC06pFCMIUOoetwZ2Z3BcxVqsKoy0nkWq2TxE7TevToqsAh0_1XkYrOlbfk0V7HNbP9IbVEYfDY_gUOwZW0y_kbSR5rc_IrQX7Fp8GjDzmZLSOI2WqyG7vpQGAbFeJGk5D3zxwnj0aeD_QpvrVG3zjnSwp-cZjIGx_B_CYoAwNPlPicYjO2KXPU8hUPM-X_2DPbZDHYM56aimXSX6Io-q7Z8qzXw6Gqxpp3ruFzGezMIeSJ3GQ5Yn5z8QmbTp2Kj1X4gUPR9bXmh3mrKvg3dS0fRm7w4LMJSGEPc5F_aJm2nVm9yJwtpuAWLcaFN8m2fUxiSwda3k"
+                    )
                     .get()
                     .build()
 
@@ -112,17 +124,20 @@ class NumericPanelViewModel(
                         val gson = Gson()
                         // Nuevo código para manejar la respuesta como un arreglo
                         val type = object : TypeToken<List<MeetingResponse>>() {}.type
-                        val meetingInfoList = gson.fromJson<List<MeetingResponse>>(responseData, type)
+                        val meetingInfoList =
+                            gson.fromJson<List<MeetingResponse>>(responseData, type)
 
                         withContext(Dispatchers.Main) {
                             if (meetingInfoList.isNotEmpty()) {
                                 val meetingInfo = meetingInfoList.first()
                                 collectedMeetingInfo.value = meetingInfo
                                 _isCodeCorrect.value = true
-                                Log.d("CheckForApiExecution", "El código es correcto: ${isCodeCorrect.value}")
+                                Log.d(
+                                    "CheckForApiExecution",
+                                    "El código es correcto: ${isCodeCorrect.value}"
+                                )
                                 Log.d("meetingInfo", "${collectedMeetingInfo.value}")
-                            }
-                            else {
+                            } else {
                                 // Manejar el caso de que la lista esté vacía
                                 triggerErrorAnimation()
                                 robotMan.speak("El código no es válido. Inténtelo de nuevo", false)
@@ -140,15 +155,22 @@ class NumericPanelViewModel(
             } catch (e: Exception) {
                 withContext(Dispatchers.Main) {
                     triggerErrorAnimation()
-                    robotMan.speak("El código no es correcto. Inténtelo de nuevo o contacte con un miembro del staff", false)
+                    robotMan.speak(
+                        "El código no es correcto. Inténtelo de nuevo o contacte con un miembro del staff",
+                        false
+                    )
                     Log.e("Error", "Error en la solicitud de red: ${e.message}")
                 }
+            } finally {
+                // Indicar que la carga ha terminado (independientemente del resultado)
+                _isLoading.value = false
             }
         }
     }
 
     fun getMeetingTimeThreshold(): Long {
-        val sharedPrefs = getApplication<Application>().getSharedPreferences("MyPrefs", Context.MODE_PRIVATE)
+        val sharedPrefs =
+            getApplication<Application>().getSharedPreferences("MyPrefs", Context.MODE_PRIVATE)
         return sharedPrefs.getLong("meetingTimeThreshold", 10)
     }
 
@@ -159,8 +181,17 @@ class NumericPanelViewModel(
         val thresholdMinutes = getMeetingTimeThreshold()
         val threshold = Duration.ofMinutes(thresholdMinutes)
 
-        Log.d("MeetingTime", "${!currentTime.isBefore(meetingTime.minus(threshold)) && !currentTime.isAfter(meetingTime.plus(threshold))}")
+        Log.d(
+            "MeetingTime",
+            "${
+                !currentTime.isBefore(meetingTime.minus(threshold)) && !currentTime.isAfter(
+                    meetingTime.plus(threshold)
+                )
+            }"
+        )
 
-        return !currentTime.isBefore(meetingTime.minus(threshold)) && !currentTime.isAfter(meetingTime.plus(threshold))
+        return !currentTime.isBefore(meetingTime.minus(threshold)) && !currentTime.isAfter(
+            meetingTime.plus(threshold)
+        )
     }
 }
