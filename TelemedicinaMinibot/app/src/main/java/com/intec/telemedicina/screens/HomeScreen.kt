@@ -242,9 +242,8 @@ fun LazyRowUbicaciones(mqttViewModel: MqttViewModel, modifier : Modifier = Modif
 @Composable
 fun Botones(navController: NavController) {
 
-
     val rutas = listOf(
-        AppScreens.GamesScreen.route,
+        AppScreens.UnknownVisitScreen.route,
         AppScreens.NumericPanelScreen.route,
         AppScreens.TourScreen.route
     )

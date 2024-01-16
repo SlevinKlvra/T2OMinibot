@@ -81,27 +81,6 @@ class RobotManager @Inject constructor(skillApi: SkillApi, @ApplicationContext a
 
     var hideEyesScreen = false
 
-    private val _incomingMessages = mutableStateOf(emptyList<String>())
-    val incomingMessages: State<List<String>> get() = _incomingMessages
-
-    private val mqttCallback = MqttManagerCallback(_connectionState, {
-        val updatedMessages = _incomingMessages.value.toMutableList()
-        updatedMessages.add(it)
-        _incomingMessages.value = updatedMessages
-    }, this)
-    private val mqttManager : MqttManager
-    private var mqttConfigInstance = MQTTConfig(
-        SERVER_URI ="tcp://192.168.47.116:1883",
-        client_id = "Robot",
-        qos = 0,
-        user = "telegraf",
-        password = "metricsmetricsmetricsmetrics",
-        apiUser = "",
-        apiPassword = "",
-        waitingIdleTime = 0,
-        meetingTimeThreshold = 0,
-    )
-
     lateinit var textListener : TextListener
 
     var personListener: PersonListener
@@ -113,8 +92,6 @@ class RobotManager @Inject constructor(skillApi: SkillApi, @ApplicationContext a
     var onPersonDetected: ((List<Person>?) -> Unit)? = null
     var onSpeechResultReceived : ((String) -> Unit)? = null
     init {
-        mqttManager = MqttManager(getApplication(applicationContext), mqttCallback, mqttConfigInstance, getApplication(applicationContext))
-        mqttManager.connect()
         setupActionListener()
         getPlaceList()
 
@@ -222,7 +199,6 @@ class RobotManager @Inject constructor(skillApi: SkillApi, @ApplicationContext a
         return personApi?.allPersons
     }
 
-
     fun callback_speech_to_speech(speechResult: String){
         Log.d("STT",speechResult)
         onSpeechResultReceived?.invoke(speechResult)
@@ -239,30 +215,6 @@ class RobotManager @Inject constructor(skillApi: SkillApi, @ApplicationContext a
             startNavigation(0, "entrada", 0.1234, 100000)
             speak("Está bien, vuelvo a mi puesto. Buenos días.", false)
         }*/
-
-
-        addIncomingMessage("Publishing message: $speechResult to topic: test/speech")
-        mqttManager.publishMessage("robot/voice_cmds/question_answer",speechResult.toString())
-        questionIsSiNo = false
-    }
-
-    fun sendSiNoResponse(isSiNo: Boolean){
-        Log.d("STT","response is Si: $isSiNo")
-        addIncomingMessage("Publishing message: $isSiNo to topic: test/speech")
-        if (isSiNo){
-            mqttManager.publishMessage("robot/voice_cmds/question_si_no_answer","YES")
-
-        }
-        else {
-            mqttManager.publishMessage("robot/voice_cmds/question_si_no_answer","NO")
-        }
-        questionIsSiNo = false
-    }
-
-    private fun addIncomingMessage(message: String) {
-        Log.d("RobotManager", "Nuevo mensaje recibido: $message")
-        val currentMessages = _incomingMessages.value ?: emptyList()
-        _incomingMessages.value = currentMessages + message
     }
 
     override fun onMessageReceived(topic: String, message: String){
@@ -356,13 +308,12 @@ class RobotManager @Inject constructor(skillApi: SkillApi, @ApplicationContext a
                 val robotStatus = RobotStatus(destName, status_)
 
                 val json = gson.toJson(robotStatus)
-                mqttManager.publishMessage("robot/nav_cmds/status",json.toString())
-                mqttManager.publishMessage("test/log_error","$errorCode, $errorString, $extraData")
+
             }
 
             override fun onStatusUpdate(status: Int, data: String?, extraData: String?) {
                 super.onStatusUpdate(status, data, extraData)
-                mqttManager.publishMessage("test/log_status","$status, $data, $extraData")
+
                 var status_ : String = ""
                 var gson = Gson()
                 Log.d("INFO UPDATE", extraData.toString())
@@ -372,12 +323,10 @@ class RobotManager @Inject constructor(skillApi: SkillApi, @ApplicationContext a
                         when(data) {
                             "navigation_started" -> {
                                 speak("Estoy yendo a $destName",false)
-                                mqttManager.publishMessage("robot/faceType", Face.HAPPY.toString())
                                 status_ = "START"
                                 val robotStatus = RobotStatus(destName, status_)
 
                                 val json = gson.toJson(robotStatus)
-                                mqttManager.publishMessage("robot/nav_cmds/status",json.toString())
                                 updateCurrentDestination(destName)
                             }
                             "Avoid" -> {
@@ -385,7 +334,6 @@ class RobotManager @Inject constructor(skillApi: SkillApi, @ApplicationContext a
                                 val robotStatus = RobotStatus(destName, status_)
 
                                 val json = gson.toJson(robotStatus)
-                                mqttManager.publishMessage("robot/nav_cmds/status",json.toString())
                                 speak("No puedo pasar, ¿podrías dejarme paso?",false)
                             }
                             "Avoid end" -> {
@@ -393,7 +341,6 @@ class RobotManager @Inject constructor(skillApi: SkillApi, @ApplicationContext a
                                 val robotStatus = RobotStatus(destName, status_)
 
                                 val json = gson.toJson(robotStatus)
-                                mqttManager.publishMessage("robot/nav_cmds/status",json.toString())
                                 speak("Gracias por dejarme paso, vamos",false)
                             }
                         }
@@ -404,7 +351,6 @@ class RobotManager @Inject constructor(skillApi: SkillApi, @ApplicationContext a
 
             override fun onResult(result: Int, message: String?, extraData: String?) {
                 super.onResult(result, message, extraData)
-                mqttManager.publishMessage("test/log_result","$result, $message, $extraData")
                 if(message.toBoolean()){
                     var status_ : String = ""
                     status_ = "END"
@@ -427,9 +373,6 @@ class RobotManager @Inject constructor(skillApi: SkillApi, @ApplicationContext a
 
                     }
                     val json = gson.toJson(robotStatus)
-                    mqttManager.publishMessage("robot/nav_cmds/status",json.toString())
-                    mqttManager.publishMessage("robot/faceType", Face.NEUTRAL.toString())
-                    mqttManager.publishMessage("robot/nav_cmds/driving_finished", "0")
                 }
             }
         })
@@ -483,7 +426,6 @@ class RobotManager @Inject constructor(skillApi: SkillApi, @ApplicationContext a
     fun speak(text : String, listen: Boolean){
         skillApi.playText(TTSEntity("sid-012345",text), object : TextListener() {
             override fun onStart() {
-                mqttManager.publishMessage("robot/interactionState", InteractionState.SPEAKING.toString())
                 // Iniciar reproducción
             }
 
@@ -500,10 +442,8 @@ class RobotManager @Inject constructor(skillApi: SkillApi, @ApplicationContext a
                 skillApi.setRecognizeMode(listen)
                 skillApi.setRecognizable(listen)
                 if(listen){
-                    mqttManager.publishMessage("robot/interactionState", InteractionState.LISTENING.toString())
                 }
                 else{
-                    mqttManager.publishMessage("robot/interactionState", InteractionState.NONE.toString())
                 }
             }
         })
@@ -519,136 +459,9 @@ class RobotManager @Inject constructor(skillApi: SkillApi, @ApplicationContext a
             ): Boolean {
                 Log.d("onSendRequest Prueba","$reqId, $reqType, $reqText, $reqParam")
                 callback_speech_to_speech(reqText)
-                mqttManager.publishMessage("test/log","$reqId, $reqType, $reqText, $reqParam")
                 return false
             }
         })
-    }
-
-    fun question_si_no(question: String, isSiNo: Boolean) {
-        questionIsSiNo = isSiNo
-        Log.d("QUESTION","Is SiNo: $questionIsSiNo")
-        speak(question,true)
-
-        RobotApi.getInstance().setCallback(object : ModuleCallback() {
-            override fun onSendRequest(
-                reqId: Int,
-                reqType: String,
-                reqText: String,
-                reqParam: String
-            ): Boolean {
-                Log.d("QUESTION onSendRequestN","Is SiNo: $questionIsSiNo")
-                Log.d("onSendRequestN","$reqText")
-                if(questionIsSiNo) {
-                    if(reqText.contains("si") || reqText.contains("no") || reqText.contains("sí")) {
-                        if (reqText.contains("no")) {
-                            sendSiNoResponse(false)
-                        } else {
-                            sendSiNoResponse(true)
-                        }
-                        mqttManager.publishMessage("robot/interactionState", InteractionState.NONE.toString())
-                        mqttManager.publishMessage("robot/voice_cmds/remove_question", "")
-                        //mqttManager.publishMessage("robot/notUnderstood",false.toString())
-                        speak("Gracias por tu respuesta",false)
-                        skillApi.setRecognizable(false)
-                    }
-                    else{
-                        mqttManager.publishMessage("robot/interactionState", InteractionState.SPEAKING.toString())
-                        speak("Por favor responde con si o no?",true)
-                        mqttManager.publishMessage("robot/notUnderstood",true.toString())
-
-                        //TODO: Screen to confirm si o no
-                    }
-                }
-                else {
-                    callback_speech_to_speech(reqText)
-                    Log.d("BOOLEAN","$questionIsSiNo")
-                    mqttManager.publishMessage("robot/interactionState", InteractionState.NONE.toString())
-                    mqttManager.publishMessage("robot/voice_cmds/remove_question", "")
-                    speak("Gracias por tu respuesta",false)
-                    skillApi.setRecognizable(false)
-                }
-                return false
-            }
-        })
-    }
-
-    fun question_move() {
-        questionIsSiNo = true
-        Log.d("QUESTION","Is SiNo: $questionIsSiNo")
-        speak("Estoy lo suficiente cerca para tocar mi pantalla?",true)
-
-        RobotApi.getInstance().setCallback(object : ModuleCallback() {
-            override fun onSendRequest(
-                reqId: Int,
-                reqType: String,
-                reqText: String,
-                reqParam: String
-            ): Boolean {
-                Log.d("QUESTION onSendRequest","Is SiNo: $questionIsSiNo")
-                Log.d("onSendRequestN","$reqText")
-                if(questionIsSiNo) {
-                    if(reqText.contains("si") || reqText.contains("no") || reqText.contains("sí")) {
-                        if (reqText.contains("no")) {
-                            //sendSiNoResponse(false)
-                            speak("me acerco 10 centimetros",false)
-                            question_move()
-                            moveForward()
-                        } else {
-                            //sendSiNoResponse(true)
-                            speak("Vale",false)
-                            mqttManager.publishMessage("robot/at_chair", "")
-                        }
-                        mqttManager.publishMessage("robot/interactionState", InteractionState.NONE.toString())
-                        mqttManager.publishMessage("robot/voice_cmds/remove_question", "")
-                        //mqttManager.publishMessage("robot/notUnderstood",false.toString())
-                        //speak("Gracias por tu respuesta",false)
-                        skillApi.setRecognizable(false)
-                    }
-                    else{
-                        mqttManager.publishMessage("robot/interactionState", InteractionState.SPEAKING.toString())
-                        speak("Por favor responde con si o no?",true)
-                        mqttManager.publishMessage("robot/notUnderstood",true.toString())
-                    }
-                }
-                else {
-                    callback_speech_to_speech(reqText)
-                    Log.d("BOOLEAN","$questionIsSiNo")
-                    mqttManager.publishMessage("robot/interactionState", InteractionState.NONE.toString())
-                    mqttManager.publishMessage("robot/voice_cmds/remove_question", "")
-                    speak("Gracias por tu respuesta",false)
-                    skillApi.setRecognizable(false)
-                }
-                return false
-            }
-        })
-    }
-
-    fun onSendRequest(
-        reqId: Int,
-        reqType: String,
-        reqText: String,
-        reqParam: String
-    ): Boolean {
-        Log.d("onSendRequest robotMan","$reqId, $reqType, $reqText, $reqParam")
-        callback_speech_to_speech(reqText)
-        mqttManager.publishMessage("test/log","$reqId, $reqType, $reqText, $reqParam")
-        Log.d("QUESTION onSendRequest","Is SiNo: $questionIsSiNo")
-        if(questionIsSiNo) {
-            if(reqText.contains("si") || reqText.contains("no") || reqText.contains("sí")) {
-                if (reqText.contains("no")) {
-                    sendSiNoResponse(false)
-                } else {
-                    sendSiNoResponse(true)
-                }
-            }
-        }
-        else {
-            callback_speech_to_speech(reqText)
-            Log.d("BOOLEAN","$questionIsSiNo")
-        }
-        skillApi.setRecognizable(false)
-        return false
     }
 
     fun setRecognizable(listen: Boolean){
