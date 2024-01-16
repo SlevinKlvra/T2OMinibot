@@ -32,7 +32,6 @@ import com.intec.telemedicina.navigation.AppScreens
 import com.intec.telemedicina.robotinterface.RobotManager
 import com.intec.telemedicina.viewmodels.MqttViewModel
 import com.intec.telemedicina.viewmodels.NumericPanelViewModel
-import com.intec.telemedicina.viewmodels.SplashScreenViewModel
 
 
 @Composable

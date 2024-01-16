@@ -17,7 +17,6 @@ class MqttManager(private val context: Context, private val callback: MqttManage
     private var mqttAndroidClient: MqttAndroidClient
     private val app = getApplication<Application>()
     private val persistence = MqttDefaultFilePersistence(app.filesDir.path)
-    private var actionListener = ActionListener()
 
     init {
         mqttAndroidClient = MqttAndroidClient(context, mqttConfig.SERVER_URI, mqttConfig.client_id, persistence)
