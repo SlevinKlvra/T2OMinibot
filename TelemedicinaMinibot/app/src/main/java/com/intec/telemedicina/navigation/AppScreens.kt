@@ -18,4 +18,5 @@ sealed class AppScreens(val route:String){
     object MainScreen: AppScreens("main_screen")
     object AdminPanelScreen: AppScreens("admin_panel_screen")
     object MeetingScreen: AppScreens("meeting_screen")
+    object UnknownVisitScreen: AppScreens("unknown_visit_screen")
 }

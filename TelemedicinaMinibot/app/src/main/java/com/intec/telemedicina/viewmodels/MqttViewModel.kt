@@ -5,6 +5,7 @@ import android.util.Log
 import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.Observer
 import androidx.lifecycle.viewModelScope
@@ -43,10 +44,20 @@ class MqttViewModel @Inject constructor(
 ) : AndroidViewModel(application), MqttMessageListener {
 
 
+    //COUNTDOWN DEL ESTADO DE PAUSA
+    //TO DO: AÑADIR A SETPREFERENCES LA VARIABLE PARA PODER EDITARLA
     private val _countdownState = MutableStateFlow(5)
     val countdownState: StateFlow<Int> = _countdownState
 
     val countdownFlag = MutableStateFlow(false)
+
+
+    //VARIABLES PARA LA ESCUCHA ACTIVA DE UNKNOWN VISITS
+    private var _capturedText = MutableLiveData<String>()
+    val capturedText: LiveData<String> = _capturedText
+
+    private val _isListening = MutableLiveData<Boolean>()
+    val isListening: LiveData<Boolean> = _isListening
 
     fun setCountdownFlagState(newState: Boolean) {
         countdownFlag.value = newState
@@ -143,7 +154,7 @@ class MqttViewModel @Inject constructor(
     var currentResponse: String? = _currentResponse.value
 
     enum class NavigationState {
-        EyesScreen, HomeScreen, NumericPanelScreen, MeetingScreen
+        EyesScreen, HomeScreen, NumericPanelScreen, MeetingScreen, UnknownVisitsScreen
     }
 
     // Observador para cambios en brokerIp
@@ -283,12 +294,6 @@ class MqttViewModel @Inject constructor(
         }
     }
 
-    /*SERVER_URI = "",
-        client_id = "Robot",
-        qos = 0,
-        user = "intecfull",
-        password = "intecfullpassword"*/
-
     private fun actualizarConfiguracionMQTT() {
         brokerIp.value?.let {serverUri ->
 
@@ -302,7 +307,7 @@ class MqttViewModel @Inject constructor(
             val idleWaitingTime = preferencesRepository.getIdleWaitingTime()
             val meetingTimeThreshold = preferencesRepository.getMeetingTimeThreshold()
 
-            val fullServerUri = "$serverUri:$port"
+            val fullServerUri = "tcp://$serverUri:$port"
 
             // Actualizar la configuración
             mqttConfigInstance = mqttConfigInstance.copy(
@@ -370,9 +375,10 @@ class MqttViewModel @Inject constructor(
         apiPassword.removeObserver(apiPasswordObserver)
     }
 
-    private fun listenToSpeechResult() {
+    fun listenToSpeechResult() {
         robotMan.onSpeechResultReceived = { speechResult ->
             if (speechResult.isNotEmpty()) {
+                _capturedText.value = speechResult
                 processSpeechResult(speechResult)
             }
         }
@@ -386,6 +392,7 @@ class MqttViewModel @Inject constructor(
         }
         else if(containsVisitKeyword(speechResult)){
             Log.d("speechResult", "Se ha detectado una visita")
+            navigateToUnknownVisitsScreen()
         }
         else if(containsDealerKeyword(speechResult)){
             Log.d("speechResult", "Se ha detectado un repartidor")
@@ -415,6 +422,12 @@ class MqttViewModel @Inject constructor(
         detectionJob?.cancel()
         robotMan.speak("Deacuerdo, introduce el código que se te ha proporcionado", false)
         _navigationState.value = NavigationState.NumericPanelScreen
+    }
+
+    private fun navigateToUnknownVisitsScreen() {
+        detectionJob?.cancel()
+        robotMan.speak("Deacuerdo, introduce el código que se te ha proporcionado", false)
+        _navigationState.value = NavigationState.UnknownVisitsScreen
     }
 
     private fun repeatCommand() {

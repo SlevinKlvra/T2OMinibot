@@ -37,5 +37,9 @@ fun MainScreen(navController: NavController, splashScreenViewModel: SplashScreen
             Log.d("HomeScreen enum", "${AppScreens.MeetingScreen.route}")
             MeetingScreen(navController, mqttViewModel = mqttViewModel,numericPanelViewModel = numericPanelViewModel, robotManager = robotManager)
         }
+        MqttViewModel.NavigationState.UnknownVisitsScreen -> {
+            Log.d("HomeScreen enum", "${AppScreens.UnknownVisitScreen.route}")
+            UnknownVisitScreen(navController, mqttViewModel = mqttViewModel,numericPanelViewModel = numericPanelViewModel, robotManager = robotManager)
+        }
     }
 }

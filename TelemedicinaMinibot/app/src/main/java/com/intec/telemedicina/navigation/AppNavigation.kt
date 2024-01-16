@@ -24,6 +24,7 @@ import com.intec.telemedicina.screens.SettingsScreen
 import com.intec.telemedicina.screens.SplashScreen
 import com.intec.telemedicina.screens.TestScreen
 import com.intec.telemedicina.screens.TourScreen
+import com.intec.telemedicina.screens.UnknownVisitScreen
 import com.intec.telemedicina.viewmodels.MqttViewModel
 import com.intec.telemedicina.viewmodels.NumericPanelViewModel
 import com.intec.telemedicina.viewmodels.SplashScreenViewModel
@@ -88,6 +89,9 @@ fun AppNavigation(viewModel: SplashScreenViewModel, mqttViewModel: MqttViewModel
         }
         composable(AppScreens.MeetingScreen.route) {
             MeetingScreen(navController = navController, mqttViewModel = mqttViewModel, numericPanelViewModel = numericPanelViewModel, robotManager = robotManager)
+        }
+        composable(AppScreens.UnknownVisitScreen.route) {
+            UnknownVisitScreen(navController = navController, mqttViewModel = mqttViewModel, numericPanelViewModel = numericPanelViewModel, robotManager = robotManager)
         }
     }
 }
