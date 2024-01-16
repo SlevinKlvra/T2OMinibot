@@ -37,10 +37,8 @@ import org.json.JSONArray
 import org.json.JSONException
 import javax.inject.Inject
 
-class RobotManager @Inject constructor(skillApi: SkillApi, @ApplicationContext applicationContext: Context) :
+class RobotManager @Inject constructor(private val skillApi: SkillApi, @ApplicationContext applicationContext: Context) :
     MqttMessageListener{
-
-    var skillApi = skillApi
 
     var context: Context = applicationContext
 
@@ -53,7 +51,6 @@ class RobotManager @Inject constructor(skillApi: SkillApi, @ApplicationContext a
     val placesList: MutableList<Place> = mutableListOf()
     val posesList: MutableList<Pose> = mutableListOf()
     private val _destinationsList = MutableLiveData(listOf<String>())
-    val destinationsList: LiveData<List<String>> get() = _destinationsList
 
     private val _navigationStatus = MutableLiveData<String>()
     val navigationStatus: LiveData<String> get() = _navigationStatus
@@ -81,7 +78,7 @@ class RobotManager @Inject constructor(skillApi: SkillApi, @ApplicationContext a
 
     var hideEyesScreen = false
 
-    lateinit var textListener : TextListener
+    var textListener : TextListener
 
     var personListener: PersonListener
 
@@ -470,44 +467,59 @@ class RobotManager @Inject constructor(skillApi: SkillApi, @ApplicationContext a
         skillApi.setRecognizable(listen)
     }
 
-    fun registerCallback(){
-        skillApi.registerCallBack(object : SkillCallback(){
-            override fun onSpeechParResult(s: String) {
-                // Resultado temporal del reconocimiento de voz
-                //Log.d("RobotViewModel ASR", s)
-                //robotMan.callback_speech_to_speech(s)
-            }
-
-            override fun onStart() {
-                // Inicio del reconocimiento
-                //Log.d("RobotViewModel ASR", "onStart")
-            }
-
-            override fun onStop() {
-                // Fin del reconocimiento
-                //Log.d("RobotViewModel ASR", "onStop")
-            }
-
-            override fun onVolumeChange(volume: Int) {
-                // Cambio en el volumen de la voz reconocida
-                //Log.d("RobotViewModel ASR", "onVolumeChange")
-            }
-
-            override fun onQueryEnded(status: Int) {
-                // Manejar el fin de la consulta basado en el estado
-                //Log.d("RobotViewModel ASR", "onQueryEnded")
-            }
-
-            override fun onQueryAsrResult(asrResult: String) {
-                // asrResult: resultado final del reconocimiento
-                //Log.d("RobotViewModel ASR", asrResult)
-                //callback_speech_to_speech(asrResult)
-            }
-        })
-        skillApi.setRecognizable(false)
+    fun onSendRequest(
+        reqId: Int,
+        reqType: String,
+        reqText: String,
+        reqParam: String
+    ): Boolean {
+        Log.d("onSendRequest robotMan","$reqId, $reqType, $reqText, $reqParam")
+        callback_speech_to_speech(reqText)
+        return false
     }
-    
 
+    fun registerCallback() {
+        try {
+            skillApi.registerCallBack(object : SkillCallback() {
+                // Implementar los métodos override como antes
+                // ...
+                override fun onSpeechParResult(s: String) {
+                    // Resultado temporal del reconocimiento de voz
+                    //Log.d("RobotViewModel ASR", s)
+                    //robotMan.callback_speech_to_speech(s)
+                }
+
+                override fun onStart() {
+                    // Inicio del reconocimiento
+                    //Log.d("RobotViewModel ASR", "onStart")
+                }
+
+                override fun onStop() {
+                    // Fin del reconocimiento
+                    //Log.d("RobotViewModel ASR", "onStop")
+                }
+
+                override fun onVolumeChange(volume: Int) {
+                    // Cambio en el volumen de la voz reconocida
+                    //Log.d("RobotViewModel ASR", "onVolumeChange")
+                }
+
+                override fun onQueryEnded(status: Int) {
+                    // Manejar el fin de la consulta basado en el estado
+                    //Log.d("RobotViewModel ASR", "onQueryEnded")
+                }
+
+                override fun onQueryAsrResult(asrResult: String) {
+                    // asrResult: resultado final del reconocimiento
+                    //Log.d("RobotViewModel ASR", asrResult)
+                    //callback_speech_to_speech(asrResult)
+                }
+            })
+            skillApi?.setRecognizable(false)
+        } catch (e: Exception) {
+            Log.e("RobotManager", "Error al registrar callback: ${e.message}")
+        }
+    }
 
     fun getRobotInterfaceMethod(): RobotInterface {
         return robotInterface

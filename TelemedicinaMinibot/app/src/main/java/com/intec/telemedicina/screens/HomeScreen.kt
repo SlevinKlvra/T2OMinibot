@@ -1,7 +1,5 @@
 package com.intec.telemedicina.screens
 
-import NavigationDialog
-import WelcomeDialog
 import android.util.Log
 import android.view.SoundEffectConstants
 import androidx.compose.foundation.Image
@@ -12,10 +10,8 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.wrapContentHeight
@@ -60,41 +56,13 @@ import com.intec.telemedicina.navigation.AppScreens
 import com.intec.telemedicina.robotinterface.RobotManager
 import com.intec.telemedicina.ui.theme.md_theme_light_tertiary
 import com.intec.telemedicina.viewmodels.MqttViewModel
-import com.intec.telemedicina.viewmodels.SplashScreenViewModel
 
 @Composable
-fun HomeScreen(navController: NavController, splashScreenViewModel: SplashScreenViewModel, mqttViewModel: MqttViewModel, robotManager: RobotManager){
+fun HomeScreen(navController: NavController, mqttViewModel: MqttViewModel, robotManager: RobotManager){
 
-    val splashScreenViewModel: SplashScreenViewModel = splashScreenViewModel
     val mqttViewModel: MqttViewModel = mqttViewModel
-    val robotManager = robotManager
-
-    val showDialog by splashScreenViewModel.showNavigationDialog.collectAsState()
-    val showQuestionsDialog by mqttViewModel.showQuestionsDialog.collectAsState()
-    val showWelcomeDialog by mqttViewModel.showWelcomeDialog.collectAsState()
-
-    val showDrivingScreenFace by mqttViewModel.showDrivingScreenFace.collectAsState()
-    val closeDrivingScreenFace by mqttViewModel.closeDrivingScreenFace.collectAsState()
 
     val adminMode by mqttViewModel.adminState.collectAsState(initial = false)
-
-
-    /*if(!mqttViewModel.getInitiatedStatus()){
-        mqttViewModel.connect()
-        Log.d("Topicslist",mqttViewModel.resumeTopics().toString())
-        //mqttViewModel.subscribeToAllTopics(mqttViewModel.resumeTopics())
-    }*/
-
-    /*if(showDrivingScreenFace){ //&& (navController.currentDestination?.route.toString() != "driving_face_screen")) {
-        Log.d("DRIVINGSCREEN", "Open the drivingscreen: ${navController.currentDestination!!.route}")
-        navController.navigate(AppScreens.DrivingScreen.route)
-        mqttViewModel.deactivateOpenDrivingScreenFace()
-    }*/
-
-    /*if(closeDrivingScreenFace) {
-        navController.navigateUp()
-        mqttViewModel.deactivateCloseDrivingScreenFace()
-    }*/
 
     val openEyesScreen by mqttViewModel.openEyesScreen.collectAsState()
 
@@ -104,45 +72,14 @@ fun HomeScreen(navController: NavController, splashScreenViewModel: SplashScreen
         mqttViewModel.closeHomescreen()
     }
 
-    if (showDialog) {
-        NavigationDialog(
-            onDismiss = { splashScreenViewModel.hideNavigationDialog() },
-            onStopNavigation = { /*robotMan.getRobotInterfaceMethod().stopNavigation(1)*/ /*splashScreenViewModel.stopNavigation()*/ },
-            onReturnToPreviousOrReception = { /*splashScreenViewModel.navigateToLastDestiny()*/ },
-            onEmergencyCall = { Log.d("EMERGENCY", "PLEASE HELP") },
-            splashScreenViewModel = splashScreenViewModel
-        )
-    }
-
-    if(showQuestionsDialog) {
-        Log.d("QUESTIONS", "ENTRA AL DIALOGO")
-        QuestionsDialog(
-            title = "Question",
-            onAccept = {},
-            onDismiss = {},
-            mqttViewModel = mqttViewModel
-        )
-    }
-
-    if(showWelcomeDialog) {
-        Log.d("QUESTIONS", "ENTRA AL DIALOGO")
-        WelcomeDialog(
-            onDismiss = {
-                //navController.navigate(AppScreens.DrivingFaceScreen.route)
-                mqttViewModel.hideWelcomeDialog() },
-            onStopNavigation = {  },
-            onReturnToPreviousOrReception = {  },
-            onEmergencyCall = {  },
-            mqttViewModel = mqttViewModel
-        )
-    }
-
     FuturisticGradientBackground {
 
         Column(modifier = Modifier.fillMaxSize()) {
             Cabecera(navController = navController)
-            Spacer(Modifier.height(10.dp))
             Botones(navController = navController)
+            if(adminMode){
+                LazyRowUbicaciones(mqttViewModel = mqttViewModel,modifier= Modifier, navController=  navController)
+            }
             Box(modifier = Modifier
                 .fillMaxWidth()
                 .weight(1f)) {
@@ -161,9 +98,7 @@ fun HomeScreen(navController: NavController, splashScreenViewModel: SplashScreen
                         contentDescription = null
                     )
                 }
-                if(adminMode){
-                    LazyRowUbicaciones(mqttViewModel = mqttViewModel, modifier = Modifier.align(Alignment.BottomCenter), navController)
-                }
+
             }
         }
     }
@@ -175,24 +110,19 @@ fun Cabecera(navController: NavController){
     // Una columna con un espacio fijo entre sus elementos
     Column(modifier = Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
         // El Row que contiene el título
-        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween){
+        Row(modifier = Modifier.fillMaxWidth()
+            .padding(start = 5.dp, top = 5.dp),
+            horizontalArrangement = Arrangement.SpaceBetween){
             MqttButton(navController = navController)
-            SoundButton(navController)
+            // El Text que contiene el subtítulo
+            Text(text = "¿Cuál es el motivo de su visita?", modifier = Modifier.fillMaxWidth(), color = Color.White,fontSize = 20.sp, fontWeight = FontWeight.Light, textAlign = TextAlign.Center)
         }
-        // El Text que contiene el subtítulo
-        Text(text = "¿Cuál es el motivo de su visita?", modifier = Modifier.fillMaxWidth(), color = Color.White,fontSize = 20.sp, fontWeight = FontWeight.Light, textAlign = TextAlign.Center)
+
     }
 }
 
 @Composable
 fun LazyRowUbicaciones(mqttViewModel: MqttViewModel, modifier : Modifier = Modifier, navController: NavController){
-
-    /*var destinations : List<String> = mutableListOf()
-    destinations = splashScreenViewModel.destinationsList.value!!
-
-    LaunchedEffect(Unit){
-        splashScreenViewModel.getPlaceList()
-    }*/
 
     mqttViewModel.getListPoses()
     val destinations : List<Pose> by mqttViewModel.posesList.collectAsState()
@@ -278,25 +208,6 @@ fun Botones(navController: NavController) {
                         navController.navigate(rutas[index])
                     }
                 )
-
-            // Un botón con el color de fondo, el canto redondeado y el onClick que quieras
-                /*Button(
-                    modifier = Modifier
-                        .height(100.dp)
-
-                        .fillMaxWidth()
-                        .padding(9.dp),
-                    onClick = { navController.navigate(rutas[index]) },
-                    colors = ButtonDefaults.buttonColors(contentColor = ),
-                    shape = MaterialTheme.shapes.medium
-                ) {
-                    // Un Row con el icono y el texto del botón
-                    Column(verticalArrangement = Arrangement.Center, horizontalAlignment = Alignment.CenterHorizontally) {
-                        Icon(imageVector = iconos[index], contentDescription = textos[index], tint= md_theme_light_onPrimary, modifier = Modifier.size(65.dp))
-                        Spacer(modifier = Modifier.width(30.dp))
-                        Text(textos[index], color = md_theme_light_onPrimary, fontSize = 20.sp, fontWeight = FontWeight.ExtraBold)
-                    }
-                }*/
             }
         }
     }
@@ -309,7 +220,6 @@ fun MqttButton(navController: NavController){
             painter = painterResource(id = R.drawable.intecrobots_circulo),
             contentDescription = "logo",
             modifier = Modifier
-                .padding(5.dp)
                 .size(dimensionResource(id = R.dimen.mqtt_button_size))
                 .clickable { navController.navigate(AppScreens.AdminPanelScreen.route) })
     }

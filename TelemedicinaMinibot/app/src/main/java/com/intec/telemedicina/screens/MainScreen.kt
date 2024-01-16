@@ -1,22 +1,17 @@
 package com.intec.telemedicina.screens
 
 import android.util.Log
-import androidx.compose.runtime.LaunchedEffect
 import androidx.navigation.NavController
 import com.intec.telemedicina.robotinterface.RobotManager
 import com.intec.telemedicina.viewmodels.MqttViewModel
-import com.intec.telemedicina.viewmodels.SplashScreenViewModel
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import com.intec.telemedicina.navigation.AppScreens
 import com.intec.telemedicina.viewmodels.NumericPanelViewModel
 
 @Composable
-fun MainScreen(navController: NavController, splashScreenViewModel: SplashScreenViewModel, mqttViewModel: MqttViewModel, numericPanelViewModel: NumericPanelViewModel,robotManager: RobotManager) {
+fun MainScreen(navController: NavController, mqttViewModel: MqttViewModel, numericPanelViewModel: NumericPanelViewModel,robotManager: RobotManager) {
     val navigationState by mqttViewModel.navigationState.collectAsState()
 
     when (navigationState) {
@@ -27,7 +22,7 @@ fun MainScreen(navController: NavController, splashScreenViewModel: SplashScreen
         }
         MqttViewModel.NavigationState.HomeScreen -> {
             Log.d("HomeScreen enum", "${AppScreens.HomeScreen.route}")
-            HomeScreen(navController, splashScreenViewModel, mqttViewModel, robotManager)
+            HomeScreen(navController, mqttViewModel, robotManager)
         }
         MqttViewModel.NavigationState.NumericPanelScreen -> {
             Log.d("HomeScreen enum", "${AppScreens.NumericPanelScreen.route}")

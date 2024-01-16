@@ -15,7 +15,6 @@ import com.ainirobot.coreservice.client.actionbean.Pose
 import com.ainirobot.coreservice.client.listener.Person
 import com.ainirobot.coreservice.client.listener.TextListener
 import com.ainirobot.coreservice.client.person.PersonApi
-import com.ainirobot.coreservice.client.speech.SkillApi
 import com.ainirobot.coreservice.client.speech.entity.TTSEntity
 import com.intec.telemedicina.data.Face
 import com.intec.telemedicina.data.InteractionState
@@ -59,6 +58,8 @@ class MqttViewModel @Inject constructor(
     private val _isListening = MutableLiveData<Boolean>()
     val isListening: LiveData<Boolean> = _isListening
 
+    var robotMan = robotMan
+
     fun stopListening() {
         // Detener el reconocimiento de voz
         _isListening.value = false
@@ -88,11 +89,6 @@ class MqttViewModel @Inject constructor(
 
     //Admin Mode
     val adminState = MutableStateFlow(false)
-
-    var robotMan = robotMan
-
-    //TODO:revove skillapi
-    val skillApi = SkillApi()
 
     private val _connectionState = mutableStateOf("Disconnected")
     val connectionState get()= _connectionState
