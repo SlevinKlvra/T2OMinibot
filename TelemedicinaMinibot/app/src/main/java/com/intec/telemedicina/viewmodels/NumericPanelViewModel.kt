@@ -24,8 +24,15 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import okhttp3.FormBody
+import okhttp3.MediaType
+import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.OkHttpClient
 import okhttp3.Request
+import okhttp3.RequestBody
+import okhttp3.RequestBody.Companion.toRequestBody
+import okhttp3.Response
+import org.json.JSONObject
 import java.io.IOException
 import java.time.Duration
 import java.time.LocalTime
@@ -100,7 +107,7 @@ class NumericPanelViewModel(
     private val _isCodeCorrect = MutableStateFlow(false)
     val isCodeCorrect: StateFlow<Boolean> = _isCodeCorrect.asStateFlow()
 
-    fun checkForTaskExecution() {
+    /*fun checkForTaskExecution() {
         viewModelScope.launch(Dispatchers.IO) {
             try {
 
@@ -165,6 +172,148 @@ class NumericPanelViewModel(
                 // Indicar que la carga ha terminado (independientemente del resultado)
                 _isLoading.value = false
             }
+        }
+    }
+
+    private fun refreshToken(){
+
+    }*/
+
+    private var currentToken: String = ""
+
+    fun checkForTaskExecution() {
+        Log.d("NumericPanelViewModel", "checkForTaskExecution")
+        viewModelScope.launch(Dispatchers.IO) {
+            try {
+                _isLoading.value = true
+                if(currentToken.isEmpty()){
+                    Log.d("checkForTaskExecution", "currentToken is empty")
+                    currentToken = refreshToken() ?: ""
+                }
+
+                if(currentToken.isNotEmpty()){
+                    Log.d("checkForTaskExecution", "currentToken is not empty: $currentToken")
+                    val response = makeApiCall(currentToken)
+                    withContext(Dispatchers.Main) {
+                        Log.d("TAG MAIN", "Respuesta: $response")
+                        handleApiResponse(response)
+                        Log.d("TAG MAIN", "Respuesta manejada")
+                    }
+                }
+            } finally {
+                Log.d("TAG MAIN", "Finally")
+                _isLoading.value = false
+            }
+        }
+    }
+
+    private suspend fun makeApiCall(token: String): Response? {
+        Log.d("TAG MAIN", "Haciendo llamada a la API: token: $token")
+        val client = OkHttpClient()
+        val request = Request.Builder()
+            .url("https://t2o.intecrobots.com/api/visitas/consultacodigototal?codigo=${enteredCode.value}")
+            .addHeader("Authorization", "Bearer $token")
+            .get()
+            .build()
+        Log.d("makeApiCall Request", "URL: $request")
+        return client.newCall(request).execute()
+    }
+
+    private suspend fun handleApiResponse(response: Response?) {
+        if (response != null) {
+            val responseBodyString = withContext(Dispatchers.IO) {
+                response.body?.string()  // Leer el cuerpo de la respuesta
+            }
+            Log.d("handleApiResponse", responseBodyString ?: "Respuesta vacía")
+
+            if (response.isSuccessful) {
+                // Manejar respuesta exitosa
+                // Si la respuesta es exitosa, consideramos que el código es correcto.
+
+                val gson = Gson()
+                // Nuevo código para manejar la respuesta como un arreglo
+                val type = object : TypeToken<List<MeetingResponse>>() {}.type
+                val meetingInfoList = gson.fromJson<List<MeetingResponse>>(responseBodyString, type)
+
+                withContext(Dispatchers.Main) {
+                    if (meetingInfoList.isNotEmpty()) {
+                        val meetingInfo = meetingInfoList.first()
+                        collectedMeetingInfo.value = meetingInfo
+                        _isCodeCorrect.value = true
+                        Log.d(
+                            "CheckForApiExecution",
+                            "El código es correcto: ${isCodeCorrect.value}"
+                        )
+                        Log.d("meetingInfo", "${collectedMeetingInfo.value}")
+                        robotMan.speak("Hola ${collectedMeetingInfo.value.visitante}", false)
+                    } else {
+                        // Manejar el caso de que la lista esté vacía
+                        triggerErrorAnimation()
+                        robotMan.speak("El código no es válido. Inténtelo de nuevo", false)
+                    }
+                }
+            } else if (response.code == 401) {
+                // Manejar error de autenticación
+                val newToken = refreshToken()
+                if (newToken != null) {
+                    Log.d("TAG MAIN", "Token refrescado: $newToken")
+                    currentToken = newToken  // Actualizar el token actual
+                    val newResponse = makeApiCall(newToken)
+                    handleApiResponse(newResponse)  // Manejar la nueva respuesta
+                } else {
+                    withContext(Dispatchers.Main) {
+                        // Manejar otros errores
+                        triggerErrorAnimation()
+                        robotMan.speak("El código no es válido. Inténtelo de nuevo", false)
+                        Log.e("Error", "Error en la solicitud: Código ${response.code}")
+                    }
+                    // Mostrar mensaje de error en la UI o realizar alguna acción
+                }
+            } else {
+                // Manejar otros errores de respuesta
+                withContext(Dispatchers.Main) {
+                    // Manejar otros errores
+                    triggerErrorAnimation()
+                    Log.e("Error", "Error en la solicitud: Código ${response.code}")
+                    robotMan.speak("El código no es válido. Inténtelo de nuevo", false)
+                }
+                // Mostrar mensaje de error en la UI o realizar alguna acción
+            }
+        } else {
+            // Manejar el caso en que la respuesta es null
+            withContext(Dispatchers.Main) {
+                // Manejar el caso en que la respuesta es null
+                triggerErrorAnimation()
+                Log.e("Error", "La respuesta es null")
+                robotMan.speak("El código no es válido. Inténtelo de nuevo", false)
+            }
+            // Mostrar mensaje de error en la UI o realizar alguna acción
+        }
+    }
+
+
+    private suspend fun refreshToken(): String? {
+        return try {
+            val client = OkHttpClient()
+            val formBody = FormBody.Builder()
+                .add("username", "sergio.escudero@intecrobots.com")
+                .add("password", "sec000611")
+                .build()
+            val request = Request.Builder()
+                .url("https://t2o.intecrobots.com/api/auth/login")
+                .post(formBody)
+                .build()
+            Log.d("Request", "URL: ${request.url}, Body: $formBody")
+            client.newCall(request).execute().use { response ->
+                if (response.isSuccessful) {
+                    val responseData = response.body?.string() ?: ""
+                    val jsonObject = JSONObject(responseData)
+                    jsonObject.getString("token")
+                } else null
+            }
+        } catch (e: Exception) {
+            Log.e("Error", "Error al refrescar el token: ${e.message}")
+            null
         }
     }
 
