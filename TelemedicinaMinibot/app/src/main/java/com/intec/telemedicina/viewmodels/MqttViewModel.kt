@@ -275,7 +275,7 @@ class MqttViewModel @Inject constructor(
         meetingTimeThreshold.observeForever(meetingTimeThresholdObserver)
         apiUser.observeForever(apiUserObserver)
         apiPassword.observeForever(apiPasswordObserver)
-        actualizarConfiguracionMQTT()
+        //actualizarConfiguracionMQTT()
         //TODO Inicializar los LiveData para cada configuración
 
         robotMan.onPersonDetected = { personList ->
@@ -356,7 +356,6 @@ class MqttViewModel @Inject constructor(
         meetingTimeThreshold.value = receivedMeetingTimeThreshold
         apiUser.value = receivedApiUser
         apiPassword.value = receivedApiPassword
-        // ...
     }
     override fun onCleared() {
         super.onCleared()
