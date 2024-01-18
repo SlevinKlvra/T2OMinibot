@@ -13,7 +13,7 @@ import com.intec.telemedicina.viewmodels.NumericPanelViewModel
 @Composable
 fun MainScreen(navController: NavController, mqttViewModel: MqttViewModel, numericPanelViewModel: NumericPanelViewModel,robotManager: RobotManager) {
     val navigationState by mqttViewModel.navigationState.collectAsState()
-
+    Log.d("Current Screen", "MainScreen")
     when (navigationState) {
 
         MqttViewModel.NavigationState.EyesScreen -> {

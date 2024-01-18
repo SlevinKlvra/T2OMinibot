@@ -1,5 +1,6 @@
 package com.intec.telemedicina.screens
 
+import android.util.Log
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.Text
@@ -22,6 +23,7 @@ import androidx.compose.runtime.setValue
 
 @Composable
 fun MeetingScreen(navController : NavController, mqttViewModel : MqttViewModel, numericPanelViewModel : NumericPanelViewModel, robotManager : RobotManager){
+    Log.d("Current Screen", "MeetingScreen")
     val meetingInfo = numericPanelViewModel.collectedMeetingInfo.value
     var message by remember { mutableStateOf("Hola, ${meetingInfo.visitante}.") }
 

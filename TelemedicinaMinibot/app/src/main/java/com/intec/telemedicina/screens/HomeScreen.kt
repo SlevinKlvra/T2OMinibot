@@ -60,6 +60,7 @@ import com.intec.telemedicina.viewmodels.MqttViewModel
 @Composable
 fun HomeScreen(navController: NavController, mqttViewModel: MqttViewModel, robotManager: RobotManager){
 
+    Log.d("Current Screen", "HomeScreen")
     val mqttViewModel: MqttViewModel = mqttViewModel
 
     val adminMode by mqttViewModel.adminState.collectAsState(initial = false)
