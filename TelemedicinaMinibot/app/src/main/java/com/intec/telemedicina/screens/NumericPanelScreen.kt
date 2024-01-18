@@ -1,5 +1,6 @@
 package com.intec.telemedicina.screens
 
+import android.util.Log
 import androidx.compose.animation.core.FastOutLinearInEasing
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
@@ -52,7 +53,7 @@ fun NumericPanelScreen(
     numericPanelViewModel: NumericPanelViewModel,
     robotManager: RobotManager
 ) {
-
+    Log.d("Current Screen", "NumericPanelScreen")
     val shouldCheckCode = remember { mutableStateOf(false) }
     val isCodeCorrect by numericPanelViewModel.isCodeCorrect.collectAsState()
     val isLoading by numericPanelViewModel.isLoading.collectAsState()
@@ -123,9 +124,9 @@ fun NumericPanelScreen(
                     // Muestra el código ingresado
                     Text(
                         text = numericPanelViewModel.enteredCode.value,
-                        style = textStyle.copy(fontSize = 12.sp),
+                        style = textStyle.copy(fontSize = 8.sp),
                         modifier = Modifier.padding(6.dp),
-                        color = Color.White
+                        color = Color.Black
                     )
 
                     // Teclado numérico
@@ -139,7 +140,6 @@ fun NumericPanelScreen(
                             row.forEach { number ->
                                 if (number.isNotBlank()) {
                                     TransparentButton(
-
                                         text = number,
                                         onClick = {
                                             when (number) {

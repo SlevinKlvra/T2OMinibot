@@ -409,10 +409,10 @@ class RobotManager @Inject constructor(private val skillApi: SkillApi, @Applicat
         }
     }
 
-    fun returnToPosition(){
+    fun returnToPosition(positionToReturn: String){
         //TODO: Save last known coordinates when starting a navigation
-        if(lastDestination != ""){
-            startNavigation(0,lastDestination,0.1,1000000)
+        if(positionToReturn != ""){
+            startNavigation(0,positionToReturn,0.1,1000000)
         }
         else{
             speak("Actualmente no existe un destino al que haya ido previamente",false)

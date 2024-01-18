@@ -3,6 +3,8 @@
 package com.intec.telemedicina.screens
 
 import android.util.Log
+import android.widget.Toast
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
@@ -14,14 +16,19 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material3.Button
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
@@ -37,10 +44,13 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
+import com.ainirobot.coreservice.client.actionbean.Pose
 import com.intec.telemedicina.navigation.AppScreens
 import com.intec.telemedicina.ui.theme.md_theme_light_tertiary
 import com.intec.telemedicina.viewmodels.MqttViewModel
@@ -54,6 +64,7 @@ import com.intec.telemedicina.viewmodels.MqttViewModel
 @Composable
 fun MqttScreen(navController: NavController, mqttViewModel: MqttViewModel) {
 
+    Log.d("Current Screen", "MQTTScreen")
     val viewModel: MqttViewModel = mqttViewModel
 
     // Estados para manejar la entrada del usuario
@@ -94,6 +105,9 @@ fun MqttScreen(navController: NavController, mqttViewModel: MqttViewModel) {
         navController.popBackStack()
     }*/
 
+    val destinations : List<Pose> by mqttViewModel.posesList.collectAsState()
+    var expanded = remember { mutableStateOf(false) }
+    val selectedItem = mqttViewModel.selectedItem.value
 
     LazyColumn(
         modifier = Modifier
@@ -118,12 +132,7 @@ fun MqttScreen(navController: NavController, mqttViewModel: MqttViewModel) {
                     )
                 }
             }
-            Button(onClick = {
-                Log.d("MqttScreen", "Guardando configuración: $ipMqtt")
-                viewModel.guardarConfiguracion(ipMqtt, portMqtt,usuarioMqtt, passwordMqtt, qos, clientMqtt,  waitTime.toInt(), meetingMeetingThreshold.toInt(), usuarioApi, passwordApi)
-            }) {
-                Text("Guardar Configuración")
-            }
+
             Box {
                 Row(
                     modifier = Modifier.fillMaxWidth(), // Asegura que el Row ocupe todo el ancho disponible
@@ -149,8 +158,35 @@ fun MqttScreen(navController: NavController, mqttViewModel: MqttViewModel) {
                     }) {
                         Text("Cargar robot")
                     }
+                    Spacer(modifier = Modifier.width(5.dp)) // Espacio entre el Text y el Switch
+                    Button(onClick = {
+                        expanded.value = !expanded.value
+                        mqttViewModel.getListPoses()
+                        Log.d("MQTTScreen", "Expanded: $destinations")
+                    }){
+                        Text("Modificar punto retorno")
+                    }
+
+                    DropdownMenu(
+                        expanded = expanded.value,
+                        onDismissRequest = { expanded.value = false },
+                    ) {
+                        destinations.forEachIndexed { index, label ->
+                            DropdownMenuItem(
+                                text = { Text(label.name) },
+                                onClick = {
+                                    mqttViewModel.setSelectedItem(label.name)
+                                    expanded.value = false
+                                },
+                                enabled = expanded.value
+                            ) // Añade un elemento al menú
+                        }
+                    }
+                    Spacer(modifier = Modifier.height(20.dp))
+                    Text(selectedItem ?: "Ninguno")
                 }
             }
+
             Spacer(modifier = Modifier.height(8.dp))
             Text(fontWeight = FontWeight.Bold, text = "MQTT Connection params")
             Spacer(modifier = Modifier.height(8.dp))
@@ -300,6 +336,12 @@ fun MqttScreen(navController: NavController, mqttViewModel: MqttViewModel) {
                         label = { Text("Margen de impuntualidad") }
                     )
                 }
+            }
+            Button(onClick = {
+                Log.d("MqttScreen", "Guardando configuración: $ipMqtt")
+                viewModel.guardarConfiguracion(ipMqtt, portMqtt,usuarioMqtt, passwordMqtt, qos, clientMqtt,  waitTime.toInt(), meetingMeetingThreshold.toInt(), usuarioApi, passwordApi)
+            }) {
+                Text("Guardar Configuración")
             }
             Spacer(modifier = Modifier.height(8.dp))
             Text(fontWeight = FontWeight.Bold, text = "API Connection params")
