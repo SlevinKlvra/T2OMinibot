@@ -21,11 +21,9 @@ import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.MailOutline
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Place
-import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -51,6 +49,7 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.ainirobot.coreservice.client.actionbean.Pose
 import com.intec.telemedicina.R
+import com.intec.telemedicina.components.NavigationButton
 import com.intec.telemedicina.components.TransparentButtonWithIconAndText
 import com.intec.telemedicina.navigation.AppScreens
 import com.intec.telemedicina.robotinterface.RobotManager
@@ -58,7 +57,11 @@ import com.intec.telemedicina.ui.theme.md_theme_light_tertiary
 import com.intec.telemedicina.viewmodels.MqttViewModel
 
 @Composable
-fun HomeScreen(navController: NavController, mqttViewModel: MqttViewModel, robotManager: RobotManager){
+fun HomeScreen(
+    navController: NavController,
+    mqttViewModel: MqttViewModel,
+    robotManager: RobotManager
+) {
 
     val mqttViewModel: MqttViewModel = mqttViewModel
 
@@ -66,7 +69,7 @@ fun HomeScreen(navController: NavController, mqttViewModel: MqttViewModel, robot
 
     val openEyesScreen by mqttViewModel.openEyesScreen.collectAsState()
 
-    if(openEyesScreen){
+    if (openEyesScreen) {
         Log.d("HomeScreen openEyes", "true")
         navController.navigate(AppScreens.EyesScreen.route)
         mqttViewModel.closeHomescreen()
@@ -77,40 +80,58 @@ fun HomeScreen(navController: NavController, mqttViewModel: MqttViewModel, robot
         Column(modifier = Modifier.fillMaxSize()) {
             Cabecera(navController = navController)
             Botones(navController = navController)
-            if(adminMode){
-                LazyRowUbicaciones(mqttViewModel = mqttViewModel,modifier= Modifier, navController=  navController)
+            if (adminMode) {
+                LazyRowUbicaciones(
+                    mqttViewModel = mqttViewModel,
+                    modifier = Modifier,
+                    navController = navController
+                )
             }
         }
     }
 }
 
 @Composable
-fun Cabecera(navController: NavController){
-
+fun Cabecera(navController: NavController) {
     // Una columna con un espacio fijo entre sus elementos
     Column(modifier = Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
         // El Row que contiene el título
-        Row(modifier = Modifier.fillMaxWidth()
-            .padding(start = 5.dp, top = 5.dp),
-            horizontalArrangement = Arrangement.SpaceBetween){
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(top = 8.dp),
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
             MqttButton(navController = navController)
             // El Text que contiene el subtítulo
-            Text(text = "¿Cuál es el motivo de su visita?", modifier = Modifier.fillMaxWidth(), color = Color.White,fontSize = 20.sp, fontWeight = FontWeight.Light, textAlign = TextAlign.Center)
+            Text(
+                text = "¿Cuál es el motivo de su visita?",
+                modifier = Modifier.fillMaxWidth(),
+                color = Color.White,
+                fontSize = 25.sp,
+                fontWeight = FontWeight.SemiBold,
+                textAlign = TextAlign.Center
+            )
         }
-
     }
 }
 
 @Composable
-fun LazyRowUbicaciones(mqttViewModel: MqttViewModel, modifier : Modifier = Modifier, navController: NavController){
+fun LazyRowUbicaciones(
+    mqttViewModel: MqttViewModel,
+    modifier: Modifier = Modifier,
+    navController: NavController
+) {
 
     mqttViewModel.getListPoses()
-    val destinations : List<Pose> by mqttViewModel.posesList.collectAsState()
+    val destinations: List<Pose> by mqttViewModel.posesList.collectAsState()
 
-    LazyRow(modifier = modifier.then(
-        Modifier
-            .background(Color.Transparent)
-            .fillMaxWidth()),
+    LazyRow(
+        modifier = modifier.then(
+            Modifier
+                .background(Color.Transparent)
+                .fillMaxWidth()
+        ),
         verticalAlignment = Alignment.Bottom,
         horizontalArrangement = Arrangement.Center,
     ) {
@@ -118,32 +139,10 @@ fun LazyRowUbicaciones(mqttViewModel: MqttViewModel, modifier : Modifier = Modif
         items(items = destinations) { item ->
             Log.d("DESTINATIONS", item.name)
             // Un botón con el onClick y el estilo que quieras
-            Box(
-                modifier = Modifier
-
-                    .clickable {
-                        /*splashScreenViewModel.navigateToDestiny(item)*/
-                        mqttViewModel.robotMan.startNavigation(0, item.name, 0.1, 1000000)
-                        navController.navigate(AppScreens.EyesScreen.route)
-                    }
-                    .padding(horizontal = 15.dp, vertical = 12.dp)
-
-                    .background(
-                        color = md_theme_light_tertiary,
-                        shape = MaterialTheme.shapes.medium
-                    ),
-                contentAlignment = Alignment.Center, // Centra el contenido del Box
-
-            ) {
-                Text(
-                    text = item.name,
-                    maxLines = 1, // Asegúrate de que el texto no exceda una línea
-                    overflow = TextOverflow.Ellipsis, // Usa "..." si el texto es demasiado largo
-                    color = Color.Black,
-                    fontSize = 10.sp,
-                    fontWeight = FontWeight.Bold
-                )
-            }
+            NavigationButton(item.name, onClick = {
+                mqttViewModel.robotMan.startNavigation(0, item.name, 0.1, 1000000)
+                navController.navigate(AppScreens.EyesScreen.route)
+            })
         }
     }
 }
@@ -160,21 +159,23 @@ fun Botones(navController: NavController) {
     val iconos = listOf(Icons.Default.Person, Icons.Default.Place, Icons.Default.MailOutline)
     // Una lista de textos para los botones
     val textos = listOf("VISITA", "REUNIÓN", "MENSAJERÍA")
-    val indicaciones = listOf("\"tengo una visita..\"", "\"tengo una reunión..\"", "\"soy de mensajería\"")
+    val indicaciones =
+        listOf("\"tengo una visita...\"", "\"tengo una reunión...\"", "\"soy de mensajería...\"")
     Box(
         modifier = Modifier
             .fillMaxWidth()
             .wrapContentHeight() // Ajusta la altura al contenido,
             .wrapContentWidth(),
         contentAlignment = Alignment.Center
-    ){
+    ) {
 
         LazyVerticalGrid(
             columns = GridCells.Fixed(3),
             // Alineación y espaciado adicionales si son necesarios
             contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
             horizontalArrangement = Arrangement.Center,
-            verticalArrangement = Arrangement.Center) {
+            verticalArrangement = Arrangement.Center
+        ) {
             // Tre botones con los colores, iconos y textos correspondientes
             items(3) { index ->
 
@@ -193,8 +194,8 @@ fun Botones(navController: NavController) {
 }
 
 @Composable
-fun MqttButton(navController: NavController){
-    Box(contentAlignment = Alignment.TopStart){
+fun MqttButton(navController: NavController) {
+    Box(contentAlignment = Alignment.TopStart) {
         Image(
             painter = painterResource(id = R.drawable.intecrobots_circulo),
             contentDescription = "logo",
@@ -209,13 +210,15 @@ fun SoundButton(navController: NavController) {
     // Una variable que guarda el estado del sonido (true = activado, false = desactivado)
     var soundOn by remember { mutableStateOf(true) }
     // El icono que se muestra según el estado del sonido
-    val soundIcon : Painter = painterResource(id = if (soundOn) R.drawable.volume_on else R.drawable.volume_off)
+    val soundIcon: Painter =
+        painterResource(id = if (soundOn) R.drawable.volume_on else R.drawable.volume_off)
     // La vista actual para reproducir el sonido
     val view = LocalView.current
     // El botón que cambia el estado del sonido y reproduce el sonido al pulsarlo
 
     Box(
-        contentAlignment = Alignment.TopEnd){
+        contentAlignment = Alignment.TopEnd
+    ) {
         IconButton(
             onClick = {
 
