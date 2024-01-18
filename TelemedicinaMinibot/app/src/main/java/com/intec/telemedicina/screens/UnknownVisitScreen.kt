@@ -88,7 +88,7 @@ fun UnknownVisitScreen(
 
     val isListening by mqttViewModel.isListening.observeAsState(true)
 
-    LaunchedEffect(isListening) {
+    LaunchedEffect(currentPage) {
         mqttViewModel.robotMan.questionPrueba()
         mqttViewModel.listenToSpeechResult()
         if (text != "") {

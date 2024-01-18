@@ -54,6 +54,7 @@ class MqttManager(private val context: Context, private val callback: MqttManage
                     disconnectedBufferOptions.isPersistBuffer = false
                     disconnectedBufferOptions.isDeleteOldestMessages = false
                     mqttAndroidClient.setBufferOpts(disconnectedBufferOptions)
+
                     onSuccess?.invoke()
                     //addToHistory("Connected to $serverUri")
 

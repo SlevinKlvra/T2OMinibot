@@ -151,7 +151,7 @@ class MqttViewModel @Inject constructor(
     val navigationState: StateFlow<NavigationState> = _navigationState.asStateFlow()
 
     enum class NavigationState {
-        EyesScreen, HomeScreen, NumericPanelScreen, MeetingScreen, UnknownVisitsScreen
+        EyesScreen, HomeScreen, NumericPanelScreen, MeetingScreen, UnknownVisitsScreen, PackageAndMailManagementScreen
     }
 
     // Observador para cambios en brokerIp
@@ -401,6 +401,7 @@ class MqttViewModel @Inject constructor(
         }
         else if(containsDealerKeyword(speechResult)){
             Log.d("speechResult", "Se ha detectado un repartidor")
+            navigateToPackageAndMailManagementScreen()
         }
         else if(containSiWord(speechResult)){
             Log.d("speechResult", "Se ha detectado un si")
@@ -434,6 +435,18 @@ class MqttViewModel @Inject constructor(
         detectionJob?.cancel()
         //robotMan.speak("Deacuerdo, introduce el código que se te ha proporcionado", false)
         _navigationState.value = NavigationState.UnknownVisitsScreen
+    }
+
+    private fun navigateToPackageAndMailManagementScreen() {
+        detectionJob?.cancel()
+        //robotMan.speak("Deacuerdo, introduce el código que se te ha proporcionado", false)
+        _navigationState.value = NavigationState.PackageAndMailManagementScreen
+    }
+
+    fun navigateToEyesScreen() {
+        detectionJob?.cancel()
+        //robotMan.speak("Deacuerdo, introduce el código que se te ha proporcionado", false)
+        _navigationState.value = NavigationState.EyesScreen
     }
 
     private fun repeatCommand() {
@@ -550,7 +563,7 @@ class MqttViewModel @Inject constructor(
         Log.d("MQTTViewModel", "User: ${mqttConfigInstance.user}")
         Log.d("MQTTViewModel", "Pwd: ${mqttConfigInstance.password}")
         addIncomingMessage("Connecting to broker: ${mqttConfigInstance.SERVER_URI}")
-        mqttManager.connect()
+        //mqttManager.connect(){onSuccess -> initiated_status = false}
         initiated_status = true
         //subscribeToAllTopics(resumeTopics())
     }

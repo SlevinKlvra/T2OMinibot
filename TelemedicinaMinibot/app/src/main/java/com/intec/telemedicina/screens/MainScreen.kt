@@ -36,5 +36,9 @@ fun MainScreen(navController: NavController, mqttViewModel: MqttViewModel, numer
             Log.d("HomeScreen enum", "${AppScreens.UnknownVisitScreen.route}")
             UnknownVisitScreen(navController, mqttViewModel = mqttViewModel,numericPanelViewModel = numericPanelViewModel, robotManager = robotManager)
         }
+        MqttViewModel.NavigationState.PackageAndMailManagementScreen -> {
+            Log.d("HomeScreen enum", "${AppScreens.PackageAndMailManagementScreen.route}")
+            PackageAndMailManagementScreen(navController, mqttViewModel = mqttViewModel,numericPanelViewModel = numericPanelViewModel, robotManager = robotManager)
+        }
     }
 }
