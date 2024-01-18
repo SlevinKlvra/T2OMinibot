@@ -63,6 +63,7 @@ fun HomeScreen(
     robotManager: RobotManager
 ) {
 
+    Log.d("Current Screen", "HomeScreen")
     val mqttViewModel: MqttViewModel = mqttViewModel
 
     val adminMode by mqttViewModel.adminState.collectAsState(initial = false)

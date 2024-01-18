@@ -69,6 +69,7 @@ fun UnknownVisitScreen(
     robotManager: RobotManager,
     numericPanelViewModel: NumericPanelViewModel
 ) {
+    Log.d("Current Screen", "UnknownVisitScreen")
     var userData by remember {
         mutableStateOf(
             UserData(

@@ -52,7 +52,7 @@ fun NumericPanelScreen(
     numericPanelViewModel: NumericPanelViewModel,
     robotManager: RobotManager
 ) {
-
+    Log.d("Current Screen", "NumericPanelScreen")
     val shouldCheckCode = remember { mutableStateOf(false) }
     val isCodeCorrect by numericPanelViewModel.isCodeCorrect.collectAsState()
     val isLoading by numericPanelViewModel.isLoading.collectAsState()

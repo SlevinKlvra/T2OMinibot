@@ -55,6 +55,7 @@ fun EyesScreen(navController: NavController, mqttViewModel: MqttViewModel, robot
     val notUnderstood by mqttViewModel.notUnderstood.collectAsState()
 
     if(!mqttViewModel.getInitiatedStatus()){
+        Log.d("InitiatedStatus Screen", "getInitiatedStatus is false")
         mqttViewModel.connect()
         Log.d("Topicslist",mqttViewModel.resumeTopics().toString())
         //mqttViewModel.subscribeToAllTopics(mqttViewModel.resumeTopics())
@@ -76,7 +77,9 @@ fun EyesScreen(navController: NavController, mqttViewModel: MqttViewModel, robot
         if(false){//notUnderstood){
             FloatingActionButton(
                 onClick = { /*TO-DO: Yes button*/ },
-                modifier = Modifier.size(36.dp).align(Alignment.BottomStart),
+                modifier = Modifier
+                    .size(36.dp)
+                    .align(Alignment.BottomStart),
                 containerColor = md_theme_light_tertiary
             ) { // You can set the house icon here using painterResource
                 Icon(
@@ -87,7 +90,9 @@ fun EyesScreen(navController: NavController, mqttViewModel: MqttViewModel, robot
             //Spacer(modifier = Modifier.padding(end = 15.dp, bottom = 12.dp, top = 5.dp))
             FloatingActionButton(
                 onClick = { /*TO-DO: No button*/ },
-                modifier = Modifier.size(36.dp).align(Alignment.BottomEnd),
+                modifier = Modifier
+                    .size(36.dp)
+                    .align(Alignment.BottomEnd),
                 containerColor = md_theme_light_tertiary
             ) { // You can set the house icon here using painterResource
                 Icon(
@@ -122,117 +127,116 @@ fun ImageExample(faceType : Face, interactionState: InteractionState, question :
         }
         .build()
 
-    Box(
-        modifier = Modifier.fillMaxSize()
-    ) {
-        // Background big image
-        when(faceType){
-            Face.NEUTRAL -> {
-                Image(
-                    painter = rememberAsyncImagePainter(R.drawable.blue_neutral,imageEmotionsLoader),
-                    contentDescription = null,
-                    modifier = Modifier.fillMaxSize()
-                )
-            }
-            Face.HAPPY -> {
-                Image(
-                    painter = rememberAsyncImagePainter(R.drawable.blue_happy, imageEmotionsLoader),
-                    contentDescription = null,
-                    modifier = Modifier.fillMaxSize()
-                )
-            }
-            Face.BORED -> {
-                Image(
-                    painter = rememberAsyncImagePainter(R.drawable.blue_bored, imageEmotionsLoader),
-                    contentDescription = null,
-                    modifier = Modifier.fillMaxSize()
-                )
-            }
-            Face.MAD -> {
-                Image(
-                    painter = rememberAsyncImagePainter(R.drawable.blue_mad, imageEmotionsLoader),
-                    contentDescription = null,
-                    modifier = Modifier.fillMaxSize()
-                )
-            }
-            Face.SAD -> {
-                Image(
-                    painter = rememberAsyncImagePainter(R.drawable.blue_sad, imageEmotionsLoader),
-                    contentDescription = null,
-                    modifier = Modifier.fillMaxSize()
-                )
-            }
-            Face.LOVE -> {
-                Image(
-                    painter = rememberAsyncImagePainter(R.drawable.blue_love, imageEmotionsLoader),
-                    contentDescription = null,
-                    modifier = Modifier.fillMaxSize()
-                )
-            }
-        }
-
-        // Overlay smaller image at the bottom center
-        when(interactionState){
-            InteractionState.NONE -> {
-                // Nothing to show for now
-            }
-            InteractionState.THINKING -> {
-                Image(
-                    painter = rememberAsyncImagePainter(R.drawable.dots,imageInteractionLoader),
-                    contentDescription = null,
-                    modifier = Modifier
-                        .align(Alignment.BottomCenter)
-                        .padding(bottom = 1.dp) // Adjust the padding as needed
-                        .width(70.dp)
-                        .height(70.dp)
-                )
-            }
-            InteractionState.LISTENING -> {
-                Image(
-                    painter = rememberAsyncImagePainter(R.drawable.microphone,imageInteractionLoader),
-                    contentDescription = null,
-                    modifier = Modifier
-                        .align(Alignment.BottomCenter)
-                        .padding(bottom = 1.dp) // Adjust the padding as needed
-                        .width(70.dp)
-                        .height(70.dp)
-                )
-            }
-            InteractionState.SPEAKING -> {
-                Image(
-                    painter = rememberAsyncImagePainter(R.drawable.speaking,imageInteractionLoader),
-                    contentDescription = null,
-                    modifier = Modifier
-                        .align(Alignment.BottomCenter)
-                        .padding(bottom = 1.dp) // Adjust the padding as needed
-                        .width(70.dp)
-                        .height(70.dp)
-                )
-            }
-        }
-
-
-
-        // Text field at the top
+    FuturisticGradientBackground {
         Box(
-            modifier = Modifier
-                .align(Alignment.TopCenter)
-                .fillMaxSize()
+            modifier = Modifier.fillMaxSize()
         ) {
-            Text(
-                text = question,
-                color = Color.White,
-                textAlign = TextAlign.Center,
-                fontSize = 30.sp,
-                //fontFamily = FontFamily.Monospace,
+            // Background big image
+            when(faceType){
+                Face.NEUTRAL -> {
+                    Image(
+                        painter = rememberAsyncImagePainter(R.drawable.blue_neutral,imageEmotionsLoader),
+                        contentDescription = null,
+                        modifier = Modifier.fillMaxSize()
+                    )
+                }
+                Face.HAPPY -> {
+                    Image(
+                        painter = rememberAsyncImagePainter(R.drawable.blue_happy, imageEmotionsLoader),
+                        contentDescription = null,
+                        modifier = Modifier.fillMaxSize()
+                    )
+                }
+                Face.BORED -> {
+                    Image(
+                        painter = rememberAsyncImagePainter(R.drawable.blue_bored, imageEmotionsLoader),
+                        contentDescription = null,
+                        modifier = Modifier.fillMaxSize()
+                    )
+                }
+                Face.MAD -> {
+                    Image(
+                        painter = rememberAsyncImagePainter(R.drawable.blue_mad, imageEmotionsLoader),
+                        contentDescription = null,
+                        modifier = Modifier.fillMaxSize()
+                    )
+                }
+                Face.SAD -> {
+                    Image(
+                        painter = rememberAsyncImagePainter(R.drawable.blue_sad, imageEmotionsLoader),
+                        contentDescription = null,
+                        modifier = Modifier.fillMaxSize()
+                    )
+                }
+                Face.LOVE -> {
+                    Image(
+                        painter = rememberAsyncImagePainter(R.drawable.blue_love, imageEmotionsLoader),
+                        contentDescription = null,
+                        modifier = Modifier.fillMaxSize()
+                    )
+                }
+            }
+
+            // Overlay smaller image at the bottom center
+            when(interactionState){
+                InteractionState.NONE -> {
+                    // Nothing to show for now
+                }
+                InteractionState.THINKING -> {
+                    Image(
+                        painter = rememberAsyncImagePainter(R.drawable.dots,imageInteractionLoader),
+                        contentDescription = null,
+                        modifier = Modifier
+                            .align(Alignment.BottomCenter)
+                            .padding(bottom = 1.dp) // Adjust the padding as needed
+                            .width(70.dp)
+                            .height(70.dp)
+                    )
+                }
+                InteractionState.LISTENING -> {
+                    Image(
+                        painter = rememberAsyncImagePainter(R.drawable.microphone,imageInteractionLoader),
+                        contentDescription = null,
+                        modifier = Modifier
+                            .align(Alignment.BottomCenter)
+                            .padding(bottom = 1.dp) // Adjust the padding as needed
+                            .width(70.dp)
+                            .height(70.dp)
+                    )
+                }
+                InteractionState.SPEAKING -> {
+                    Image(
+                        painter = rememberAsyncImagePainter(R.drawable.speaking,imageInteractionLoader),
+                        contentDescription = null,
+                        modifier = Modifier
+                            .align(Alignment.BottomCenter)
+                            .padding(bottom = 1.dp) // Adjust the padding as needed
+                            .width(70.dp)
+                            .height(70.dp)
+                    )
+                }
+            }
+
+
+
+            // Text field at the top
+            Box(
                 modifier = Modifier
-                    .background(Color.Transparent)
-                    .padding(16.dp) // Adjust padding as needed
                     .align(Alignment.TopCenter)
-            )
+                    .fillMaxSize()
+            ) {
+                Text(
+                    text = question,
+                    color = Color.White,
+                    textAlign = TextAlign.Center,
+                    fontSize = 30.sp,
+                    //fontFamily = FontFamily.Monospace,
+                    modifier = Modifier
+                        .background(Color.Transparent)
+                        .padding(16.dp) // Adjust padding as needed
+                        .align(Alignment.TopCenter)
+                )
+            }
         }
     }
-
-
-
 }

@@ -47,6 +47,7 @@ fun DrivingScreen(
     navController: NavController,
     mqttViewModel: MqttViewModel
 ) {
+    Log.d("Current Screen", "DrivingScreen")
     val closeDrivingScreenFace by mqttViewModel.closeDrivingScreenFace.collectAsState()
     val tiempoRestantePausa by mqttViewModel.countdownState.collectAsState()
     val countdownFlag by mqttViewModel.countdownFlag.collectAsState()
@@ -130,7 +131,7 @@ fun DrivingScreen(
                         icon = Icons.Outlined.Clear,
                         onClick = {
                             mqttViewModel.coutndownJob?.cancel()
-                            mqttViewModel.robotMan.returnToPosition()
+                            mqttViewModel.robotMan.returnToPosition(mqttViewModel.selectedItem.toString())
                             navController.popBackStack()
                         })
                 }

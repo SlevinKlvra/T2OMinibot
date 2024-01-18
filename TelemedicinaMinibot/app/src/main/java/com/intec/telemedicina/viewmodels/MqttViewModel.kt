@@ -98,6 +98,15 @@ class MqttViewModel @Inject constructor(
 
     val posesList = MutableStateFlow(emptyList<Pose>())
 
+    // Variable para almacenar el elemento seleccionado
+    var selectedItem = mutableStateOf<String?>(null)
+        private set
+
+    // Función para actualizar el elemento seleccionado
+    fun setSelectedItem(item: String) {
+        selectedItem.value = item
+    }
+
     var faceType = MutableStateFlow(Face.NEUTRAL)
     var interactionState = MutableStateFlow(InteractionState.NONE)
     var isDriving = MutableStateFlow(false)
@@ -114,7 +123,8 @@ class MqttViewModel @Inject constructor(
     val openHomeScreen = MutableStateFlow(false)
     val openEyesScreen = MutableStateFlow(false)
 
-    var initiated_status = false
+    var initiatedStatus = mutableStateOf(false)
+        private set
 
     private val mqttCallback = MqttManagerCallback(_connectionState, {
         val updatedMessages = _incomingMessages.value.toMutableList()
@@ -248,9 +258,10 @@ class MqttViewModel @Inject constructor(
         return preferencesRepository.getMeetingTimeThreshold()
     }
 
-
     init {
         mqttManager = MqttManager(getApplication(), mqttCallback, mqttConfigInstance, application)
+
+        getListPoses()
 
         Log.d("Init MqttViewModel", "MqttManager created: $mqttManager")
         brokerIp.value = preferencesRepository.getBrokerIp()
@@ -563,19 +574,19 @@ class MqttViewModel @Inject constructor(
         Log.d("MQTTViewModel", "User: ${mqttConfigInstance.user}")
         Log.d("MQTTViewModel", "Pwd: ${mqttConfigInstance.password}")
         addIncomingMessage("Connecting to broker: ${mqttConfigInstance.SERVER_URI}")
-        //mqttManager.connect(){onSuccess -> initiated_status = false}
-        initiated_status = true
+        mqttManager.connect()
+        initiatedStatus.value = true
         //subscribeToAllTopics(resumeTopics())
     }
 
     fun disconnect() {
         addIncomingMessage("Disconnected")
         mqttManager.disconnect()
-        initiated_status = false
+        initiatedStatus.value = false
     }
 
     fun getInitiatedStatus() : Boolean {
-        return initiated_status
+        return initiatedStatus.value
     }
 
     fun subscribeToTopic(topic: String) {
@@ -761,7 +772,7 @@ class MqttViewModel @Inject constructor(
                     if(RobotApi.getInstance().chargeStatus) {
                         robotMan.scheduleWithCoroutine()
                     }else{
-                        robotMan.startNavigation(0,"entrada",0.1234,0)
+                        robotMan.startNavigation(0,selectedItem.toString(),0.1234,0)
                     }
                 }
             }

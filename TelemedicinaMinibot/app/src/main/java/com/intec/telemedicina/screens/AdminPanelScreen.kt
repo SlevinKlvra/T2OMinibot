@@ -1,5 +1,6 @@
 package com.intec.telemedicina.screens
 
+import android.util.Log
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -37,6 +38,7 @@ import com.intec.telemedicina.viewmodels.NumericPanelViewModel
 @Composable
 fun AdminPanelScreen(navController: NavController, mqttViewModel: MqttViewModel, numericPanelViewModel: NumericPanelViewModel, robotManager: RobotManager) {
 
+    Log.d("Current Screen", "AdminPanelScreen")
     val backgroundColor = MaterialTheme.colorScheme.primaryContainer
     val textColor = MaterialTheme.colorScheme.onPrimary
 
