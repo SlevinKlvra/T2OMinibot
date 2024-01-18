@@ -20,6 +20,7 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
@@ -56,16 +57,17 @@ fun TransparentButtonWithIconAndText(
             Text(
                 text = "Diga: ",
                 color = Color.White, // Color del texto
-                fontSize = 15.sp, // Aumenta el tamaño de la fuente en un 50%
-                fontStyle = FontStyle.Italic, // Establece el texto en negrita
+                fontWeight = FontWeight.SemiBold,
+                fontSize = 10.sp, // Aumenta el tamaño de la fuente en un 50%
                 textAlign = TextAlign.Center
             )
             Text(
                 text = indicacion,
                 color = Color.White, // Color del texto
-                fontSize = 15.sp, // Aumenta el tamaño de la fuente en un 50%
+                fontSize = 10.sp, // Aumenta el tamaño de la fuente en un 50%
+                lineHeight = 14.sp,
                 fontStyle = FontStyle.Italic, // Establece el texto en negrita
-                textAlign = TextAlign.Center
+                textAlign = TextAlign.Center,
             )
         }
     }

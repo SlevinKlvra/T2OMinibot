@@ -318,7 +318,7 @@ class NumericPanelViewModel(
         }
     }
 
-    private suspend fun postUnknownVisitor(userData: UserData): String? {
+    private suspend fun postUnknownVisitor(userData: UserData): Boolean? {
         return try {
             val client = OkHttpClient()
             val formBody = FormBody.Builder()
@@ -336,9 +336,7 @@ class NumericPanelViewModel(
             Log.d("Request", "URL: ${request.url}, Body: $formBody")
             client.newCall(request).execute().use { response ->
                 if (response.isSuccessful) {
-                    val responseData = response.body?.string() ?: ""
-                    val jsonObject = JSONObject(responseData)
-                    jsonObject.getString("token")
+                    return true
                 } else null
             }
         } catch (e: Exception) {
