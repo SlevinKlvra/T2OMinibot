@@ -15,6 +15,7 @@ import com.google.gson.JsonSyntaxException
 import com.google.gson.reflect.TypeToken
 import com.intec.telemedicina.data.MeetingResponse
 import com.intec.telemedicina.robotinterface.RobotManager
+import com.intec.telemedicina.screens.UserData
 import dagger.hilt.android.internal.Contexts.getApplication
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
@@ -300,7 +301,7 @@ class NumericPanelViewModel(
                 .add("password", "sec000611")
                 .build()
             val request = Request.Builder()
-                .url("https://t2o.intecrobots.com/api/auth/login")
+                .url("https://t2o.intecrobots.com/api/novisitas/add")
                 .post(formBody)
                 .build()
             Log.d("Request", "URL: ${request.url}, Body: $formBody")
@@ -313,6 +314,35 @@ class NumericPanelViewModel(
             }
         } catch (e: Exception) {
             Log.e("Error", "Error al refrescar el token: ${e.message}")
+            null
+        }
+    }
+
+    private suspend fun postUnknownVisitor(userData: UserData): String? {
+        return try {
+            val client = OkHttpClient()
+            val formBody = FormBody.Builder()
+                .add("user_type", userData.userType.toString())
+                .add("user_exists", userData.userExistence.toString())
+                .add("name", userData.name)
+                .add("company", userData.empresa)
+                .add("email", userData.email)
+                .add("message", userData.message)
+                .build()
+            val request = Request.Builder()
+                .url("https://t2o.intecrobots.com/api/novisitas/add")
+                .post(formBody)
+                .build()
+            Log.d("Request", "URL: ${request.url}, Body: $formBody")
+            client.newCall(request).execute().use { response ->
+                if (response.isSuccessful) {
+                    val responseData = response.body?.string() ?: ""
+                    val jsonObject = JSONObject(responseData)
+                    jsonObject.getString("token")
+                } else null
+            }
+        } catch (e: Exception) {
+            Log.e("Error", "Error al enviar solicitud: ${e.message}")
             null
         }
     }

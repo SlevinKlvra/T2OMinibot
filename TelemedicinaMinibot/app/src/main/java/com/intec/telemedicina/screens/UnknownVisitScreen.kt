@@ -57,6 +57,7 @@ data class UserData(
     val userType: UserType?,
     val userExistence: UserExistence?,
     val name: String,
+    val empresa: String,
     val email: String,
     val message: String
 )
@@ -74,6 +75,7 @@ fun UnknownVisitScreen(
                 userType = null,
                 userExistence = null,
                 name = "",
+                empresa = "",
                 email = "",
                 message = ""
             )
@@ -81,14 +83,14 @@ fun UnknownVisitScreen(
     }
 
     var currentPage by remember { mutableStateOf(1) }
-    val totalPages = 6
+    val totalPages = 7
 
     val text by mqttViewModel.capturedText.collectAsState()
-    Text("Captured Text: $text")
 
     val isListening by mqttViewModel.isListening.observeAsState(true)
 
     LaunchedEffect(isListening) {
+        Log.d("isListening true", "launchedEffect")
         mqttViewModel.robotMan.questionPrueba()
         mqttViewModel.listenToSpeechResult()
         if (text != "") {
@@ -178,17 +180,24 @@ fun UnknownVisitScreen(
 
                     3 -> NameStep(
                         name = userData.name,
-                        onNameChange = { userData = userData.copy(name = it) })
+                        onNameChange = { userData = userData.copy(name = text) },
+                        robotManager
+                    )
 
-                    4 -> EmailStep(
+                    4 -> CompanyStep(
+                        company = userData.name,
+                        onCompanyChange = { userData = userData.copy(name = text) },
+                    )
+
+                    5 -> EmailStep(
                         email = userData.email,
                         onEmailChange = { userData = userData.copy(email = it) })
 
-                    5 -> MessageStep(
+                    6 -> MessageStep(
                         message = userData.message,
                         onMessageChange = { userData = userData.copy(message = it) })
 
-                    6 -> LastStep(navController)
+                    7 -> LastStep(navController)
                 }
             }
         }
@@ -271,8 +280,10 @@ fun handleFinalAction(userData: UserData) {
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalComposeUiApi::class)
 @Composable
-fun NameStep(name: String, onNameChange: (String) -> Unit) {
+fun NameStep(name: String, onNameChange: (String) -> Unit, robotManager: RobotManager) {
     val keyboardController = LocalSoftwareKeyboardController.current
+
+    robotManager.speak("Dime tu nombre por favor", true)
 
     Column(
         modifier = Modifier
@@ -359,6 +370,50 @@ fun EmailStep(email: String, onEmailChange: (String) -> Unit) {
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalComposeUiApi::class)
 @Composable
+fun CompanyStep(company: String, onCompanyChange: (String) -> Unit) {
+    val keyboardController = LocalSoftwareKeyboardController.current
+
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(8.dp)
+    ) {
+        Text(
+            text = "Empresa",
+            textAlign = TextAlign.Center,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(bottom = 8.dp),
+            color = Color.White,
+            style = MaterialTheme.typography.headlineLarge
+        )
+
+        Text(
+            text = "Introduzca empresa:",
+            color = Color.White,
+            textAlign = TextAlign.Center,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(bottom = 24.dp),
+            style = MaterialTheme.typography.bodyMedium
+        )
+
+        TextField(
+            value = company,
+            onValueChange = { onCompanyChange(it) },
+            label = { Text("Empresa") },
+            keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
+            keyboardActions = KeyboardActions(
+                onDone = { keyboardController?.hide() }),
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(bottom = 8.dp)
+        )
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalComposeUiApi::class)
+@Composable
 fun MessageStep(message: String, onMessageChange: (String) -> Unit) {
     val keyboardController = LocalSoftwareKeyboardController.current
     Column(
@@ -400,6 +455,8 @@ fun MessageStep(message: String, onMessageChange: (String) -> Unit) {
         )
     }
 }
+
+
 
 @Composable
 fun LastStep(navController: NavController) {
