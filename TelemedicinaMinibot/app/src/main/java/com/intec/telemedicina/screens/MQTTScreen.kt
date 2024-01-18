@@ -98,7 +98,7 @@ fun MqttScreen(navController: NavController, mqttViewModel: MqttViewModel) {
     LazyColumn(
         modifier = Modifier
             .fillMaxSize()
-            .padding(16.dp),
+            .padding(start = 8.dp, top = 8.dp),
         contentPadding = PaddingValues(16.dp)
     ) {
         item {
@@ -136,6 +136,19 @@ fun MqttScreen(navController: NavController, mqttViewModel: MqttViewModel) {
                     )
                     Spacer(modifier = Modifier.width(16.dp)) // Espacio entre el Text y el Switch
                     SwitchDemo(mqttViewModel)
+                }
+            }
+            Box {
+                Row(
+                    modifier = Modifier.fillMaxWidth(), // Asegura que el Row ocupe todo el ancho disponible
+                    verticalAlignment = Alignment.CenterVertically // Alinea verticalmente los elementos en el centro
+                ) {
+                    Button(onClick = {
+                        viewModel.robotMan.goCharge()
+                        viewModel.navigateToEyesScreen()
+                    }) {
+                        Text("Cargar robot")
+                    }
                 }
             }
             Spacer(modifier = Modifier.height(8.dp))

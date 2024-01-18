@@ -80,26 +80,6 @@ fun HomeScreen(navController: NavController, mqttViewModel: MqttViewModel, robot
             if(adminMode){
                 LazyRowUbicaciones(mqttViewModel = mqttViewModel,modifier= Modifier, navController=  navController)
             }
-            Box(modifier = Modifier
-                .fillMaxWidth()
-                .weight(1f)) {
-                FloatingActionButton(
-                    onClick = {
-                        mqttViewModel.robotMan.speak("Vuelvo a mi puesto. Muchas gracias", false)
-                        mqttViewModel.robotMan.goCharge()
-                        navController.navigate(AppScreens.EyesScreen.route) },
-                    modifier = Modifier
-                        .size(36.dp)
-                        .align(Alignment.BottomStart),
-                    containerColor = md_theme_light_tertiary
-                ) { // You can set the house icon here using painterResource
-                    Icon(
-                        imageVector = Icons.Default.ArrowBack,
-                        contentDescription = null
-                    )
-                }
-
-            }
         }
     }
 }
@@ -130,8 +110,7 @@ fun LazyRowUbicaciones(mqttViewModel: MqttViewModel, modifier : Modifier = Modif
     LazyRow(modifier = modifier.then(
         Modifier
             .background(Color.Transparent)
-            .fillMaxWidth()
-            .padding(start = 40.dp)),
+            .fillMaxWidth()),
         verticalAlignment = Alignment.Bottom,
         horizontalArrangement = Arrangement.Center,
     ) {

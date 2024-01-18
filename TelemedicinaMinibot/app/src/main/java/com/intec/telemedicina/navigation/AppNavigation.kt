@@ -14,6 +14,7 @@ import com.intec.telemedicina.screens.MainScreen
 import com.intec.telemedicina.screens.MeetingScreen
 import com.intec.telemedicina.screens.MqttScreen
 import com.intec.telemedicina.screens.NumericPanelScreen
+import com.intec.telemedicina.screens.PackageAndMailManagementScreen
 import com.intec.telemedicina.screens.UnknownVisitScreen
 import com.intec.telemedicina.viewmodels.MqttViewModel
 import com.intec.telemedicina.viewmodels.NumericPanelViewModel
@@ -52,6 +53,9 @@ fun AppNavigation(mqttViewModel: MqttViewModel, numericPanelViewModel: NumericPa
         }
         composable(AppScreens.UnknownVisitScreen.route) {
             UnknownVisitScreen(navController = navController, mqttViewModel = mqttViewModel, numericPanelViewModel = numericPanelViewModel, robotManager = robotManager)
+        }
+        composable(AppScreens.PackageAndMailManagementScreen.route) {
+            PackageAndMailManagementScreen(navController = navController, mqttViewModel = mqttViewModel, numericPanelViewModel = numericPanelViewModel, robotManager = robotManager)
         }
     }
 }
