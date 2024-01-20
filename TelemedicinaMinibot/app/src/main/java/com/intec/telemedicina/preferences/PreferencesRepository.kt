@@ -25,7 +25,7 @@ class PreferencesRepository @Inject constructor(private val sharedPreferences: S
     fun getMqttClient(): String = sharedPreferences.getString("mqtt_client", "Robot") ?: "Robot"
     fun setMqttClient(clientMqtt: String) = sharedPreferences.edit().putString("mqtt_client", clientMqtt).apply()
 
-    fun getIdleWaitingTime(): Int = sharedPreferences.getInt("idle_waiting_time", 10)
+    fun getIdleWaitingTime(): Int = sharedPreferences.getInt("idle_waiting_time", 5)
     fun setIdleWaitingTime(idleWaitingTime: Int) = sharedPreferences.edit().putInt("idle_waiting_time", idleWaitingTime).apply()
 
     fun getMeetingTimeThreshold(): Int = sharedPreferences.getInt("waiting_meeting_time", 10)

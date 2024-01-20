@@ -165,6 +165,9 @@ class MqttViewModel @Inject constructor(
     private val _navigationState = MutableStateFlow(NavigationState.EyesScreen)
     val navigationState: StateFlow<NavigationState> = _navigationState.asStateFlow()
 
+    // Variable de control
+    private var hasHandledPersonDetection = false
+
     enum class NavigationState {
         EyesScreen, HomeScreen, NumericPanelScreen, MeetingScreen, UnknownVisitsScreen, PackageAndMailManagementScreen, DrivingScreen, MqttScreen, AdminPanelScreen
     }
@@ -331,7 +334,7 @@ class MqttViewModel @Inject constructor(
                 robotMan.questionPrueba()
                 listenToSpeechResult()
             } else {
-                startPersonDetection(20)
+                startPersonDetection(robotConfigInstance.idleWaitingTime)
             }
         }
     }
@@ -478,6 +481,18 @@ class MqttViewModel @Inject constructor(
         }
     }
 
+    fun setDrivingState(){
+        Log.d("DrivingState", "DrivingState")
+        robotMan.onNavigationStarted = { navigationStarted -> //navigationStarted: Boolean
+            if(navigationStarted){
+
+                Log.d("DrivingState", navigationState.value.toString())
+                isDriving.value = true
+                isPaused.value = false
+                showDrivingScreenFace.value = true
+            }
+        }
+    }
     fun onResultUnknownVisitor(text: String){
         // Actualizar el texto cuando se recibe un resultado
         Log.d("onResultUnknownVisitor", "text: $text")
@@ -503,6 +518,7 @@ class MqttViewModel @Inject constructor(
             Log.d("speechResult", "Se ha detectado un si")
             //robotMan.stopFocusFollow()
             robotMan.speak("Deacuerdo, por aquí por favor", false)
+            setDrivingState()
             robotMan.startNavigation(0,"reunion",0.1234,0)
         }
         else {
@@ -512,12 +528,8 @@ class MqttViewModel @Inject constructor(
         }
     }
 
-    // Variable de control
-    private var hasHandledPersonDetection = false
-
     fun navigateToHomeScreen() {
         detectionJob?.cancel()
-        robotMan.speak("Bienvenidos a t, dos, o media. Dígame en qué puedo ayudarle", true)
         _navigationState.value = NavigationState.HomeScreen
     }
 
@@ -538,31 +550,26 @@ class MqttViewModel @Inject constructor(
 
     fun navigateToNumericPanelScreen() {
         detectionJob?.cancel()
-        robotMan.speak("Deacuerdo, introduce el código que se te ha proporcionado", false)
         _navigationState.value = NavigationState.NumericPanelScreen
     }
 
     fun navigateToUnknownVisitsScreen() {
         detectionJob?.cancel()
-        //robotMan.speak("Deacuerdo, introduce el código que se te ha proporcionado", false)
         _navigationState.value = NavigationState.UnknownVisitsScreen
     }
 
     fun navigateToPackageAndMailManagementScreen() {
         detectionJob?.cancel()
-        //robotMan.speak("Deacuerdo, introduce el código que se te ha proporcionado", false)
         _navigationState.value = NavigationState.PackageAndMailManagementScreen
     }
 
     fun navigateToEyesScreen() {
         detectionJob?.cancel()
-        //robotMan.speak("Deacuerdo, introduce el código que se te ha proporcionado", false)
         _navigationState.value = NavigationState.EyesScreen
     }
 
     private fun repeatCommand() {
         robotMan.speak("Por favor repita el comando", true)
-        _navigationState.value = NavigationState.HomeScreen // Solo navegar aquí si es necesario
     }
 
     fun startPersonDetection(waitTimeInSeconds: Int) {
@@ -585,13 +592,15 @@ class MqttViewModel @Inject constructor(
                 //Log.d("startDetection", "PERSONS LIST IS NOT NULL NEITHER EMPTY. RESTARTING TIME")
                 detectionJob?.cancel()
                 elapsedTime = 0 // Reinicia el temporizador
+                navigateToHomeScreen()
                 //detectionJob?.cancel()
             }
 
             if (detectedPerson.isNullOrEmpty() && elapsedTime >= waitTimeInMillis) {
-                Log.d("startDetection", "ELAPSED TIME: $elapsedTime, detection state: ${detectedPerson.isNullOrEmpty()}")
+                Log.d("startDetection", "ELAPSED TIME: $elapsedTime, detection state: ${detectedPerson.isNullOrEmpty()}, return to pos: ${returnDestination.value}")
                 //robotMan.unregisterPersonListener()
-                _navigationState.value = NavigationState.EyesScreen
+                robotMan.returnToPosition(returnDestination.value!!)
+                navigateToEyesScreen()
                 //robotMan.goCharge()
             }
         }
@@ -723,7 +732,7 @@ class MqttViewModel @Inject constructor(
         when(topic){
             //"robot/nav_pub/status" -> robotApi.currentPose
             "robot/nav_cmds/go_to" -> {
-                isDriving.value = true
+                //isDriving.value = true
                 //Log.d("MQTTViewModel", "Starting navigation to: $message")
                 //robotApi.startNavigation(1, message.toString(), 0.01, 100000, navigationListener)
                 //RobotManager(getApplication<Application>().applicationContext).getRobotInterfaceMethod().startNavigation(1, message.toString(), 0.01, 100000)
@@ -741,6 +750,7 @@ class MqttViewModel @Inject constructor(
                 Log.d("UPDATE SAFE DISTANCE","Update the safe distance")
 
                 //RobotApi.getInstance().startInspection(0,100000, ActionListener())
+                setDrivingState()
                 robotMan.startNavigation(0,message.toString(),0.1234,0)
 
                 //RobotApi.getInstance().goForward(0, 0.2F,0.1F,false, CommandListener())
@@ -754,17 +764,17 @@ class MqttViewModel @Inject constructor(
             "robot/nav_cmds/stop_navigation" -> {
                 //robotApi.stopNavigation(1)
                 robotMan.stopNavigation(0)
-                isDriving.value = false
+                //isDriving.value = false
             }
 
             "robot/nav_cmds/pause_navigation" -> {
                 robotMan.pauseNavigation(0)
-                isDriving.value = false
+                //isDriving.value = false
             }
 
             "robot/nav_cmds/resume_navigation" -> {
                 robotMan.resumeNavigation(0)
-                isDriving.value = true
+                //isDriving.value = true
                 isPaused.value = false
             }
 
@@ -856,7 +866,7 @@ class MqttViewModel @Inject constructor(
             }
             "robot/nav_cmds/driving_finished" -> {
                 Log.d("DRIVINGFINISHED","Preparing home screen")
-                isDriving.value = false
+                //isDriving.value = false
             }
             "robot/open_homescreen" -> {
                 openHomeScreen.value = true

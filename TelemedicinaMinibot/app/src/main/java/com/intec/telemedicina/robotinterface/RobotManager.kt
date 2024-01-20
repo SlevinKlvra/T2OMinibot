@@ -88,6 +88,8 @@ class RobotManager @Inject constructor(private val skillApi: SkillApi, @Applicat
 
     var onPersonDetected: ((List<Person>?) -> Unit)? = null
     var onSpeechResultReceived : ((String) -> Unit)? = null
+    var onNavigationStarted : ((Boolean) -> Unit)? = null
+
     init {
         setupActionListener()
         getPlaceList()
@@ -201,6 +203,11 @@ class RobotManager @Inject constructor(private val skillApi: SkillApi, @Applicat
         onSpeechResultReceived?.invoke(speechResult)
     }
 
+    fun callbackNavigationStarted(navigationStarted: Boolean){
+        Log.d("NAVIGATION STARTED", navigationStarted.toString())
+        onNavigationStarted?.invoke(navigationStarted)
+    }
+
     override fun onMessageReceived(topic: String, message: String){
 
     }
@@ -277,6 +284,7 @@ class RobotManager @Inject constructor(private val skillApi: SkillApi, @Applicat
         Log.d("START NAVIGATION", "Comenzando navegación")
         stopFocusFollow()
         unregisterPersonListener()
+        callbackNavigationStarted(true)
 
         RobotApi.getInstance().goPosition(0, RobotApi.getInstance().getSpecialPose(destName).toJson(), object : CommandListener(){
             override fun onError(errorCode: Int, errorString: String?, extraData: String?) {
@@ -338,6 +346,7 @@ class RobotManager @Inject constructor(private val skillApi: SkillApi, @Applicat
                     Log.d("ROBOT STATUS NUEVO", robotStatus.toString())
 
                     if(robotStatus.status == "END"){
+                        callbackNavigationStarted(false)
                         registerPersonListener()
                         startFocusFollow(0)
                     }

@@ -40,7 +40,7 @@ fun AppNavigation(mqttViewModel: MqttViewModel, numericPanelViewModel: NumericPa
             EyesScreen(navController = navController, mqttViewModel = mqttViewModel, robotManager = robotManager)
         }
         composable(AppScreens.NumericPanelScreen.route) {
-            NumericPanelScreen(navController = navController, numericPanelViewModel = numericPanelViewModel, robotManager = robotManager)
+            NumericPanelScreen(navController = navController, numericPanelViewModel = numericPanelViewModel, mqttViewModel= mqttViewModel, robotManager = robotManager)
         }
         composable(AppScreens.MainScreen.route) {
             MainScreen(navController = navController, mqttViewModel = mqttViewModel, numericPanelViewModel = numericPanelViewModel, robotManager = robotManager)

@@ -57,7 +57,7 @@ fun DrivingScreen(
     }
 
     if (countdownFlag){
-        navController.popBackStack()
+        mqttViewModel.navigateToEyesScreen()
         mqttViewModel.setCountdownFlagState(false)
     }
 
@@ -124,7 +124,7 @@ fun DrivingScreen(
                         onClick = {
                             mqttViewModel.coutndownJob?.cancel()
                             mqttViewModel.robotMan.resumeNavigation(0)
-                            navController.popBackStack()
+                            mqttViewModel.navigateToEyesScreen()
                         })
                     TransparentButtonWithIcon(
                         text = "Cancelar tarea",
@@ -132,7 +132,7 @@ fun DrivingScreen(
                         onClick = {
                             mqttViewModel.coutndownJob?.cancel()
                             mqttViewModel.robotMan.returnToPosition(mqttViewModel.returnDestination.value!!)
-                            navController.popBackStack()
+                            mqttViewModel.navigateToEyesScreen()
                         })
                 }
             }
