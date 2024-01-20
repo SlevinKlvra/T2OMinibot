@@ -1,6 +1,8 @@
 package com.intec.telemedicina.screens
 
+import android.content.Context
 import android.util.Log
+import android.widget.Toast
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -35,6 +37,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextAlign
@@ -84,6 +87,8 @@ fun UnknownVisitScreen(
             )
         )
     }
+
+    val context = LocalContext.current
 
     var currentPage by remember { mutableStateOf(1) }
     val totalPages = 7
@@ -176,11 +181,11 @@ fun UnknownVisitScreen(
                     if (currentPage == totalPages - 1) {
                         Button(
                             onClick = {
-                                if (validateFields()) {
+                                if (validateFields(context, userData)) {
                                     sendingData = true
                                 }
                             },
-                            enabled = validateFields() && !sendingData,
+                            enabled = validateFields(context, userData) && !sendingData,
                             modifier = Modifier.widthIn(min = 33.dp) // Establecer el ancho deseado
                         ) {
                             Text("Enviar")
@@ -292,9 +297,32 @@ fun UserExistenceSelection(onUserExistenceSelected: (UserExistence) -> Unit) {
     }
 }
 
-fun validateFields(): Boolean {
+
+fun validateFields(context: Context, userData: UserData): Boolean {
+    // Check if all fields are filled
+    if (userData.tipo == null || userData.userExistence == null ||
+        userData.nombre.isBlank() || userData.empresa.isBlank() ||
+        userData.email.isBlank() || userData.asunto.isBlank()
+    ) {
+        showToast(context, "Todos los campos deben llenarse")
+        return false
+    }
+
+    // Check if the email address is valid
+    val emailRegex = Regex("^[A-Za-z](.*)([@]{1})(.{1,})(\\.)(.{1,})")
+    if (!userData.email.matches(emailRegex)) {
+        showToast(context, "Ingrese una dirección de correo electrónico válida")
+        return false
+    }
+
     return true
 }
+
+fun showToast(context: Context, message: String) {
+    Toast.makeText(context, message, Toast.LENGTH_LONG).show()
+}
+
+
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalComposeUiApi::class)
 @Composable
