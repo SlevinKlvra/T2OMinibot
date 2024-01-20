@@ -199,19 +199,6 @@ class RobotManager @Inject constructor(private val skillApi: SkillApi, @Applicat
     fun callback_speech_to_speech(speechResult: String){
         Log.d("STT",speechResult)
         onSpeechResultReceived?.invoke(speechResult)
-        /*if(speechResult == "reunión") {
-            fraseInteraccion = "Vale, acompáñame por favor."
-            startNavigation(0, "reunión", 0.1234, 100000)
-        }
-
-        if(speechResult == "sí"){
-            fraseInteraccion = "Vale, acompáñame por favor."
-            startNavigation(0, "reunión", 0.1234, 100000)
-
-        }else if(speechResult == "no"){
-            startNavigation(0, "entrada", 0.1234, 100000)
-            speak("Está bien, vuelvo a mi puesto. Buenos días.", false)
-        }*/
     }
 
     override fun onMessageReceived(topic: String, message: String){
@@ -275,10 +262,6 @@ class RobotManager @Inject constructor(private val skillApi: SkillApi, @Applicat
         })
     }
 
-    fun printPoses(){
-        Log.d("Get Places Called",placesList.toString())
-    }
-
     fun getPoses() : List<Pose>{
         return savePosesSharedPreferences.getDataList()
     }
@@ -292,8 +275,8 @@ class RobotManager @Inject constructor(private val skillApi: SkillApi, @Applicat
         time: Long
     ){
         Log.d("START NAVIGATION", "Comenzando navegación")
+        stopFocusFollow()
         unregisterPersonListener()
-        stopCharging()
 
         RobotApi.getInstance().goPosition(0, RobotApi.getInstance().getSpecialPose(destName).toJson(), object : CommandListener(){
             override fun onError(errorCode: Int, errorString: String?, extraData: String?) {
@@ -305,7 +288,6 @@ class RobotManager @Inject constructor(private val skillApi: SkillApi, @Applicat
                 val robotStatus = RobotStatus(destName, status_)
 
                 val json = gson.toJson(robotStatus)
-
             }
 
             override fun onStatusUpdate(status: Int, data: String?, extraData: String?) {
@@ -355,26 +337,15 @@ class RobotManager @Inject constructor(private val skillApi: SkillApi, @Applicat
                     val robotStatus = RobotStatus(destName, status_)
                     Log.d("ROBOT STATUS NUEVO", robotStatus.toString())
 
-                    if (robotStatus.destName == "reunión" && robotStatus.status == "END"){
+                    if(robotStatus.status == "END"){
                         registerPersonListener()
-                        fraseInteraccion = "Ya hemos llegado. ¿Deseas alguna otra cosa?"
-                        speak(fraseInteraccion, true)
+                        startFocusFollow(0)
                     }
-                    if (robotStatus.destName == "entrada" && robotStatus.status == "END"){
-                        registerPersonListener()
-                        setRecognizable(true)
-                    }
-                    if (robotStatus.destName == "reunion" && robotStatus.status == "END"){
-                        speak("Hemos llegado. Póngase cómodo y Gloria llegará enseguida. Yo vuelvo a mi puesto. Muchas gracias.", false)
-                        scheduleWithCoroutine()
 
-                    }
                     val json = gson.toJson(robotStatus)
                 }
             }
         })
-
-        //robotApi.startNavigation(1, destName, coordinateDeviation, time, navigationListener)
         pausedLocation = destName
     }
 

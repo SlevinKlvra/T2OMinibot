@@ -131,7 +131,7 @@ fun DrivingScreen(
                         icon = Icons.Outlined.Clear,
                         onClick = {
                             mqttViewModel.coutndownJob?.cancel()
-                            mqttViewModel.robotMan.returnToPosition(mqttViewModel.selectedItem.toString())
+                            mqttViewModel.robotMan.returnToPosition(mqttViewModel.returnDestination.value!!)
                             navController.popBackStack()
                         })
                 }

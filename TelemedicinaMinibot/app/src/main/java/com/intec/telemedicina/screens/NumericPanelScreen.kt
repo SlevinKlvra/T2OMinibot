@@ -103,7 +103,7 @@ fun NumericPanelScreen(
     // Usa este Modifier en el elemento que quieres animar
     FuturisticGradientBackground {
         Box(modifier = shakeModifier) {
-            // Contenido de tu pantalla
+            // Contenido de pantalla
             if (isLoading) LoadingSpinner()
             else {
 
