@@ -87,16 +87,25 @@ fun MqttScreen(navController: NavController, mqttViewModel: MqttViewModel) {
     var topicToPublish by remember { mutableStateOf("") }
     var messageToPublish by remember { mutableStateOf("") }
 
-    var waitTime by remember { mutableStateOf(viewModel.getWaitingTimeDefaultValue()) }
-    var meetingMeetingThreshold by remember { mutableStateOf(viewModel.getMeetingTimeThresholdDefaultValue()) }
+    //VARIABLES CONFIGURACION MQTT
     var ipMqtt by remember { mutableStateOf(viewModel.getBrokerIpDefaultValue()) }
     var portMqtt by remember { mutableStateOf(viewModel.getBrokerPortDefaultValue()) }
     var usuarioMqtt by remember { mutableStateOf(viewModel.getBrokerUserDefaultValue()) }
     var passwordMqtt by remember { mutableStateOf(viewModel.getBrokerPasswordDefaultValue()) }
     var clientMqtt by remember { mutableStateOf(viewModel.getBrokerClientDefaultValue()) }
     var qos by remember { mutableStateOf(viewModel.getBrokerQoSDefaultValue()) }
+
+    //VARIABLES CONFIGURACION API
     var usuarioApi by remember { mutableStateOf(viewModel.getApiUserDefaultValue()) }
     var passwordApi by remember { mutableStateOf(viewModel.getApiPasswordDefaultValue()) }
+
+    //VARIBLES CONFIGURACION ROBOT
+    var waitTime by remember { mutableStateOf(viewModel.getWaitingTimeDefaultValue()) }
+    var meetingMeetingThreshold by remember { mutableStateOf(viewModel.getMeetingTimeThresholdDefaultValue()) }
+    var returnDestination by remember { mutableStateOf(viewModel.getReturnDestinationDefaultValue()) }
+    var coordinateDeviation by remember { mutableStateOf(viewModel.getCoordinateDeviationDefaultValue()) }
+    var navigationTimeout by remember { mutableStateOf(viewModel.getNavigationTimeoutDefaultValue()) }
+
     /*if(openScreen && (navController.currentDestination?.route.toString() != "driving_face_screen")) {
         Log.d("DRIVINGSCREEN", "Open the drivingscreen: ${navController.currentDestination!!.route}")
         navController.navigate(AppScreens.DrivingFaceScreen.route)
@@ -159,34 +168,8 @@ fun MqttScreen(navController: NavController, mqttViewModel: MqttViewModel) {
                         Text("Cargar robot")
                     }
                     Spacer(modifier = Modifier.width(5.dp)) // Espacio entre el Text y el Switch
-                    Button(onClick = {
-                        expanded.value = !expanded.value
-                        mqttViewModel.getListPoses()
-                        Log.d("MQTTScreen", "Expanded: $destinations")
-                    }){
-                        Text("Modificar punto retorno")
-                    }
-
-                    DropdownMenu(
-                        expanded = expanded.value,
-                        onDismissRequest = { expanded.value = false },
-                    ) {
-                        destinations.forEachIndexed { index, label ->
-                            DropdownMenuItem(
-                                text = { Text(label.name) },
-                                onClick = {
-                                    mqttViewModel.setSelectedItem(label.name)
-                                    expanded.value = false
-                                },
-                                enabled = expanded.value
-                            ) // Añade un elemento al menú
-                        }
-                    }
-                    Spacer(modifier = Modifier.height(20.dp))
-                    Text(selectedItem ?: "Ninguno")
                 }
             }
-
             Spacer(modifier = Modifier.height(8.dp))
             Text(fontWeight = FontWeight.Bold, text = "MQTT Connection params")
             Spacer(modifier = Modifier.height(8.dp))
@@ -199,7 +182,7 @@ fun MqttScreen(navController: NavController, mqttViewModel: MqttViewModel) {
                         text = "Broker IP",
                         modifier = Modifier.weight(1f) // Ocupa todo el espacio disponible empujando el Switch hacia la derecha
                     )
-                    Spacer(modifier = Modifier.width(16.dp)) // Espacio entre el Text y el Switch
+                    Spacer(modifier = Modifier.width(8.dp)) // Espacio entre el Text y el Switch
                     TextField(
                         value = ipMqtt,
                         onValueChange = { ipMqtt = it },
@@ -207,7 +190,7 @@ fun MqttScreen(navController: NavController, mqttViewModel: MqttViewModel) {
                     )
                 }
             }
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(8.dp))
             Box{
                 Row(
                     modifier = Modifier.fillMaxWidth(), // Asegura que el Row ocupe todo el ancho disponible
@@ -217,7 +200,7 @@ fun MqttScreen(navController: NavController, mqttViewModel: MqttViewModel) {
                         text = "Puerto",
                         modifier = Modifier.weight(1f) // Ocupa todo el espacio disponible empujando el Switch hacia la derecha
                     )
-                    Spacer(modifier = Modifier.width(16.dp)) // Espacio entre el Text y el Switch
+                    Spacer(modifier = Modifier.width(8.dp)) // Espacio entre el Text y el Switch
                     TextField(
                         value = portMqtt,
                         onValueChange = { portMqtt = it },
@@ -225,7 +208,7 @@ fun MqttScreen(navController: NavController, mqttViewModel: MqttViewModel) {
                     )
                 }
             }
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(8.dp))
             Box{
                 Row(
                     modifier = Modifier.fillMaxWidth(), // Asegura que el Row ocupe todo el ancho disponible
@@ -243,7 +226,7 @@ fun MqttScreen(navController: NavController, mqttViewModel: MqttViewModel) {
                     )
                 }
             }
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(8.dp))
             Box{
                 Row(
                     modifier = Modifier.fillMaxWidth(), // Asegura que el Row ocupe todo el ancho disponible
@@ -261,7 +244,7 @@ fun MqttScreen(navController: NavController, mqttViewModel: MqttViewModel) {
                     )
                 }
             }
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(8.dp))
             Box{
                 Row(
                     modifier = Modifier.fillMaxWidth(), // Asegura que el Row ocupe todo el ancho disponible
@@ -279,7 +262,7 @@ fun MqttScreen(navController: NavController, mqttViewModel: MqttViewModel) {
                     )
                 }
             }
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(8.dp))
             Box{
                 Row(
                     modifier = Modifier.fillMaxWidth(), // Asegura que el Row ocupe todo el ancho disponible
@@ -289,7 +272,7 @@ fun MqttScreen(navController: NavController, mqttViewModel: MqttViewModel) {
                         text = "QoS",
                         modifier = Modifier.weight(1f) // Ocupa todo el espacio disponible empujando el Switch hacia la derecha
                     )
-                    Spacer(modifier = Modifier.width(16.dp)) // Espacio entre el Text y el Switch
+                    Spacer(modifier = Modifier.width(8.dp)) // Espacio entre el Text y el Switch
                     TextField(
                         value = qos,
                         onValueChange = { qos = it },
@@ -297,6 +280,15 @@ fun MqttScreen(navController: NavController, mqttViewModel: MqttViewModel) {
                     )
                 }
             }
+            Spacer(modifier = Modifier.height(8.dp))
+            Button(onClick = {
+                Log.d("MqttScreen", "Guardando configuración: $ipMqtt, $portMqtt, $usuarioMqtt, $passwordMqtt, $qos, $clientMqtt")
+                viewModel.guardarConfiguracionMqtt(ipMqtt, portMqtt,usuarioMqtt, passwordMqtt, qos, clientMqtt)
+            }) {
+                Text("Guardar Configuración MQTT")
+            }
+            Spacer(modifier = Modifier.height(16.dp))
+            Text(fontWeight = FontWeight.Bold, text = "Robot params")
             Spacer(modifier = Modifier.height(16.dp))
             Box {
                 Row(
@@ -307,7 +299,7 @@ fun MqttScreen(navController: NavController, mqttViewModel: MqttViewModel) {
                         text = "Tiempo de espera",
                         modifier = Modifier.weight(1f) // Ocupa todo el espacio disponible empujando el Switch hacia la derecha
                     )
-                    Spacer(modifier = Modifier.width(16.dp)) // Espacio entre el Text y el Switch
+                    Spacer(modifier = Modifier.width(8.dp)) // Espacio entre el Text y el Switch
                     TextField(
                         value = waitTime.toString(),
                         onValueChange = {
@@ -317,7 +309,7 @@ fun MqttScreen(navController: NavController, mqttViewModel: MqttViewModel) {
                     )
                 }
             }
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(8.dp))
             Box {
                 Row(
                     modifier = Modifier.fillMaxWidth(), // Asegura que el Row ocupe todo el ancho disponible
@@ -327,7 +319,7 @@ fun MqttScreen(navController: NavController, mqttViewModel: MqttViewModel) {
                         text = "Margen de impuntualidad",
                         modifier = Modifier.weight(1f) // Ocupa todo el espacio disponible empujando el Switch hacia la derecha
                     )
-                    Spacer(modifier = Modifier.width(16.dp)) // Espacio entre el Text y el Switch
+                    Spacer(modifier = Modifier.width(8.dp)) // Espacio entre el Text y el Switch
                     TextField(
                         value = meetingMeetingThreshold.toString(),
                         onValueChange = {
@@ -337,13 +329,94 @@ fun MqttScreen(navController: NavController, mqttViewModel: MqttViewModel) {
                     )
                 }
             }
-            Button(onClick = {
-                Log.d("MqttScreen", "Guardando configuración: $ipMqtt")
-                viewModel.guardarConfiguracion(ipMqtt, portMqtt,usuarioMqtt, passwordMqtt, qos, clientMqtt,  waitTime.toInt(), meetingMeetingThreshold.toInt(), usuarioApi, passwordApi)
-            }) {
-                Text("Guardar Configuración")
+            Spacer(modifier = Modifier.height(8.dp))
+            //TO-DO: Utilizar DropDownMenu para seleccionar el destino de retorno
+            Box {
+                Row(
+                    modifier = Modifier.fillMaxWidth(), // Asegura que el Row ocupe todo el ancho disponible
+                    verticalAlignment = Alignment.CenterVertically // Alinea verticalmente los elementos en el centro
+                ) {
+                    Button(onClick = {
+                        expanded.value = !expanded.value
+                        mqttViewModel.getListPoses()
+                        Log.d("MQTTScreen", "Expanded: $destinations")
+                    }){
+                        Text("Modificar punto retorno")
+                    }
+
+                    DropdownMenu(
+                        expanded = expanded.value,
+                        onDismissRequest = { expanded.value = false },
+                    ) {
+                        destinations.forEachIndexed { index, label ->
+                            DropdownMenuItem(
+                                text = { Text(label.name) },
+                                onClick = {
+                                    returnDestination = label.name
+                                    mqttViewModel.setSelectedItem(label.name)
+                                    expanded.value = false
+                                },
+                                enabled = expanded.value
+                            ) // Añade un elemento al menú
+                        }
+                    }
+                    Spacer(modifier = Modifier.height(20.dp))
+                    Text(text = selectedItem ?: "Ninguno", modifier = Modifier.weight(1f))
+                }
             }
             Spacer(modifier = Modifier.height(8.dp))
+            Box {
+                Row(
+                    modifier = Modifier.fillMaxWidth(), // Asegura que el Row ocupe todo el ancho disponible
+                    verticalAlignment = Alignment.CenterVertically // Alinea verticalmente los elementos en el centro
+                ) {
+                    Text(
+                        text = "Margen de desviación de coordenadas",
+                        modifier = Modifier.weight(1f) // Ocupa todo el espacio disponible empujando el Switch hacia la derecha
+                    )
+                    Spacer(modifier = Modifier.width(16.dp)) // Espacio entre el Text y el Switch
+                    TextField(
+                        value = coordinateDeviation.toString(),
+                        onValueChange = {
+                            coordinateDeviation = it.toFloatOrNull() ?: 0f // Convierte de nuevo a Int, usa 0 si no es un número
+                        },
+                        label = { Text("Margen de desviación de coordenadas") }
+                    )
+                }
+            }
+            Spacer(modifier = Modifier.height(8.dp))
+            Box {
+                Row(
+                    modifier = Modifier.fillMaxWidth(), // Asegura que el Row ocupe todo el ancho disponible
+                    verticalAlignment = Alignment.CenterVertically // Alinea verticalmente los elementos en el centro
+                ) {
+                    Text(
+                        text = "Timeout de navegación",
+                        modifier = Modifier.weight(1f) // Ocupa todo el espacio disponible empujando el Switch hacia la derecha
+                    )
+                    Spacer(modifier = Modifier.width(16.dp)) // Espacio entre el Text y el Switch
+                    TextField(
+                        value = navigationTimeout.toString(),
+                        onValueChange = {
+                            navigationTimeout = it.toLongOrNull() ?: 0 // Convierte de nuevo a Int, usa 0 si no es un número
+                        },
+                        label = { Text("Timeout de navegación") }
+                    )
+                }
+            }
+
+
+            Spacer(modifier = Modifier.height(8.dp))
+            Box{
+                Button(onClick = {
+                    Log.d("MqttScreen", "Guardando configuración Robot: $waitTime, ")
+                    viewModel.guardarConfiguracionRobot(waitTime, meetingMeetingThreshold, returnDestination, coordinateDeviation, navigationTimeout)
+                }) {
+                    Text("Guardar Configuración Robot")
+                }
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
             Text(fontWeight = FontWeight.Bold, text = "API Connection params")
             Spacer(modifier = Modifier.height(16.dp))
             Box {
@@ -355,7 +428,7 @@ fun MqttScreen(navController: NavController, mqttViewModel: MqttViewModel) {
                         text = "Usuario API",
                         modifier = Modifier.weight(1f) // Ocupa todo el espacio disponible empujando el Switch hacia la derecha
                     )
-                    Spacer(modifier = Modifier.width(16.dp)) // Espacio entre el Text y el Switch
+                    Spacer(modifier = Modifier.width(8.dp)) // Espacio entre el Text y el Switch
                     TextField(
                         value = usuarioApi,
                         onValueChange = { usuarioApi = it },
@@ -363,7 +436,7 @@ fun MqttScreen(navController: NavController, mqttViewModel: MqttViewModel) {
                     )
                 }
             }
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(8.dp))
             Box {
                 Row(
                     modifier = Modifier.fillMaxWidth(), // Asegura que el Row ocupe todo el ancho disponible
@@ -373,13 +446,19 @@ fun MqttScreen(navController: NavController, mqttViewModel: MqttViewModel) {
                         text = "Password API",
                         modifier = Modifier.weight(1f) // Ocupa todo el espacio disponible empujando el Switch hacia la derecha
                     )
-                    Spacer(modifier = Modifier.width(16.dp)) // Espacio entre el Text y el Switch
+                    Spacer(modifier = Modifier.width(8.dp)) // Espacio entre el Text y el Switch
                     TextField(
                         value = passwordApi,
                         onValueChange = { passwordApi = it },
                         label = { Text("Password Api") }
                     )
                 }
+            }
+            Button(onClick = {
+                Log.d("MqttScreen", "Guardando configuración API: $usuarioApi, $passwordApi")
+                viewModel.guardarConfiguracionAPI(usuarioApi, passwordApi)
+            }) {
+                Text("Guardar Configuración API")
             }
             Spacer(modifier = Modifier.height(16.dp))
             Text(fontWeight = FontWeight.Bold, text = "MQTT Connection Status: $connectionState")

@@ -16,8 +16,10 @@ import com.ainirobot.coreservice.client.listener.Person
 import com.ainirobot.coreservice.client.listener.TextListener
 import com.ainirobot.coreservice.client.person.PersonApi
 import com.ainirobot.coreservice.client.speech.entity.TTSEntity
+import com.intec.telemedicina.data.APIConfig
 import com.intec.telemedicina.data.Face
 import com.intec.telemedicina.data.InteractionState
+import com.intec.telemedicina.data.RobotConfig
 import com.intec.telemedicina.mqtt.MQTTConfig
 import com.intec.telemedicina.mqtt.MqttManager
 import com.intec.telemedicina.mqtt.MqttManagerCallback
@@ -143,6 +145,9 @@ class MqttViewModel @Inject constructor(
     val meetingTimeThreshold: MutableLiveData<Int> = MutableLiveData()
     val apiUser: MutableLiveData<String> = MutableLiveData()
     val apiPassword: MutableLiveData<String> = MutableLiveData()
+    val returnDestination: MutableLiveData<String> = MutableLiveData()
+    val coordinateDeviation: MutableLiveData<Float> = MutableLiveData()
+    val navigationTimeout: MutableLiveData<Long> = MutableLiveData()
 
     private val mqttManager : MqttManager
     private var mqttConfigInstance = MQTTConfig(
@@ -150,12 +155,12 @@ class MqttViewModel @Inject constructor(
         client_id = "Robot",
         qos = 0,
         user = "intecfull",
-        password = "intecfullpassword",
-        waitingIdleTime = 10,
-        meetingTimeThreshold = 10,
-        apiUser = "api_default_user",
-        apiPassword = "api_default_pass"
+        password = "intecfullpassword"
     )
+
+    private var apiConfigInstance = APIConfig(APIUser = "api_default_user", APIPassword = "api_default_pass")
+
+    private var robotConfigInstance = RobotConfig(idleWaitingTime = 10, meetingTimeThreshold = 10, returnDestination = "entrada", coordinateDeviation = 0.1, navigationTimeout = 1000000)
 
     private val _navigationState = MutableStateFlow(NavigationState.EyesScreen)
     val navigationState: StateFlow<NavigationState> = _navigationState.asStateFlow()
@@ -194,24 +199,39 @@ class MqttViewModel @Inject constructor(
         actualizarConfiguracionMQTT()
     }
 
-    // Observador para cambios en waiting Idle Time
-    private val waitingIdleTimeObserver = Observer<Int> { nuevoWaitingIdleTime ->
-        actualizarConfiguracionMQTT()
-    }
-
-    // Observador para cambios en Meeting time
-    private val meetingTimeThresholdObserver = Observer<Int> { nuevomeetingTimeThreshold ->
-        actualizarConfiguracionMQTT()
-    }
-
+    //CAMBIOS API
     // Observador para cambios en API User
     private val apiUserObserver = Observer<String> { nuevoApiUser ->
-        actualizarConfiguracionMQTT()
+        actualizarConfiguracionAPI()
     }
 
     // Observador para cambios en API Password
     private val apiPasswordObserver = Observer<String> { nuevoApiPassword ->
-        actualizarConfiguracionMQTT()
+        actualizarConfiguracionAPI()
+    }
+
+    //CAMBIOS ROBOT
+    // Observador para cambios en waiting Idle Time
+    private val waitingIdleTimeObserver = Observer<Int> { nuevoWaitingIdleTime ->
+        actualizarConfiguracionRobot()
+    }
+
+    // Observador para cambios en Meeting time
+    private val meetingTimeThresholdObserver = Observer<Int> { nuevomeetingTimeThreshold ->
+        actualizarConfiguracionRobot()
+    }
+
+    // Observador para cambios en API Password
+    private val returnDestinationObserver = Observer<String> { nuevoreturnDestination ->
+        actualizarConfiguracionRobot()
+    }
+
+    private val coordinateNavigationObserver = Observer<Float> { nuevoCoordinateDeviation ->
+        actualizarConfiguracionRobot()
+    }
+
+    private val navigationTimeoutObserver = Observer<Long> {nuevoNavigationTimeout ->
+        actualizarConfiguracionRobot()
     }
 
     fun getBrokerIpDefaultValue(): String {
@@ -250,12 +270,20 @@ class MqttViewModel @Inject constructor(
         return preferencesRepository.getApiPassword()
     }
 
-    fun getApiIdleWaitingTimeDefaultValue(): Int {
-        return preferencesRepository.getIdleWaitingTime()
-    }
-
     fun getMeetingTimeThresholdDefaultValue(): Int {
         return preferencesRepository.getMeetingTimeThreshold()
+    }
+
+    fun getReturnDestinationDefaultValue(): String {
+        return preferencesRepository.getReturnDestination()
+    }
+
+    fun getCoordinateDeviationDefaultValue(): Float{
+        return preferencesRepository.getCoordinateDeviation()
+    }
+
+    fun getNavigationTimeoutDefaultValue(): Long{
+        return preferencesRepository.getNavigationTimeout()
     }
 
     init {
@@ -274,6 +302,9 @@ class MqttViewModel @Inject constructor(
         meetingTimeThreshold.value = preferencesRepository.getMeetingTimeThreshold()
         apiUser.value = preferencesRepository.getApiUsuario()
         apiPassword.value = preferencesRepository.getApiPassword()
+        returnDestination.value = preferencesRepository.getReturnDestination()
+        coordinateDeviation.value = preferencesRepository.getCoordinateDeviation()
+        navigationTimeout.value = preferencesRepository.getNavigationTimeout()
 
         // Configurar la observación de cambios
         brokerIp.observeForever(brokerIpObserver)
@@ -286,6 +317,9 @@ class MqttViewModel @Inject constructor(
         meetingTimeThreshold.observeForever(meetingTimeThresholdObserver)
         apiUser.observeForever(apiUserObserver)
         apiPassword.observeForever(apiPasswordObserver)
+        returnDestination.observeForever(returnDestinationObserver)
+        coordinateDeviation.observeForever(coordinateNavigationObserver)
+        navigationTimeout.observeForever(navigationTimeoutObserver)
         //actualizarConfiguracionMQTT()
         //TODO Inicializar los LiveData para cada configuración
 
@@ -304,57 +338,108 @@ class MqttViewModel @Inject constructor(
 
     private fun actualizarConfiguracionMQTT() {
         brokerIp.value?.let {serverUri ->
-
+            //Obtener campos MQTT
             val port = preferencesRepository.getBrokerPort()
             val clientId = preferencesRepository.getMqttClient()
             val user = preferencesRepository.getMqttUsuario()
             val password = preferencesRepository.getMqttPassword()
-            // Obtener otros campos
-            val apiUser = preferencesRepository.getApiUsuario()
-            val apiPassword = preferencesRepository.getApiPassword()
-            val idleWaitingTime = preferencesRepository.getIdleWaitingTime()
-            val meetingTimeThreshold = preferencesRepository.getMeetingTimeThreshold()
 
             val fullServerUri = "tcp://$serverUri:$port"
 
-            // Actualizar la configuración
+            // Actualizar la configuración mqtt
             mqttConfigInstance = mqttConfigInstance.copy(
                 SERVER_URI = fullServerUri,
                 client_id = clientId,
                 user = user,
-                password = password,
-                apiUser = apiUser,
-                apiPassword = apiPassword,
-                waitingIdleTime = idleWaitingTime,
-                meetingTimeThreshold = meetingTimeThreshold
+                password = password
             )
 
             mqttManager.actualizarConfiguracion(mqttConfigInstance)  // Suponiendo que tienes un método para actualizar la configuración
         }
     }
-    fun guardarConfiguracion(
+
+    fun actualizarConfiguracionRobot(){
+        idleWaitingTime.value.let { idleWaitingTime ->
+            //Obtener campos Robot
+            val idleWaitingTime = preferencesRepository.getIdleWaitingTime()
+            val meetingTimeThreshold = preferencesRepository.getMeetingTimeThreshold()
+            val returnDestination = preferencesRepository.getReturnDestination()
+            val coordinateDeviation =preferencesRepository.getCoordinateDeviation()
+            val navigationTimeout = preferencesRepository.getNavigationTimeout()
+
+            //Actualizar configuración Robot
+            robotConfigInstance = robotConfigInstance.copy(
+                idleWaitingTime = idleWaitingTime,
+                meetingTimeThreshold = meetingTimeThreshold,
+                returnDestination = returnDestination,
+                coordinateDeviation = coordinateDeviation.toDouble(),
+                navigationTimeout = navigationTimeout
+            )
+        }
+    }
+    fun actualizarConfiguracionAPI(){
+        apiUser.value.let { apiUser ->
+            // Obtener campos API
+            val apiUser = preferencesRepository.getApiUsuario()
+            val apiPassword = preferencesRepository.getApiPassword()
+
+            //Actualizar configuración API
+            Log.d("API", "Actualizando configuración: $apiUser")
+            apiConfigInstance = apiConfigInstance.copy(APIUser = apiUser, APIPassword = apiPassword)
+
+        }
+    }
+    //waitTime, meetingMeetingThreshold, returnDestination, coordinateDeviation, navigationTimeout
+    fun guardarConfiguracionRobot(
+        receivedWaitingIdleTime: Int,
+        receivedMeetingTimeThreshold: Int,
+        receivedReturnDestination: String,
+        receivedCoordinateDeviation: Float,
+        receivedRobotTimeout: Long,
+    ){
+        Log.d("MqttViewModel", "Guardando configuración Robot: $receivedWaitingIdleTime, $receivedMeetingTimeThreshold, $receivedReturnDestination, $receivedCoordinateDeviation, $receivedRobotTimeout")
+
+        preferencesRepository.setIdleWaitingTime(receivedWaitingIdleTime)
+        preferencesRepository.setMeetingTimeThreshold(receivedMeetingTimeThreshold)
+        preferencesRepository.setReturnDestination(receivedReturnDestination)
+        preferencesRepository.setCoordinateDeviation(receivedCoordinateDeviation)
+        preferencesRepository.setNavigationTimeout(receivedRobotTimeout)
+
+        idleWaitingTime.value = receivedWaitingIdleTime
+        meetingTimeThreshold.value = receivedMeetingTimeThreshold
+        returnDestination.value = receivedReturnDestination
+        coordinateDeviation.value = receivedCoordinateDeviation
+        navigationTimeout.value = receivedRobotTimeout
+    }
+
+    fun guardarConfiguracionAPI(
+        receivedApiUser: String,
+        receivedApiPassword: String,
+    ){
+        Log.d("MqttViewModel", "Guardando configuración API: $receivedApiPassword, $receivedApiUser")
+
+        preferencesRepository.setApiUsuario(receivedApiUser)
+        preferencesRepository.setApiPassword(receivedApiPassword)
+        apiUser.value = receivedApiUser
+        apiPassword.value = receivedApiPassword
+    }
+
+    fun guardarConfiguracionMqtt(
         ip: String,
         port: String,
         mqttUser: String,
         mqttPassword: String,
         mqttQoS: String,
         mqttClient: String,
-        waitingIdleTime: Int,
-        receivedMeetingTimeThreshold: Int,
-        receivedApiUser: String,
-        receivedApiPassword: String
     ) {
-        Log.d("MqttViewModel", "Guardando configuración: $ip")
+        Log.d("MqttViewModel", "Guardando configuración: $ip, $port, $mqttUser, $mqttPassword, $mqttQoS, $mqttClient")
         preferencesRepository.setBrokerIp(ip)
         preferencesRepository.setBrokerPort(port)
         preferencesRepository.setMqttUsuario(mqttUser)
         preferencesRepository.setMqttPassword(mqttPassword)
         preferencesRepository.setMqttQoS(mqttQoS)
         preferencesRepository.setMqttClient(mqttClient)
-        preferencesRepository.setIdleWaitingTime(waitingIdleTime)
-        preferencesRepository.setMeetingTimeThreshold(receivedMeetingTimeThreshold)
-        preferencesRepository.setApiUsuario(receivedApiUser)
-        preferencesRepository.setApiPassword(receivedApiPassword)
+
         // Guardar otros campos en SharedPreferences
         // No olvides actualizar los LiveData
         brokerIp.value = ip
@@ -363,10 +448,7 @@ class MqttViewModel @Inject constructor(
         brokerPassword.value = mqttPassword
         brokerQoS.value = mqttQoS
         brokerClient.value = mqttClient
-        idleWaitingTime.value = waitingIdleTime
-        meetingTimeThreshold.value = receivedMeetingTimeThreshold
-        apiUser.value = receivedApiUser
-        apiPassword.value = receivedApiPassword
+
     }
     override fun onCleared() {
         super.onCleared()
@@ -380,6 +462,9 @@ class MqttViewModel @Inject constructor(
         meetingTimeThreshold.removeObserver(meetingTimeThresholdObserver)
         apiUser.removeObserver(apiUserObserver)
         apiPassword.removeObserver(apiPasswordObserver)
+        returnDestination.removeObserver(returnDestinationObserver)
+        coordinateDeviation.removeObserver(coordinateNavigationObserver)
+        navigationTimeout.removeObserver(navigationTimeoutObserver)
     }
 
     fun listenToSpeechResult() {
@@ -416,7 +501,7 @@ class MqttViewModel @Inject constructor(
         }
         else if(containSiWord(speechResult)){
             Log.d("speechResult", "Se ha detectado un si")
-            robotMan.stopFocusFollow()
+            //robotMan.stopFocusFollow()
             robotMan.speak("Deacuerdo, por aquí por favor", false)
             robotMan.startNavigation(0,"reunion",0.1234,0)
         }
@@ -430,25 +515,25 @@ class MqttViewModel @Inject constructor(
     // Variable de control
     private var hasHandledPersonDetection = false
 
-    private fun navigateToHomeScreen() {
+    fun navigateToHomeScreen() {
         detectionJob?.cancel()
         robotMan.speak("Bienvenidos a t, dos, o media. Dígame en qué puedo ayudarle", true)
         _navigationState.value = NavigationState.HomeScreen
     }
 
-    private fun navigateToNumericPanelScreen() {
+    fun navigateToNumericPanelScreen() {
         detectionJob?.cancel()
         robotMan.speak("Deacuerdo, introduce el código que se te ha proporcionado", false)
         _navigationState.value = NavigationState.NumericPanelScreen
     }
 
-    private fun navigateToUnknownVisitsScreen() {
+    fun navigateToUnknownVisitsScreen() {
         detectionJob?.cancel()
         //robotMan.speak("Deacuerdo, introduce el código que se te ha proporcionado", false)
         _navigationState.value = NavigationState.UnknownVisitsScreen
     }
 
-    private fun navigateToPackageAndMailManagementScreen() {
+    fun navigateToPackageAndMailManagementScreen() {
         detectionJob?.cancel()
         //robotMan.speak("Deacuerdo, introduce el código que se te ha proporcionado", false)
         _navigationState.value = NavigationState.PackageAndMailManagementScreen
@@ -490,7 +575,7 @@ class MqttViewModel @Inject constructor(
 
             if (detectedPerson.isNullOrEmpty() && elapsedTime >= waitTimeInMillis) {
                 Log.d("startDetection", "ELAPSED TIME: $elapsedTime, detection state: ${detectedPerson.isNullOrEmpty()}")
-                robotMan.unregisterPersonListener()
+                //robotMan.unregisterPersonListener()
                 _navigationState.value = NavigationState.EyesScreen
                 //robotMan.goCharge()
             }
@@ -733,7 +818,7 @@ class MqttViewModel @Inject constructor(
 
             "robot/unfocus" -> {
                 Log.d("UNFOCUS","We will not focus on the user anymore!")
-                RobotApi.getInstance().stopFocusFollow(0)
+                //RobotApi.getInstance().stopFocusFollow(0)
             }
             "robot/move_forward" -> {
                 robotMan.moveForward()
@@ -772,7 +857,9 @@ class MqttViewModel @Inject constructor(
                     if(RobotApi.getInstance().chargeStatus) {
                         robotMan.scheduleWithCoroutine()
                     }else{
-                        robotMan.startNavigation(0,selectedItem.toString(),0.1234,0)
+                        Log.d("ZIGBEE MQTT", "selected position: ${selectedItem.toString()}")
+                        Log.d("robot params", "${robotConfigInstance.returnDestination},${robotConfigInstance.coordinateDeviation},${robotConfigInstance.navigationTimeout}")
+                        robotMan.startNavigation(0,robotConfigInstance.returnDestination,robotConfigInstance.coordinateDeviation,robotConfigInstance.navigationTimeout)
                     }
                 }
             }
