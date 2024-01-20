@@ -18,7 +18,7 @@ fun MainScreen(navController: NavController, mqttViewModel: MqttViewModel, numer
 
 
         MqttViewModel.NavigationState.EyesScreen -> {
-            Log.d("EyesScreen enum", "${AppScreens.EyesScreen.route}")
+            Log.d("HomeScreen enum", "${AppScreens.EyesScreen.route}")
             EyesScreen(navController, mqttViewModel, robotManager)
         }
         MqttViewModel.NavigationState.HomeScreen -> {
@@ -40,6 +40,10 @@ fun MainScreen(navController: NavController, mqttViewModel: MqttViewModel, numer
         MqttViewModel.NavigationState.PackageAndMailManagementScreen -> {
             Log.d("HomeScreen enum", "${AppScreens.PackageAndMailManagementScreen.route}")
             PackageAndMailManagementScreen(navController, mqttViewModel = mqttViewModel,numericPanelViewModel = numericPanelViewModel, robotManager = robotManager)
+        }
+        MqttViewModel.NavigationState.DrivingScreen -> {
+            Log.d("HomeScreen enum", "${AppScreens.DrivingScreen.route}")
+            DrivingScreen(navController, mqttViewModel = mqttViewModel)
         }
     }
 }

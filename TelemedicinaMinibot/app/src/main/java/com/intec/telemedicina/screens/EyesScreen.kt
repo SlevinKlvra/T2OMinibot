@@ -66,9 +66,9 @@ fun EyesScreen(navController: NavController, mqttViewModel: MqttViewModel, robot
             .clickable {
                 if (isDriving) {
                     mqttViewModel.setPaused(true)
-                    navController.navigate(AppScreens.DrivingScreen.route)
+                    mqttViewModel.navigateToDrivingScreen()
                 } else {
-                    navController.navigate(AppScreens.HomeScreen.route)
+                    mqttViewModel.navigateToHomeScreen()
                 }
             }
             .background(Color.Black)
