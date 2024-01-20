@@ -110,7 +110,7 @@ fun AdminPanelScreen(
                                                     enteredCode
                                                 )
                                             ) {
-                                                navController.navigate(AppScreens.MqttScreen.route)
+                                                mqttViewModel.navigateToMqttScreen()
                                             } else {
                                                 robotManager.speak("Código incorrecto", false)
                                             }

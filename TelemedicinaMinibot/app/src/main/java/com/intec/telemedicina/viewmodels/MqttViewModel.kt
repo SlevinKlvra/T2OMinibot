@@ -166,7 +166,7 @@ class MqttViewModel @Inject constructor(
     val navigationState: StateFlow<NavigationState> = _navigationState.asStateFlow()
 
     enum class NavigationState {
-        EyesScreen, HomeScreen, NumericPanelScreen, MeetingScreen, UnknownVisitsScreen, PackageAndMailManagementScreen, DrivingScreen
+        EyesScreen, HomeScreen, NumericPanelScreen, MeetingScreen, UnknownVisitsScreen, PackageAndMailManagementScreen, DrivingScreen, MqttScreen, AdminPanelScreen
     }
 
     // Observador para cambios en brokerIp
@@ -519,6 +519,16 @@ class MqttViewModel @Inject constructor(
         detectionJob?.cancel()
         robotMan.speak("Bienvenidos a t, dos, o media. Dígame en qué puedo ayudarle", true)
         _navigationState.value = NavigationState.HomeScreen
+    }
+
+    fun navigateToMqttScreen() {
+        detectionJob?.cancel()
+        _navigationState.value = NavigationState.MqttScreen
+    }
+
+    fun navigateToAdminPanelScreen() {
+        detectionJob?.cancel()
+        _navigationState.value = NavigationState.AdminPanelScreen
     }
 
     fun navigateToDrivingScreen() {

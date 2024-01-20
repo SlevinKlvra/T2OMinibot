@@ -72,14 +72,15 @@ fun HomeScreen(
 
     if (openEyesScreen) {
         Log.d("HomeScreen openEyes", "true")
-        navController.navigate(AppScreens.EyesScreen.route)
+        //navController.navigate(AppScreens.EyesScreen.route)
+        mqttViewModel.navigateToEyesScreen()
         mqttViewModel.closeHomescreen()
     }
 
     FuturisticGradientBackground {
 
         Column(modifier = Modifier.fillMaxSize()) {
-            Cabecera(navController = navController)
+            Cabecera(navController = navController, mqttViewModel = mqttViewModel)
             Botones(navController = navController, mqttViewModel = mqttViewModel)
             if (adminMode) {
                 LazyRowUbicaciones(
@@ -93,7 +94,7 @@ fun HomeScreen(
 }
 
 @Composable
-fun Cabecera(navController: NavController) {
+fun Cabecera(navController: NavController, mqttViewModel : MqttViewModel) {
     // Una columna con un espacio fijo entre sus elementos
     Column(modifier = Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
         // El Row que contiene el título
@@ -103,7 +104,7 @@ fun Cabecera(navController: NavController) {
                 .padding(top = 8.dp),
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
-            MqttButton(navController = navController)
+            MqttButton(navController = navController, mqttViewModel = mqttViewModel)
             // El Text que contiene el subtítulo
             Text(
                 text = "¿Cuál es el motivo de su visita?",
@@ -198,14 +199,16 @@ fun Botones(navController: NavController, mqttViewModel: MqttViewModel) {
 }
 
 @Composable
-fun MqttButton(navController: NavController) {
+fun MqttButton(navController: NavController, mqttViewModel: MqttViewModel) {
     Box(contentAlignment = Alignment.TopStart) {
         Image(
             painter = painterResource(id = R.drawable.intecrobots_circulo),
             contentDescription = "logo",
             modifier = Modifier
                 .size(dimensionResource(id = R.dimen.mqtt_button_size))
-                .clickable { navController.navigate(AppScreens.AdminPanelScreen.route) })
+                .clickable {
+                    mqttViewModel.navigateToAdminPanelScreen()})
+                    //navController.navigate(AppScreens.AdminPanelScreen.route) })
     }
 }
 

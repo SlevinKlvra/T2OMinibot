@@ -144,7 +144,7 @@ fun UnknownVisitScreen(
                                 if (currentPage > 1) {
                                     currentPage--
                                 } else {
-                                    navController.popBackStack()
+                                    mqttViewModel.navigateToHomeScreen()
                                 }
                             },
                             modifier = Modifier.widthIn(min = 33.dp) // Establecer el ancho deseado
@@ -220,7 +220,7 @@ fun UnknownVisitScreen(
                         message = userData.asunto,
                         onMessageChange = { userData = userData.copy(asunto = it) })
 
-                    7 -> LastStep(navController)
+                    7 -> LastStep(navController, mqttViewModel)
                 }
             }
         }
@@ -476,7 +476,7 @@ fun MessageStep(message: String, onMessageChange: (String) -> Unit) {
 
 
 @Composable
-fun LastStep(navController: NavController) {
+fun LastStep(navController: NavController, mqttViewModel: MqttViewModel) {
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -504,7 +504,7 @@ fun LastStep(navController: NavController) {
         TransparentButtonWithIcon(
             text = "Volver",
             icon = Icons.Outlined.ArrowBack,
-            onClick = { navController.popBackStack() }
+            onClick = { mqttViewModel.navigateToHomeScreen()}
         )
     }
 }

@@ -129,7 +129,7 @@ fun MqttScreen(navController: NavController, mqttViewModel: MqttViewModel) {
             Box(modifier = Modifier
                 .fillMaxWidth()) {
                 FloatingActionButton(
-                    onClick = { navController.navigate(AppScreens.HomeScreen.route) },
+                    onClick = { mqttViewModel.navigateToHomeScreen() },
                     modifier = Modifier
                         .size(36.dp)
                         .align(Alignment.BottomStart),

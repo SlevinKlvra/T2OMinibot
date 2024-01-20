@@ -21,6 +21,10 @@ fun MainScreen(navController: NavController, mqttViewModel: MqttViewModel, numer
             Log.d("HomeScreen enum", "${AppScreens.EyesScreen.route}")
             EyesScreen(navController, mqttViewModel, robotManager)
         }
+        MqttViewModel.NavigationState.MqttScreen -> {
+            Log.d("HomeScreen enum", "${AppScreens.MqttScreen.route}")
+            MqttScreen(navController, mqttViewModel)
+        }
         MqttViewModel.NavigationState.HomeScreen -> {
             Log.d("HomeScreen enum", "${AppScreens.HomeScreen.route}")
             HomeScreen(navController, mqttViewModel, robotManager)
@@ -28,6 +32,10 @@ fun MainScreen(navController: NavController, mqttViewModel: MqttViewModel, numer
         MqttViewModel.NavigationState.NumericPanelScreen -> {
             Log.d("HomeScreen enum", "${AppScreens.NumericPanelScreen.route}")
             NumericPanelScreen(navController, numericPanelViewModel = numericPanelViewModel, robotManager = robotManager)
+        }
+        MqttViewModel.NavigationState.AdminPanelScreen -> {
+            Log.d("HomeScreen enum", "${AppScreens.AdminPanelScreen.route}")
+            AdminPanelScreen(navController, mqttViewModel = mqttViewModel,numericPanelViewModel = numericPanelViewModel, robotManager = robotManager)
         }
         MqttViewModel.NavigationState.MeetingScreen -> {
             Log.d("HomeScreen enum", "${AppScreens.MeetingScreen.route}")

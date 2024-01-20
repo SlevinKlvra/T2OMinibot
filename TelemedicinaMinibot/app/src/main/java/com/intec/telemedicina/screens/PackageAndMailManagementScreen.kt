@@ -77,7 +77,7 @@ fun PackageAndMailManagementScreen(
                             if (currentPage > 1) {
                                 currentPage--
                             } else {
-                                navController.popBackStack()
+                                mqttViewModel.navigateToHomeScreen()
                             }
                         })
                     }
