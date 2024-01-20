@@ -1,6 +1,11 @@
 package com.intec.telemedicina.screens
 
-import android.util.Log
+import androidx.compose.animation.core.FastOutLinearInEasing
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -19,9 +24,14 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -36,23 +46,16 @@ import com.intec.telemedicina.viewmodels.NumericPanelViewModel
 
 
 @Composable
-fun AdminPanelScreen(navController: NavController, mqttViewModel: MqttViewModel, numericPanelViewModel: NumericPanelViewModel, robotManager: RobotManager) {
+fun AdminPanelScreen(
+    navController: NavController,
+    mqttViewModel: MqttViewModel,
+    numericPanelViewModel: NumericPanelViewModel,
+    robotManager: RobotManager
+) {
 
-    Log.d("Current Screen", "AdminPanelScreen")
-    val backgroundColor = MaterialTheme.colorScheme.primaryContainer
-    val textColor = MaterialTheme.colorScheme.onPrimary
+    var enteredCode by remember { mutableStateOf("") }
 
     // Estilos generales
-    val buttonModifier = Modifier
-        .padding(4.dp)
-        .height(40.dp)
-        .width(100.dp)
-
-    val actionButtonModifier = Modifier
-        .padding(8.dp)
-        .height(40.dp)
-        .width(100.dp)
-
     val textStyle = TextStyle(
         fontWeight = FontWeight.Bold,
         fontSize = 16.sp,
@@ -60,12 +63,7 @@ fun AdminPanelScreen(navController: NavController, mqttViewModel: MqttViewModel,
         color = Color.Black
     )
 
-    val buttonColors = ButtonDefaults.buttonColors(
-        containerColor = backgroundColor,
-        contentColor = MaterialTheme.colorScheme.tertiary
-    )
-
-    FuturisticGradientBackground{
+    FuturisticGradientBackground {
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -81,13 +79,14 @@ fun AdminPanelScreen(navController: NavController, mqttViewModel: MqttViewModel,
             )
             // Muestra el código ingresado
             Text(
-                text = numericPanelViewModel.enteredCode.value,
+                text = enteredCode,
                 style = textStyle.copy(fontSize = 12.sp),
                 modifier = Modifier.padding(6.dp)
             )
 
             // Teclado numérico
-            val buttons = listOf("1", "2", "3", "4", "5", "6", "7", "8", "9", "Borrar", "0", "Enviar")
+            val buttons =
+                listOf("1", "2", "3", "4", "5", "6", "7", "8", "9", "Borrar", "0", "Enviar")
             buttons.chunked(3).forEach { row ->
                 Row(
                     horizontalArrangement = Arrangement.SpaceEvenly,
@@ -99,47 +98,35 @@ fun AdminPanelScreen(navController: NavController, mqttViewModel: MqttViewModel,
 
                                 text = number,
                                 onClick = {
-                                    when(number){
-                                        "Borrar" -> numericPanelViewModel.removeLastDigit()
+                                    when (number) {
+                                        "Borrar" -> {
+                                            if (enteredCode.isNotEmpty()) {
+                                                enteredCode = enteredCode.dropLast(1)
+                                            }
+                                        }
+
                                         "Enviar" -> {
-                                            //navController.navigate(AppScreens.MqttScreen.route)
-                                            //numericPanelViewModel.checkForTaskExecution()
-                                            if (numericPanelViewModel.checkForAdvancedSettingsAccess()) {
-                                                // Navegar al panel de configuración avanzada
+                                            if (numericPanelViewModel.checkForAdvancedSettingsAccess(
+                                                    enteredCode
+                                                )
+                                            ) {
                                                 navController.navigate(AppScreens.MqttScreen.route)
-                                            }else{
+                                            } else {
                                                 robotManager.speak("Código incorrecto", false)
                                             }
                                         }
-                                        else -> numericPanelViewModel.addDigit(number.first())
+
+                                        else -> enteredCode += number.first()
                                     }
                                 },
                             )
-                            /*Button(
-                                onClick = {
-                                    when(number){
-                                        "Borrar" -> numericPanelViewModel.removeLastDigit()
-                                        "Verificar" -> {
-                                            if (numericPanelViewModel.checkForAdvancedSettingsAccess()) {
-                                                // Navegar al panel de configuración avanzada
-                                            } else if (numericPanelViewModel.checkForTaskExecution()) {
-                                                // Ejecutar la tarea
-                                            }
-                                        }
-                                        else -> numericPanelViewModel.addDigit(number.first())
-                                    }
-                                },
-                                modifier = if (number == "Borrar" || number == "Verificar") actionButtonModifier else buttonModifier,
-                                colors = buttonColors,
-                                shape = RectangleShape
-                            ) {
-                                Text(
-                                    text = number,
-                                    style = textStyle.copy(color = textColor)
-                                )
-                            }*/
                         } else {
-                            Spacer(modifier = buttonModifier)
+                            Spacer(
+                                modifier = Modifier
+                                    .padding(4.dp)
+                                    .height(30.dp)
+                                    .width(100.dp)
+                            )
                         }
                     }
                 }

@@ -44,6 +44,8 @@ import com.intec.telemedicina.components.TransparentButtonWithIcon
 import com.intec.telemedicina.robotinterface.RobotManager
 import com.intec.telemedicina.viewmodels.MqttViewModel
 import com.intec.telemedicina.viewmodels.NumericPanelViewModel
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
 enum class UserType {
     CLIENTE, PROVEEDOR
@@ -54,12 +56,12 @@ enum class UserExistence {
 }
 
 data class UserData(
-    val userType: UserType?,
+    val tipo: UserType?,
     val userExistence: UserExistence?,
-    val name: String,
+    val nombre: String,
     val empresa: String,
     val email: String,
-    val message: String
+    val asunto: String
 )
 
 @Composable
@@ -73,12 +75,12 @@ fun UnknownVisitScreen(
     var userData by remember {
         mutableStateOf(
             UserData(
-                userType = null,
+                tipo = null,
                 userExistence = null,
-                name = "",
-                empresa = "",
-                email = "",
-                message = ""
+                nombre = "test",
+                empresa = "test",
+                email = "test@gmail.com",
+                asunto = "testesttestestestest"
             )
         )
     }
@@ -97,6 +99,27 @@ fun UnknownVisitScreen(
         if (text != "") {
             Log.d("UnknownVisitScreen", "Escuchando... $text")
             mqttViewModel.stopListening()
+        }
+    }
+
+    var sendingData by remember { mutableStateOf(false) }
+    LaunchedEffect(sendingData) {
+        if (sendingData) {
+            try {
+                val success = withContext(Dispatchers.IO) {
+                    numericPanelViewModel.postUnknownVisitor(userData)
+                }
+                if (success == true) {
+                    Log.d("peticion hecha", "peticion")
+                    currentPage++
+                } else {
+                    Log.d("peticion no hecha", "no peticion")
+                }
+            } catch (e: Exception) {
+                Log.e("Error", "Error al enviar la solicitud: $e")
+            } finally {
+                sendingData = false
+            }
         }
     }
 
@@ -142,7 +165,7 @@ fun UnknownVisitScreen(
                                     currentPage++
                                 }
                             },
-                            enabled = userData.userExistence != null && userData.userType != null,
+                            enabled = userData.userExistence != null && userData.tipo != null,
                             modifier = Modifier.widthIn(min = 33.dp) // Establecer el ancho deseado
                         ) {
                             Text("Siguiente")
@@ -154,11 +177,10 @@ fun UnknownVisitScreen(
                         Button(
                             onClick = {
                                 if (validateFields()) {
-                                    currentPage++
-                                    handleFinalAction(userData)
+                                    sendingData = true
                                 }
                             },
-                            enabled = validateFields(),
+                            enabled = validateFields() && !sendingData,
                             modifier = Modifier.widthIn(min = 33.dp) // Establecer el ancho deseado
                         ) {
                             Text("Enviar")
@@ -170,7 +192,7 @@ fun UnknownVisitScreen(
             Row(modifier = Modifier) {
                 when (currentPage) {
                     1 -> UserTypeSelection(onUserTypeSelected = {
-                        userData = userData.copy(userType = it)
+                        userData = userData.copy(tipo = it)
                         currentPage++
                     })
 
@@ -180,14 +202,14 @@ fun UnknownVisitScreen(
                     })
 
                     3 -> NameStep(
-                        name = userData.name,
-                        onNameChange = { userData = userData.copy(name = text) },
+                        name = userData.nombre,
+                        onNameChange = { userData = userData.copy(nombre = it) },
                         robotManager
                     )
 
                     4 -> CompanyStep(
-                        company = userData.name,
-                        onCompanyChange = { userData = userData.copy(name = text) },
+                        company = userData.empresa,
+                        onCompanyChange = { userData = userData.copy(empresa = it) },
                     )
 
                     5 -> EmailStep(
@@ -195,8 +217,8 @@ fun UnknownVisitScreen(
                         onEmailChange = { userData = userData.copy(email = it) })
 
                     6 -> MessageStep(
-                        message = userData.message,
-                        onMessageChange = { userData = userData.copy(message = it) })
+                        message = userData.asunto,
+                        onMessageChange = { userData = userData.copy(asunto = it) })
 
                     7 -> LastStep(navController)
                 }
@@ -272,11 +294,6 @@ fun UserExistenceSelection(onUserExistenceSelected: (UserExistence) -> Unit) {
 
 fun validateFields(): Boolean {
     return true
-}
-
-fun handleFinalAction(userData: UserData) {
-    // Hacer cosas
-    Log.d("Unknown visitor data", userData.toString())
 }
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalComposeUiApi::class)
@@ -456,7 +473,6 @@ fun MessageStep(message: String, onMessageChange: (String) -> Unit) {
         )
     }
 }
-
 
 
 @Composable

@@ -3,21 +3,14 @@ package com.intec.telemedicina.viewmodels
 import android.app.Application
 import android.content.Context
 import android.util.Log
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.lifecycle.AndroidViewModel
-import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.gson.Gson
-import com.google.gson.JsonSyntaxException
 import com.google.gson.reflect.TypeToken
 import com.intec.telemedicina.data.MeetingResponse
 import com.intec.telemedicina.robotinterface.RobotManager
 import com.intec.telemedicina.screens.UserData
-import dagger.hilt.android.internal.Contexts.getApplication
-import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -26,17 +19,18 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import okhttp3.FormBody
-import okhttp3.MediaType
-import okhttp3.MediaType.Companion.toMediaTypeOrNull
+import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.RequestBody
 import okhttp3.RequestBody.Companion.toRequestBody
 import okhttp3.Response
+import okio.Buffer
 import org.json.JSONObject
 import java.io.IOException
 import java.time.Duration
 import java.time.LocalTime
+
 
 class NumericPanelViewModel(
     application: Application,
@@ -89,10 +83,9 @@ class NumericPanelViewModel(
     }
 
     // Función para verificar el código para configuración avanzada
-    fun checkForAdvancedSettingsAccess(): Boolean {
+    fun checkForAdvancedSettingsAccess(code: String): Boolean {
         // Aquí iría la lógica para verificar el código
-        if (enteredCode.value == "8998") {
-            resetDigits()
+        if (code == "8998") {
             return true
         } else {
             return false
@@ -182,19 +175,19 @@ class NumericPanelViewModel(
 
     private var currentToken: String = ""
 
-    fun checkForTaskExecution() {
+    fun checkForTaskExecution(code: String? = null) {
         Log.d("NumericPanelViewModel", "checkForTaskExecution")
         viewModelScope.launch(Dispatchers.IO) {
             try {
                 _isLoading.value = true
-                if(currentToken.isEmpty()){
+                if (currentToken.isEmpty()) {
                     Log.d("checkForTaskExecution", "currentToken is empty")
                     currentToken = refreshToken() ?: ""
                 }
 
-                if(currentToken.isNotEmpty()){
+                if (currentToken.isNotEmpty()) {
                     Log.d("checkForTaskExecution", "currentToken is not empty: $currentToken")
-                    val response = makeApiCall(currentToken)
+                    val response = makeApiCall(currentToken, code)
                     withContext(Dispatchers.Main) {
                         Log.d("TAG MAIN", "Respuesta: $response")
                         handleApiResponse(response)
@@ -208,11 +201,11 @@ class NumericPanelViewModel(
         }
     }
 
-    private suspend fun makeApiCall(token: String): Response? {
+    private suspend fun makeApiCall(token: String, code: String? = null): Response? {
         Log.d("TAG MAIN", "Haciendo llamada a la API: token: $token")
         val client = OkHttpClient()
         val request = Request.Builder()
-            .url("https://t2o.intecrobots.com/api/visitas/consultacodigototal?codigo=${enteredCode.value}")
+            .url("https://t2o.intecrobots.com/api/visitas/consultacodigototal?codigo=${code ?: enteredCode.value}")
             .addHeader("Authorization", "Bearer $token")
             .get()
             .build()
@@ -295,13 +288,14 @@ class NumericPanelViewModel(
 
     private suspend fun refreshToken(): String? {
         return try {
+
             val client = OkHttpClient()
             val formBody = FormBody.Builder()
                 .add("username", "sergio.escudero@intecrobots.com")
                 .add("password", "sec000611")
                 .build()
             val request = Request.Builder()
-                .url("https://t2o.intecrobots.com/api/novisitas/add")
+                .url("https://t2o.intecrobots.com/api/auth/login")
                 .post(formBody)
                 .build()
             Log.d("Request", "URL: ${request.url}, Body: $formBody")
@@ -318,32 +312,73 @@ class NumericPanelViewModel(
         }
     }
 
-    private suspend fun postUnknownVisitor(userData: UserData): Boolean? {
+    private fun bodyToString(request: Request): String {
         return try {
-            val client = OkHttpClient()
-            val formBody = FormBody.Builder()
-                .add("user_type", userData.userType.toString())
-                .add("user_exists", userData.userExistence.toString())
-                .add("name", userData.name)
-                .add("company", userData.empresa)
-                .add("email", userData.email)
-                .add("message", userData.message)
-                .build()
-            val request = Request.Builder()
-                .url("https://t2o.intecrobots.com/api/novisitas/add")
-                .post(formBody)
-                .build()
-            Log.d("Request", "URL: ${request.url}, Body: $formBody")
-            client.newCall(request).execute().use { response ->
-                if (response.isSuccessful) {
-                    return true
-                } else null
-            }
-        } catch (e: Exception) {
-            Log.e("Error", "Error al enviar solicitud: ${e.message}")
-            null
+            val copy = request.newBuilder().build()
+            val buffer = Buffer()
+            copy.body!!.writeTo(buffer)
+            buffer.readUtf8()
+        } catch (e: IOException) {
+            "did not work"
         }
     }
+
+    suspend fun postUnknownVisitor(userData: UserData): Boolean? {
+        return try {
+            withContext(Dispatchers.IO) {
+                val client = OkHttpClient()
+
+                if (currentToken.isEmpty()) {
+                    Log.d("checkForTaskExecution", "currentToken is empty")
+                    currentToken = refreshToken() ?: ""
+                }
+
+                // Crear un objeto JSON con los datos del usuario
+                val json = JSONObject().apply {
+                    put("nombre", userData.nombre)
+                    put("email", userData.email)
+                    put("empresa", userData.empresa)
+                    put("asunto", userData.asunto)
+                    put("tipo", userData.tipo.toString())
+                    // Agregar más campos según sea necesario
+                }
+
+                // Crear el cuerpo de la solicitud como JSON
+                val requestBody: RequestBody =
+                    json.toString().toRequestBody("application/json".toMediaType())
+
+                // Crear la solicitud con el encabezado y el cuerpo JSON
+                val request = Request.Builder()
+                    .url("https://t2o.intecrobots.com/api/novisitas/add")
+                    .post(requestBody)
+                    .addHeader(
+                        "Authorization",
+                        "Bearer $currentToken"
+                    )  // Agregar el encabezado de autorización
+                    .build()
+                Log.d("tokennnn", currentToken)
+                Log.d("cuerpo", bodyToString(request))
+
+                // Realizar la solicitud y procesar la respuesta
+                client.newCall(request).execute().use { response ->
+                    Log.d("Response", response.toString())
+                    Log.d("ResponseBody", response.body?.string() ?: "No response body")
+                    if (response.code == 400) {
+                        val newToken = refreshToken()
+                        if (newToken != null) {
+                            Log.d("TAG MAIN", "Token refrescado: $newToken")
+                            currentToken = newToken
+                        }
+                    }
+                    return@withContext response.isSuccessful
+                }
+            }
+        } catch (e: Exception) {
+            Log.e("Error", "Error al enviar solicitud: $e")
+            return null
+        }
+    }
+
 
     fun getMeetingTimeThreshold(): Long {
         val sharedPrefs =

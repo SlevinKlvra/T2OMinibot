@@ -124,9 +124,9 @@ fun NumericPanelScreen(
                     // Muestra el código ingresado
                     Text(
                         text = numericPanelViewModel.enteredCode.value,
-                        style = textStyle.copy(fontSize = 12.sp),
+                        style = textStyle.copy(fontSize = 8.sp),
                         modifier = Modifier.padding(6.dp),
-                        color = Color.White
+                        color = Color.Black
                     )
 
                     // Teclado numérico
@@ -140,7 +140,6 @@ fun NumericPanelScreen(
                             row.forEach { number ->
                                 if (number.isNotBlank()) {
                                     TransparentButton(
-
                                         text = number,
                                         onClick = {
                                             when (number) {
