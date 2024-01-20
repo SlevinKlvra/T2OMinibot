@@ -34,7 +34,7 @@ class MainActivity : ComponentActivity() {
 
     private val mqttViewModel by viewModels<MqttViewModel> { mqttViewModelFactory }
 
-    private val numericPanelViewModel by viewModels<NumericPanelViewModel> { numericPanelViewModelFactory }
+    private val numericPanelViewModel by viewModels <NumericPanelViewModel> { numericPanelViewModelFactory }
 
     @Inject
     lateinit var skillApi : SkillApi

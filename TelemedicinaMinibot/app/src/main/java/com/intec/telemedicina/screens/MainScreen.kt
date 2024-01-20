@@ -16,7 +16,6 @@ fun MainScreen(navController: NavController, mqttViewModel: MqttViewModel, numer
     Log.d("Current Screen", "MainScreen")
     when (navigationState) {
 
-
         MqttViewModel.NavigationState.EyesScreen -> {
             Log.d("HomeScreen enum", "${AppScreens.EyesScreen.route}")
             EyesScreen(navController, mqttViewModel, robotManager)

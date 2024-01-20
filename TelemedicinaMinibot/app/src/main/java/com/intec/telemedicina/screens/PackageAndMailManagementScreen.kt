@@ -56,6 +56,7 @@ fun PackageAndMailManagementScreen(
     robotManager: RobotManager,
     numericPanelViewModel: NumericPanelViewModel
 ) {
+    Log.d("Current Screen", "PackageAndMailManagementScreen")
     val isLoading by numericPanelViewModel.isLoading.collectAsState()
     var currentPage by remember { mutableStateOf(1) }
     var hasCode by remember { mutableStateOf(false) }
