@@ -18,12 +18,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.FloatingActionButton
-import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -42,6 +37,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import com.intec.telemedicina.components.GoBackButton
 import com.intec.telemedicina.components.TransparentButton
 import com.intec.telemedicina.navigation.AppScreens
 import com.intec.telemedicina.robotinterface.RobotManager
@@ -164,15 +160,7 @@ fun NumericPanelScreen(
             }
         }
         // Botón de retorno
-        FloatingActionButton(
-            onClick = { mqttViewModel.navigateToHomeScreen() },
-            modifier = Modifier
-                .size(56.dp)
-                .padding(16.dp),
-            contentColor = MaterialTheme.colorScheme.secondary
-        ) {
-            Icon(imageVector = Icons.Default.ArrowBack, contentDescription = null)
-        }
+        GoBackButton(onClick = { mqttViewModel.navigateToHomeScreen() })
     }
 }
 
