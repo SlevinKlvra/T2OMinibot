@@ -145,7 +145,7 @@ class MqttViewModel @Inject constructor(
     val meetingTimeThreshold: MutableLiveData<Int> = MutableLiveData()
     val apiUser: MutableLiveData<String> = MutableLiveData()
     val apiPassword: MutableLiveData<String> = MutableLiveData()
-    val returnDestination: MutableLiveData<String> = MutableLiveData()
+    var returnDestination: MutableLiveData<String> = MutableLiveData()
     val coordinateDeviation: MutableLiveData<Float> = MutableLiveData()
     val navigationTimeout: MutableLiveData<Long> = MutableLiveData()
 
@@ -279,6 +279,10 @@ class MqttViewModel @Inject constructor(
 
     fun getReturnDestinationDefaultValue(): String {
         return preferencesRepository.getReturnDestination()
+    }
+
+    fun setReturnDestinationDefaultValue(){
+        returnDestination.value = getReturnDestinationDefaultValue()
     }
 
     fun getCoordinateDeviationDefaultValue(): Float{
@@ -592,7 +596,8 @@ class MqttViewModel @Inject constructor(
                 //Log.d("startDetection", "PERSONS LIST IS NOT NULL NEITHER EMPTY. RESTARTING TIME")
                 detectionJob?.cancel()
                 elapsedTime = 0 // Reinicia el temporizador
-                navigateToHomeScreen()
+
+                //navigateToHomeScreen()
                 //detectionJob?.cancel()
             }
 

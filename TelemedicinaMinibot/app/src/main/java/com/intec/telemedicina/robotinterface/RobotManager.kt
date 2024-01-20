@@ -532,5 +532,4 @@ class RobotManager @Inject constructor(private val skillApi: SkillApi, @Applicat
             startNavigation(0,"entrada",0.1234,0)
         }
     }
-
 }

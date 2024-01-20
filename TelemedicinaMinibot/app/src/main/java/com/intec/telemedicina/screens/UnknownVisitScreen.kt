@@ -34,6 +34,7 @@ import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -43,6 +44,7 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
+import com.intec.telemedicina.components.GoBackButton
 import com.intec.telemedicina.components.TransparentButtonWithIcon
 import com.intec.telemedicina.robotinterface.RobotManager
 import com.intec.telemedicina.viewmodels.MqttViewModel
@@ -138,23 +140,26 @@ fun UnknownVisitScreen(
 
                 Row(
                     modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = 4.dp),
-                    horizontalArrangement = Arrangement.SpaceEvenly
+                        .fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceEvenly,
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
                     // Botón Anterior
                     if (currentPage != totalPages) {
-                        TextButton(
-                            onClick = {
-                                if (currentPage > 1) {
-                                    currentPage--
-                                } else {
-                                    mqttViewModel.navigateToHomeScreen()
-                                }
-                            },
-                            modifier = Modifier.widthIn(min = 33.dp) // Establecer el ancho deseado
-                        ) {
-                            Text("Anterior")
+                        if (currentPage == 1) GoBackButton(onClick = { mqttViewModel.navigateToHomeScreen() })
+                        else {
+                            TextButton(
+                                onClick = {
+                                    if (currentPage > 1) {
+                                        currentPage--
+                                    } else {
+                                        mqttViewModel.navigateToHomeScreen()
+                                    }
+                                },
+                                modifier = Modifier.widthIn(min = 33.dp) // Establecer el ancho deseado
+                            ) {
+                                Text("Anterior")
+                            }
                         }
                     }
                     Text(
@@ -321,7 +326,6 @@ fun validateFields(context: Context, userData: UserData): Boolean {
 fun showToast(context: Context, message: String) {
     Toast.makeText(context, message, Toast.LENGTH_LONG).show()
 }
-
 
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalComposeUiApi::class)
@@ -526,13 +530,16 @@ fun LastStep(navController: NavController, mqttViewModel: MqttViewModel) {
             textAlign = TextAlign.Center,
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(bottom = 24.dp),
-            style = MaterialTheme.typography.bodyMedium
+                .padding(bottom = 24.dp)
+                .padding(horizontal = 85.dp),
+            style = MaterialTheme.typography.bodySmall,
         )
-        TransparentButtonWithIcon(
-            text = "Volver",
-            icon = Icons.Outlined.ArrowBack,
-            onClick = { mqttViewModel.navigateToHomeScreen()}
-        )
+        Row(horizontalArrangement = Arrangement.Center, modifier = Modifier.fillMaxSize()) {
+            TransparentButtonWithIcon(
+                text = "Volver",
+                icon = Icons.Outlined.ArrowBack,
+                onClick = { mqttViewModel.navigateToHomeScreen() }
+            )
+        }
     }
 }
