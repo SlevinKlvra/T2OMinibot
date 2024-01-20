@@ -80,7 +80,7 @@ fun HomeScreen(
 
         Column(modifier = Modifier.fillMaxSize()) {
             Cabecera(navController = navController)
-            Botones(navController = navController)
+            Botones(navController = navController, mqttViewModel = mqttViewModel)
             if (adminMode) {
                 LazyRowUbicaciones(
                     mqttViewModel = mqttViewModel,
@@ -149,19 +149,19 @@ fun LazyRowUbicaciones(
 }
 
 @Composable
-fun Botones(navController: NavController) {
+fun Botones(navController: NavController, mqttViewModel: MqttViewModel) {
 
-    val rutas = listOf(
+    /*val rutas = listOf(
         AppScreens.UnknownVisitScreen.route,
         AppScreens.NumericPanelScreen.route,
         AppScreens.PackageAndMailManagementScreen.route
-    )
+    )*/
     // Una lista de iconos para los botones
     val iconos = listOf(Icons.Default.Person, Icons.Default.Place, Icons.Default.MailOutline)
     // Una lista de textos para los botones
     val textos = listOf("VISITA", "REUNIÓN", "MENSAJERÍA")
-    val indicaciones =
-        listOf("\"tengo una visita...\"", "\"tengo una reunión...\"", "\"soy de mensajería...\"")
+    val indicaciones = listOf("\"tengo una visita...\"", "\"tengo una reunión...\"", "\"soy de mensajería...\"")
+
     Box(
         modifier = Modifier
             .fillMaxWidth()
@@ -185,8 +185,11 @@ fun Botones(navController: NavController) {
                     indicacion = indicaciones[index],
                     icon = iconos[index], // Reemplaza con tu icono
                     onClick = {
-                        // Acción al hacer clic en el botón
-                        navController.navigate(rutas[index])
+                        when (index) {
+                            0 -> mqttViewModel.navigateToUnknownVisitsScreen()
+                            1 -> mqttViewModel.navigateToNumericPanelScreen()
+                            2 -> mqttViewModel.navigateToPackageAndMailManagementScreen()
+                        }
                     }
                 )
             }
@@ -206,39 +209,3 @@ fun MqttButton(navController: NavController) {
     }
 }
 
-@Composable
-fun SoundButton(navController: NavController) {
-    // Una variable que guarda el estado del sonido (true = activado, false = desactivado)
-    var soundOn by remember { mutableStateOf(true) }
-    // El icono que se muestra según el estado del sonido
-    val soundIcon: Painter =
-        painterResource(id = if (soundOn) R.drawable.volume_on else R.drawable.volume_off)
-    // La vista actual para reproducir el sonido
-    val view = LocalView.current
-    // El botón que cambia el estado del sonido y reproduce el sonido al pulsarlo
-
-    Box(
-        contentAlignment = Alignment.TopEnd
-    ) {
-        IconButton(
-            onClick = {
-
-                // Cambiar el estado del sonido
-                soundOn = !soundOn
-                // Reproducir el sonido de click si el sonido está activado
-                if (soundOn) {
-                    view.playSoundEffect(SoundEffectConstants.CLICK)
-                }
-            },
-            modifier = Modifier
-                .size(dimensionResource(id = R.dimen.mqtt_button_size))
-                // Alinear el botón a la derecha
-                .align(Alignment.TopEnd)
-                // Añadir un padding de 16 dp
-                .padding(5.dp)
-        ) {
-            // Mostrar el icono del sonido con el color correspondiente
-            Icon(painter = soundIcon, contentDescription = "Sound", tint = Color.White)
-        }
-    }
-}

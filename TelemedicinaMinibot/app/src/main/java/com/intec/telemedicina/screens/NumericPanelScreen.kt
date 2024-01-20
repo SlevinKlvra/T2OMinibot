@@ -1,5 +1,6 @@
 package com.intec.telemedicina.screens
 
+import android.util.Log
 import androidx.compose.animation.core.FastOutLinearInEasing
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
@@ -102,7 +103,7 @@ fun NumericPanelScreen(
     // Usa este Modifier en el elemento que quieres animar
     FuturisticGradientBackground {
         Box(modifier = shakeModifier) {
-            // Contenido de tu pantalla
+            // Contenido de pantalla
             if (isLoading) LoadingSpinner()
             else {
 
