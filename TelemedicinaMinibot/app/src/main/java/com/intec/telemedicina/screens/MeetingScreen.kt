@@ -22,23 +22,52 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 
 @Composable
-fun MeetingScreen(navController : NavController, mqttViewModel : MqttViewModel, numericPanelViewModel : NumericPanelViewModel, robotManager : RobotManager){
+fun MeetingScreen(
+    navController: NavController,
+    mqttViewModel: MqttViewModel,
+    numericPanelViewModel: NumericPanelViewModel,
+    robotManager: RobotManager
+) {
     Log.d("Current Screen", "MeetingScreen")
     val meetingInfo = numericPanelViewModel.collectedMeetingInfo.value
-    var message by remember { mutableStateOf("Hola, ${meetingInfo.visitante}.") }
+    var message by remember { mutableStateOf("") }
 
-    LaunchedEffect(meetingInfo.id) {
-        delay(2000)  // Espera 3 segundos
+    var contador = 0
+
+    LaunchedEffect(contador == 0) {
+
+        message = if (meetingInfo.id != 0) {
+            "Hola, ${meetingInfo.visitante}." + "Su código ha sido verificado. He notificado a ${meetingInfo.anfitrion} de su llegada."
+        } else {
+            "Bienvenido. No tengo información sobre reuniones próximas. Por favor, contacte con un miembro del staff"
+        }
+        robotManager.speak(message, false)
+        delay(3000)  // Espera 3 segundos
+        contador = 1
+    }
+
+    LaunchedEffect(contador == 1) {
+
         message = if (meetingInfo.id != 0) {
             if (numericPanelViewModel.isMeetingTimeWithinThreshold()) {
-                "Su código ha sido verificado. He notificado a ${meetingInfo.anfitrion} de su llegada. Veo que ha sido puntual. ¿Quiere que le acompañe a la sala?"
+                "Veo que ha sido puntual. ¿Quiere que le acompañe a la sala?"
             } else {
-                "Su código ha sido verificado. He notificado a ${meetingInfo.anfitrion} de su llegada. Por favor, diríjase a la sala de espera"
+                "Por favor, espere a ser atendido en la sala de espera"
             }
         } else {
             "Bienvenido. No tengo información sobre reuniones próximas. Por favor, contacte con un miembro del staff"
         }
         robotManager.speak(message, false)
+        delay(3000)  // Espera 3 segundos
+        contador = 2
+    }
+
+    LaunchedEffect(contador == 2) {
+        message = "Sígame por favor"
+        robotManager.speak(message, false)
+        delay(3000)  // Espera 3 segundos
+        robotManager.startNavigation(1, meetingInfo.puntomapa, mqttViewModel.coordinateDeviation.value!!.toDouble(), mqttViewModel.navigationTimeout.value!!)
+        contador = 2
     }
 
     FuturisticGradientBackground {

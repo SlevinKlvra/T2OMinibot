@@ -1,5 +1,6 @@
 package com.intec.telemedicina.screens
 
+import android.util.Log
 import androidx.compose.animation.core.FastOutLinearInEasing
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
@@ -57,6 +58,7 @@ fun PackageAndMailManagementScreen(
     robotManager: RobotManager,
     numericPanelViewModel: NumericPanelViewModel
 ) {
+    Log.d("Current Screen", "PackageAndMailManagementScreen")
     val isLoading by numericPanelViewModel.isLoading.collectAsState()
     var currentPage by remember { mutableStateOf(1) }
     var hasCode by remember { mutableStateOf(false) }
@@ -152,8 +154,9 @@ fun NumericPanelStep(onClick: () -> Unit, numericPanelViewModel: NumericPanelVie
                 Text(
                     text = enteredCode,
                     style = textStyle.copy(fontSize = 12.sp),
-                    modifier = Modifier.padding(6.dp).
-                    border(3.dp, Color.Black),
+                    modifier = Modifier
+                        .padding(6.dp)
+                        .border(3.dp, Color.Black),
                     color = Color.White
                 )
 
