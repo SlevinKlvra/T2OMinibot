@@ -135,7 +135,7 @@ fun AdminPanelScreen(
 
         // Botón de retorno
         FloatingActionButton(
-            onClick = { navController.popBackStack() },
+            onClick = { mqttViewModel.navigateToHomeScreen() },
             modifier = Modifier
                 .size(56.dp)
                 .padding(16.dp),

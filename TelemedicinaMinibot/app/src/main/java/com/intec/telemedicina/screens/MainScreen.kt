@@ -31,7 +31,7 @@ fun MainScreen(navController: NavController, mqttViewModel: MqttViewModel, numer
         }
         MqttViewModel.NavigationState.NumericPanelScreen -> {
             Log.d("HomeScreen enum", "${AppScreens.NumericPanelScreen.route}")
-            NumericPanelScreen(navController, numericPanelViewModel = numericPanelViewModel, robotManager = robotManager)
+            NumericPanelScreen(navController, numericPanelViewModel = numericPanelViewModel, mqttViewModel = mqttViewModel, robotManager = robotManager)
         }
         MqttViewModel.NavigationState.AdminPanelScreen -> {
             Log.d("HomeScreen enum", "${AppScreens.AdminPanelScreen.route}")

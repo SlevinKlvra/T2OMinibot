@@ -77,6 +77,7 @@ fun PackageAndMailManagementScreen(
                             if (currentPage > 1) {
                                 currentPage--
                             } else {
+                                robotManager.returnToPosition(mqttViewModel.returnDestination.toString())
                                 mqttViewModel.navigateToHomeScreen()
                             }
                         })

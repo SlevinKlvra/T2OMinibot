@@ -45,12 +45,14 @@ import androidx.navigation.NavController
 import com.intec.telemedicina.components.TransparentButton
 import com.intec.telemedicina.navigation.AppScreens
 import com.intec.telemedicina.robotinterface.RobotManager
+import com.intec.telemedicina.viewmodels.MqttViewModel
 import com.intec.telemedicina.viewmodels.NumericPanelViewModel
 
 @Composable
 fun NumericPanelScreen(
     navController: NavController,
     numericPanelViewModel: NumericPanelViewModel,
+    mqttViewModel: MqttViewModel,
     robotManager: RobotManager
 ) {
     Log.d("Current Screen", "NumericPanelScreen")
@@ -163,7 +165,7 @@ fun NumericPanelScreen(
         }
         // Botón de retorno
         FloatingActionButton(
-            onClick = { navController.navigate(AppScreens.HomeScreen.route) },
+            onClick = { mqttViewModel.navigateToHomeScreen() },
             modifier = Modifier
                 .size(56.dp)
                 .padding(16.dp),

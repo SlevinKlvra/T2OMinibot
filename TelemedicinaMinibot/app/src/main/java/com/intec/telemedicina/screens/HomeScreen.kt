@@ -29,6 +29,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -69,6 +70,10 @@ fun HomeScreen(
     val adminMode by mqttViewModel.adminState.collectAsState(initial = false)
 
     val openEyesScreen by mqttViewModel.openEyesScreen.collectAsState()
+
+    LaunchedEffect(key1 = true) {
+        robotManager.speak("Bienvenido a t, 2, o, media. ¿Cuál es el motivo de su visita?", true)
+    }
 
     if (openEyesScreen) {
         Log.d("HomeScreen openEyes", "true")
