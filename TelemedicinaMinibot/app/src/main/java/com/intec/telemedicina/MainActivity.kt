@@ -83,6 +83,13 @@ class MainActivity : ComponentActivity() {
 
             override fun handleApiConnected() {
 
+                // Establece el callback
+                robotMan.setNavigationCallback(object : RobotManager.NavigationCallback {
+                    override fun onNavigationComplete() {
+                        mqttViewModel.onNavigationComplete()
+                    }
+                })
+
                 RobotApi.getInstance().setCallback(object : ModuleCallback() {
                     override fun onSendRequest(
                         reqId: Int, reqType: String, reqText: String, reqParam: String

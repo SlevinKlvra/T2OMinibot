@@ -500,6 +500,12 @@ class MqttViewModel @Inject constructor(
         }
     }
 
+    val isNavigationComplete = MutableLiveData<Boolean>(false)
+
+    fun onNavigationComplete() {
+        isNavigationComplete.value = true
+    }
+
     fun setDrivingState(){
         Log.d("DrivingState", "DrivingState")
         robotMan.onNavigationStarted = { navigationStarted -> //navigationStarted: Boolean
