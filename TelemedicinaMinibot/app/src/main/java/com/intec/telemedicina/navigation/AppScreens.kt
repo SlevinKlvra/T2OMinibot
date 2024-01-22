@@ -3,8 +3,7 @@ package com.intec.telemedicina.navigation
 sealed class AppScreens(val route: String) {
     object HomeScreen : AppScreens("home_screen")
     object SettingsScreen : AppScreens("settings_screen")
-    object MqttScreen : AppScreens("mqtt_screen")
-    object TourScreen : AppScreens("tour_screen")
+    object MQTTScreen : AppScreens("mqtt_screen")
     object DrivingScreen : AppScreens("driving_screen")
     object EyesScreen : AppScreens("eyes_screen")
     object NumericPanelScreen : AppScreens("numeric_panel_screen")

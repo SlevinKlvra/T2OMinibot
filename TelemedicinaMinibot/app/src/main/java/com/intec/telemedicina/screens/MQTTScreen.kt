@@ -69,7 +69,7 @@ private const val REQUEST_MANAGE_EXTERNAL_STORAGE_PERMISSION = 123 // Use any un
 @RequiresApi(Build.VERSION_CODES.R)
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalComposeUiApi::class)
 @Composable
-fun MqttScreen(navController: NavController, mqttViewModel: MqttViewModel) {
+fun MQTTScreen(navController: NavController, mqttViewModel: MqttViewModel) {
 
     Log.d("Current Screen", "MQTTScreen")
     val viewModel: MqttViewModel = mqttViewModel

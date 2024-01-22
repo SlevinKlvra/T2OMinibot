@@ -63,84 +63,54 @@ fun MeetingScreen(
 
     // Cambiar el mensaje después de un retraso
     LaunchedEffect(messageIndex) {
-        Log.d("MeetingScreen", "Index: $messageIndex")
         when (messageIndex) {
-            0 -> delay(3000L) // Esperar 3 segundos
-            1 -> delay(5000L) // Esperar 5 segundos, ajusta este tiempo según sea necesario
-            2 -> delay(5000L) // Esperar 5 segundos, ajusta este tiempo según sea necesario
-            3 -> delay(5000L) // Esperar 5 segundos, ajusta este tiempo según sea necesario
-            4-> delay(5000L) // Esperar 5 segundos, ajusta este tiempo según sea necesario
-        }
-        if (messageIndex < 3) {
-            messageIndex++
-        } else if(messageIndex == 3){
-            robotManager.startNavigation(1, meetingInfo.puntomapa, mqttViewModel.coordinateDeviation.value!!.toDouble(), mqttViewModel.navigationTimeout.value!!.toLong())
-        } else if(messageIndex == 4){
-            robotManager.speak("Hemos llegado. Tome asiento y en breves momentos comenzará la reunión. Muchas gracias", false)
-            messageIndex++
-        } else if(messageIndex == 5){
-
-            robotManager.returnToPosition(mqttViewModel.returnDestination.value!!)
-            //mqttViewModel.navigateToEyesScreen()
+            0 -> {
+                robotManager.speak("Hola, ${meetingInfo.visitante}", false)
+                delay(3000L)
+                messageIndex = 1
+            }
+            1 -> {
+                robotManager.speak("Notificando a ${meetingInfo.anfitrion} de tu llegada", false)
+                delay(5000L)
+                messageIndex = 2
+            }
+            2 -> {
+                robotManager.speak("He notificado a ${meetingInfo.anfitrion} de tu llegada. Veo que ha llegado puntual. Acompáñeme a la sala que se le ha asignado.", false)
+                delay(8000L)
+                Log.d("MeetingScreen Launched", "${isNavigationComplete.value}")
+                robotManager.startNavigation(1, meetingInfo.puntomapa, mqttViewModel.coordinateDeviation.value!!.toDouble(), mqttViewModel.navigationTimeout.value!!.toLong())
+                messageIndex = 3
+            }
+            3 -> {
+                // Nada aquí. La navegación se inicia cuando isNavigationComplete cambia
+            }
+            4 -> {
+                robotManager.speak("Hemos llegado. Tome asiento y en breves momentos comenzará la reunión. Muchas gracias", false)
+                delay(5000L)
+                messageIndex = 5
+            }
+            5 -> {
+                robotManager.returnToPosition(mqttViewModel.returnDestination.value!!)
+                // Considera agregar un delay o manejar cuando se debe cambiar a messageIndex 6 si es necesario
+            }
         }
     }
 
-    // Observar el estado de navegación finalizada
-    LaunchedEffect(isNavigationComplete.value!!) {
+    LaunchedEffect(isNavigationComplete.value) {
         if (isNavigationComplete.value == true) {
-            Log.d("MeetingScreen", "Navigation Finished and message 3")
-            messageIndex++
+            messageIndex = 4
         }
     }
 
     FuturisticGradientBackground {
         Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-
             when (messageIndex) {
-                0 -> {
-                    Log.d("MeetingScreen", "Hola, ${meetingInfo.visitante}")
-                    Text("Hola, ${meetingInfo.visitante}")
-                    robotManager.speak("Hola, ${meetingInfo.visitante}", false)
-                }
-                1 -> {
-                    Log.d("MeetingScreen", "MeetingInfo step 1: Notificando a ${meetingInfo.anfitrion} de tu llegada")
-                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        robotManager.speak("Notificando a ${meetingInfo.anfitrion} de tu llegada", false)
-                        Text("Estoy notificando a ${meetingInfo.anfitrion} de tu llegada")
-                        // Asegúrate de tener un gif adecuado y de implementar GifImage
-                        Image(
-                            painter = rememberAsyncImagePainter(R.drawable.emailsend,imageEmotionsLoader),
-                            contentDescription = null,
-                            modifier = Modifier.fillMaxSize()
-                        )
-                    }
-                }
-                2 -> {
-                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        if (true) {
-                            Log.d("MeetingScreen", "MeetingInfo step 2 He notificado a ${meetingInfo.anfitrion} de tu llegada, acompáñeme a la sala que se le ha asignado.")
-                            robotManager.speak("He notificado a ${meetingInfo.anfitrion} de tu llegada. Veo que ha llegado puntual. Acompáñeme a la sala que se le ha asignado.", false)
-                            Text("He notificado a ${meetingInfo.anfitrion} de tu llegada, acompáñeme a la sala que se le ha asignado.")
-                            // Aquí podrías agregar lógica para cuando el robot llegue a la sala
-                        } else {
-                            message.value =  "Veo que no es el momento establecido para la reunión. He notificado a ${meetingInfo.anfitrion} de tu llegada, toma asiento y vendrán a buscarte pronto."
-                            Log.d("MeetingScreen", "MeetingInfo: Veo que no es el momento establecido para la reunión. He notificado a ${meetingInfo.anfitrion} de tu llegada, toma asiento y vendrán a buscarte pronto.")
-                            // Considera agregar un temporizador antes de reiniciar la secuencia
-                        }
-                    }
-                }
-                3 -> {
-                    Log.d("MeetingScreen", "MeetingInfo step 3: ${meetingInfo.puntomapa}")
-                    Text("Yendo a ${meetingInfo.puntomapa}")
-                }
-                4 -> {
-                    Log.d("MeetingScreen", "MeetingInfo step 4: Hemos llegado a ${meetingInfo.puntomapa}. Tome asiento y en breves momentos comenzará la reunión. Muchas gracias")
-                    Text("Hemos llegado a ${meetingInfo.puntomapa}. Tome asiento y en breves momentos comenzará la reunión. Muchas gracias")
-                }
-                5 -> {
-                    Log.d("MeetingScreen", "Regresando a ${mqttViewModel.returnDestination.value}")
-                    Text("Regresando a ${mqttViewModel.returnDestination.value}")
-                }
+                0 -> Text("Hola, ${meetingInfo.visitante}")
+                1 -> Text("Estoy notificando a ${meetingInfo.anfitrion} de tu llegada")
+                2 -> Text("Te acompaño a la sala asignada")
+                3 -> Text("Yendo a ${meetingInfo.puntomapa}")
+                4 -> Text("Hemos llegado a ${meetingInfo.puntomapa}. Tome asiento y en breves momentos comenzará la reunión. Muchas gracias")
+                5 -> Text("Regresando a ${mqttViewModel.returnDestination.value}")
             }
         }
     }

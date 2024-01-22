@@ -10,9 +10,9 @@ import com.intec.telemedicina.screens.ClockInScreen
 import com.intec.telemedicina.screens.DrivingScreen
 import com.intec.telemedicina.screens.EyesScreen
 import com.intec.telemedicina.screens.HomeScreen
+import com.intec.telemedicina.screens.MQTTScreen
 import com.intec.telemedicina.screens.MainScreen
 import com.intec.telemedicina.screens.MeetingScreen
-import com.intec.telemedicina.screens.MqttScreen
 import com.intec.telemedicina.screens.NumericPanelScreen
 import com.intec.telemedicina.screens.PackageAndMailManagementScreen
 import com.intec.telemedicina.screens.UnknownVisitScreen
@@ -38,8 +38,8 @@ fun AppNavigation(
                 robotManager = robotManager
             )
         }
-        composable(AppScreens.MqttScreen.route) {
-            MqttScreen(navController = navController, mqttViewModel = mqttViewModel)
+        composable(AppScreens.MQTTScreen.route) {
+            MQTTScreen(navController = navController, mqttViewModel = mqttViewModel)
         }
         composable(AppScreens.DrivingScreen.route) {
             DrivingScreen(navController = navController, mqttViewModel = mqttViewModel)

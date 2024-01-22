@@ -21,8 +21,8 @@ fun MainScreen(navController: NavController, mqttViewModel: MqttViewModel, numer
             EyesScreen(navController, mqttViewModel, robotManager)
         }
         MqttViewModel.NavigationState.MqttScreen -> {
-            Log.d("HomeScreen enum", "${AppScreens.MqttScreen.route}")
-            MqttScreen(navController, mqttViewModel)
+            Log.d("HomeScreen enum", "${AppScreens.MQTTScreen.route}")
+            MQTTScreen(navController, mqttViewModel)
         }
         MqttViewModel.NavigationState.HomeScreen -> {
             Log.d("HomeScreen enum", "${AppScreens.HomeScreen.route}")

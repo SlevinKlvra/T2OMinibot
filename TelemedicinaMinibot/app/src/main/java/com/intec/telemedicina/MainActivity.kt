@@ -88,6 +88,13 @@ class MainActivity : ComponentActivity() {
                     override fun onNavigationComplete() {
                         mqttViewModel.onNavigationComplete()
                     }
+                    override fun onNavigationStarted() {
+                        mqttViewModel.onNavigationStarted()
+                    }
+
+                    override fun onSpeakFinished() {
+                        mqttViewModel.onSpeakFinished()
+                    }
                 })
 
                 RobotApi.getInstance().setCallback(object : ModuleCallback() {
