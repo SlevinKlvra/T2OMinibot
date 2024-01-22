@@ -45,7 +45,6 @@ class MqttViewModel @Inject constructor(
     private val preferencesRepository: PreferencesRepository
 ) : AndroidViewModel(application), MqttMessageListener {
 
-
     //COUNTDOWN DEL ESTADO DE PAUSA
     //TO DO: AÑADIR A SETPREFERENCES LA VARIABLE PARA PODER EDITARLA
     private val _countdownState = MutableStateFlow(5)
@@ -61,6 +60,19 @@ class MqttViewModel @Inject constructor(
     val isListening: LiveData<Boolean> = _isListening
 
     var robotMan = robotMan
+
+
+    //MEETING SECUENCE
+    var meetingSecuenceStatus = mutableStateOf(0)
+    var meetingMesssage = mutableStateOf("")
+
+    fun setMeetingSecuenceStatus(status: Int){
+        meetingSecuenceStatus.value = status
+    }
+
+    fun getMeetingSecuenceStatus(): Int{
+        return meetingSecuenceStatus.value
+    }
 
     fun stopListening() {
         // Detener el reconocimiento de voz
@@ -164,6 +176,9 @@ class MqttViewModel @Inject constructor(
 
     private val _navigationState = MutableStateFlow(NavigationState.EyesScreen)
     val navigationState: StateFlow<NavigationState> = _navigationState.asStateFlow()
+
+    private val _navigationFinished = MutableStateFlow(false)
+    val navigationFinished: StateFlow<Boolean> = _navigationFinished.asStateFlow()
 
     // Variable de control
     private var hasHandledPersonDetection = false

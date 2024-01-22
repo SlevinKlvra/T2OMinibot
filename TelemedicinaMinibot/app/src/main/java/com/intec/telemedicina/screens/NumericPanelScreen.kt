@@ -54,7 +54,7 @@ fun NumericPanelScreen(
 
     LaunchedEffect(shouldCheckCode.value) {
         if (shouldCheckCode.value) {
-            numericPanelViewModel.checkForTaskExecution()
+            numericPanelViewModel.checkForTaskExecutionHardcoded()
             shouldCheckCode.value = false
         }
     }
@@ -145,7 +145,6 @@ fun NumericPanelScreen(
                                                 "Enviar" -> {
                                                     shouldCheckCode.value = true
                                                 }
-
                                                 else -> numericPanelViewModel.addDigit(number.first())
                                             }
                                         },
