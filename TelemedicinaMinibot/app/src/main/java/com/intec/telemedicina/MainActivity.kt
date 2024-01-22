@@ -1,10 +1,6 @@
 package com.intec.telemedicina
 
-import android.content.Intent
-import android.content.pm.PackageManager
-import android.net.Uri
 import android.os.Bundle
-import android.provider.Settings
 import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -49,29 +45,6 @@ class MainActivity : ComponentActivity() {
     // TODO: Pass robotManager to the viewmodel and try out the navigation
 
     private val REQUEST_MANAGE_EXTERNAL_STORAGE_PERMISSION = 123
-
-    @Deprecated("Deprecated in Java")
-    override fun onRequestPermissionsResult(
-        requestCode: Int,
-        permissions: Array<out String>,
-        grantResults: IntArray
-    ) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-        when (requestCode) {
-            REQUEST_MANAGE_EXTERNAL_STORAGE_PERMISSION -> {
-                if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                    Log.d("DownloadAndInstall", "Permission granted. Proceed with download.")
-                    // Continue with the download process
-                    // Call the downloadAndInstallApk function again or proceed with the next steps
-                } else {
-                    Log.d("DownloadAndInstall", "Permission denied. Handle accordingly.")
-                    Log.d("DownloadAndInstall", "onRequestPermissionsResult: $requestCode")
-
-                }
-            }
-        }
-    }
-
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
