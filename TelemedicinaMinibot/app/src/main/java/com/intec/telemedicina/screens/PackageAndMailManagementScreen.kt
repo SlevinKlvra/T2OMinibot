@@ -26,6 +26,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -43,6 +44,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.intec.telemedicina.components.GoBackButton
+import com.intec.telemedicina.components.NumericPad
 import com.intec.telemedicina.components.TransparentButton
 import com.intec.telemedicina.components.TransparentButtonWithIcon
 import com.intec.telemedicina.robotinterface.RobotManager
@@ -58,9 +60,29 @@ fun PackageAndMailManagementScreen(
 ) {
     Log.d("Current Screen", "PackageAndMailManagementScreen")
     val isLoading by numericPanelViewModel.isLoading.collectAsState()
-    var currentPage by remember { mutableStateOf(1) }
+
+    val shouldCheckCode = remember { mutableStateOf(false) }
     var hasCode by remember { mutableStateOf(false) }
+
+    var currentPage by remember { mutableStateOf(1) }
     val totalPages = 3
+
+    val isCodeCorrect by numericPanelViewModel.isCodeCorrect.collectAsState()
+
+
+    LaunchedEffect(shouldCheckCode.value) {
+        if (shouldCheckCode.value) {
+            numericPanelViewModel.checkForTaskExecution()
+            shouldCheckCode.value = false
+        }
+    }
+
+    LaunchedEffect(isCodeCorrect) {
+        if (isCodeCorrect) {
+            currentPage++
+        }
+    }
+
     mqttViewModel.setReturnDestinationDefaultValue()
 
     FuturisticGradientBackground {
@@ -101,10 +123,12 @@ fun PackageAndMailManagementScreen(
                     }
 
                     2 -> {
-                        if (hasCode) NumericPanelStep(
-                            onClick = { currentPage++ },
-                            numericPanelViewModel
-                        )
+                        if (hasCode)
+                            NumericPad(
+                                numericPanelViewModel = numericPanelViewModel,
+                                onClick = { shouldCheckCode.value = true },
+                                titleText = "Por favor, introduce el código que se te ha proporcionado"
+                            )
                         else {
                             Row(modifier = Modifier.fillMaxSize()) {
                                 NoCodeStep(robotManager, mqttViewModel)
@@ -115,100 +139,6 @@ fun PackageAndMailManagementScreen(
                     3 -> {
                         Row(modifier = Modifier.fillMaxSize()) {
                             NotificationStep(navController = navController)
-                        }
-                    }
-                }
-            }
-
-        }
-
-    }
-}
-
-@Composable
-fun NumericPanelStep(onClick: () -> Unit, numericPanelViewModel: NumericPanelViewModel) {
-    var enteredCode by remember { mutableStateOf("") }
-    val showErrorAnimation by numericPanelViewModel.showErrorAnimation
-
-    val shakeModifier = if (showErrorAnimation) {
-        val anim = rememberInfiniteTransition().animateFloat(
-            initialValue = -10f,
-            targetValue = 10f,
-            animationSpec = infiniteRepeatable(
-                animation = tween(50, easing = FastOutLinearInEasing),
-                repeatMode = RepeatMode.Reverse
-            )
-        )
-        Modifier.graphicsLayer { translationX = anim.value }
-    } else Modifier
-
-    val textStyle = TextStyle(
-        fontWeight = FontWeight.Bold,
-        fontSize = 16.sp,
-        textAlign = TextAlign.Center,
-        color = Color.Black
-    )
-
-    Box(modifier = shakeModifier) {
-        // Contenido de tu pantalla
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(8.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center
-        ) {
-            // Texto explicativo
-            Text(
-                text = "Por favor, introduce el código que se te ha proporcionado: ",
-                style = textStyle.copy(fontSize = 15.sp),
-                modifier = Modifier.padding(bottom = 4.dp),
-                color = Color.White
-            )
-            Text(
-                text = enteredCode,
-                style = textStyle.copy(fontSize = 12.sp),
-                modifier = Modifier
-                    .padding(6.dp),
-                color = Color.White
-            )
-
-            // Teclado numérico
-            val buttons =
-                listOf("1", "2", "3", "4", "5", "6", "7", "8", "9", "Borrar", "0", "Enviar")
-            buttons.chunked(3).forEach { row ->
-                Row(
-                    horizontalArrangement = Arrangement.SpaceEvenly,
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    row.forEach { number ->
-                        if (number.isNotBlank()) {
-                            TransparentButton(
-
-                                text = number,
-                                onClick = {
-                                    when (number) {
-                                        "Borrar" -> {
-                                            if (enteredCode.isNotEmpty()) {
-                                                enteredCode = enteredCode.dropLast(1)
-                                            }
-                                        }
-
-                                        "Enviar" -> {
-                                            onClick()
-                                        }
-
-                                        else -> enteredCode += number.first()
-                                    }
-                                },
-                            )
-                        } else {
-                            Spacer(
-                                modifier = Modifier
-                                    .padding(4.dp)
-                                    .height(30.dp)
-                                    .width(100.dp)
-                            )
                         }
                     }
                 }

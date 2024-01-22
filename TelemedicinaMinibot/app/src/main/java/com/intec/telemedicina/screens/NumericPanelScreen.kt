@@ -8,18 +8,13 @@ import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -38,7 +33,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.intec.telemedicina.components.GoBackButton
-import com.intec.telemedicina.components.TransparentButton
+import com.intec.telemedicina.components.NumericPad
 import com.intec.telemedicina.navigation.AppScreens
 import com.intec.telemedicina.robotinterface.RobotManager
 import com.intec.telemedicina.viewmodels.MqttViewModel
@@ -100,7 +95,12 @@ fun NumericPanelScreen(
 
     // Usa este Modifier en el elemento que quieres animar
     FuturisticGradientBackground {
-        Box(modifier = shakeModifier) {
+        NumericPad(
+            numericPanelViewModel = numericPanelViewModel,
+            onClick = { shouldCheckCode.value = true },
+            titleText = "Por favor, introduce el código que se te ha proporcionado"
+        )
+        /* Box(modifier = shakeModifier) {
             // Contenido de pantalla
             if (isLoading) LoadingSpinner()
             else {
@@ -158,7 +158,7 @@ fun NumericPanelScreen(
                     }
                 }
             }
-        }
+        } */
         // Botón de retorno
         GoBackButton(onClick = { mqttViewModel.navigateToHomeScreen() })
     }
