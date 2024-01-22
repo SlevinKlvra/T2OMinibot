@@ -89,6 +89,7 @@ class RobotManager @Inject constructor(private val skillApi: SkillApi, @Applicat
     var onPersonDetected: ((List<Person>?) -> Unit)? = null
     var onSpeechResultReceived : ((String) -> Unit)? = null
     var onNavigationStarted : ((Boolean) -> Unit)? = null
+    var onNavigationFinished : ((Boolean) -> Unit)? = null
 
     init {
         setupActionListener()
@@ -349,6 +350,8 @@ class RobotManager @Inject constructor(private val skillApi: SkillApi, @Applicat
                         callbackNavigationStarted(false)
                         registerPersonListener()
                         startFocusFollow(0)
+                        Log.d("ROBOT STATUS NUEVO", robotStatus.toString())
+                        onNavigationFinished?.invoke(true)
                     }
 
                     val json = gson.toJson(robotStatus)

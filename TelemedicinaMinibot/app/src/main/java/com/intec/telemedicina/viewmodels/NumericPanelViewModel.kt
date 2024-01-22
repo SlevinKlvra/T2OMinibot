@@ -175,6 +175,25 @@ class NumericPanelViewModel(
 
     private var currentToken: String = ""
 
+
+    fun checkForTaskExecutionHardcoded(){
+        val meetingInfoList = listOf(
+            MeetingResponse(
+                1,
+                "22/01/2024",
+                "22/01/2024",
+                "8:00:00",
+                "9:00:00",
+                "Sergio",
+                "Sergio@intecrobots.com",
+                "amazon",
+                "Carlos",
+                "carlos@intecrobots.com"
+            ))
+        val meetingInfo = meetingInfoList.first()
+        collectedMeetingInfo.value = meetingInfo
+        _isCodeCorrect.value = true
+    }
     fun checkForTaskExecution(code: String? = null) {
         Log.d("NumericPanelViewModel", "checkForTaskExecution")
         viewModelScope.launch(Dispatchers.IO) {
