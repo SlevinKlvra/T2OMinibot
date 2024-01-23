@@ -3,9 +3,13 @@
 package com.intec.telemedicina.screens
 
 import android.Manifest
+import android.annotation.SuppressLint
 import android.app.Activity
 import android.app.DownloadManager
+import android.content.BroadcastReceiver
 import android.content.Context
+import android.content.Intent
+import android.content.IntentFilter
 import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Build
@@ -33,6 +37,7 @@ import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
@@ -54,10 +59,12 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import androidx.core.content.FileProvider
 import androidx.navigation.NavController
 import com.ainirobot.coreservice.client.actionbean.Pose
 import com.intec.telemedicina.ui.theme.md_theme_light_tertiary
 import com.intec.telemedicina.viewmodels.MqttViewModel
+import java.io.File
 
 //TODO: Implement a class which contains all the robot actions and call them from here.
 //- Navigate to a point
@@ -137,7 +144,7 @@ fun MQTTScreen(navController: NavController, mqttViewModel: MqttViewModel) {
                 modifier = Modifier
                     .fillMaxWidth()
             ) {
-                DownloadInstallButton()
+
                 FloatingActionButton(
                     onClick = { mqttViewModel.navigateToHomeScreen() },
                     modifier = Modifier
@@ -564,7 +571,11 @@ fun MQTTScreen(navController: NavController, mqttViewModel: MqttViewModel) {
             }
 
             Spacer(modifier = Modifier.height(16.dp))
+            Text("Descargar e instalar actualizaciones:")
+            DownloadInstallButton()
+            Spacer(modifier = Modifier.height(16.dp))
         }
+
 
         items(messages) { message ->
             Text(
@@ -591,60 +602,136 @@ fun SwitchDemo(mqttViewModel: MqttViewModel) {
     )
 }
 
-@RequiresApi(Build.VERSION_CODES.R)
-private fun downloadAndInstallApk(context: Context) {
-
-    Log.d("DownloadAndInstall", "Entering downloadAndInstallApk function")
-
-    // Verifica si tienes el permiso MANAGE_EXTERNAL_STORAGE (requerido para la ubicación específica en Android 11 y superior)
-    if (ContextCompat.checkSelfPermission(
-            context,
-            Manifest.permission.MANAGE_EXTERNAL_STORAGE
-        ) != PackageManager.PERMISSION_GRANTED
-    ) {
-        // Si no tienes el permiso, solicítalo
-        Log.d("DownloadAndInstall", "Requesting MANAGE_EXTERNAL_STORAGE permission")
-        ActivityCompat.requestPermissions(
-            context as Activity,
-            arrayOf(Manifest.permission.MANAGE_EXTERNAL_STORAGE),
-            REQUEST_MANAGE_EXTERNAL_STORAGE_PERMISSION
-        )
-        return
-    }
-
-    // Reemplaza la URL con el enlace de descarga real
-    val apkUrl = "https://testdownload.onrender.com/descargar-archivo"
-
-    // Configura la solicitud de descarga
-    val request = DownloadManager.Request(Uri.parse(apkUrl))
-        .setTitle("testapp")
-        .setDescription("Descargando la última versión de la aplicación")
-        .setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED)
-        .setDestinationInExternalFilesDir(context, Environment.DIRECTORY_DOWNLOADS, "app-debug.apk")
-
-    // Obtén el servicio de DownloadManager y encola la solicitud de descarga
-    val downloadManager =
-        context.getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
-
-    try {
-        downloadManager.enqueue(request)
-        Log.d("DownloadAndInstall", "Enqueued the download request")
-    } catch (e: Exception) {
-        Log.e("DownloadAndInstall", "Error enqueuing the download request: $e")
-        e.printStackTrace()
-    }
-}
-
-
-@RequiresApi(Build.VERSION_CODES.R)
 @Composable
 fun DownloadInstallButton() {
+    var isDownloading by remember { mutableStateOf(false) }
     val context = LocalContext.current
 
-    // Botón de descarga e instalación
+    // URL de la APK que deseas descargar
+    val apkUrl = "https://testdownload.onrender.com/descargar-archivo"
+
     Button(onClick = {
-        downloadAndInstallApk(context)
+        // Verificar permisos de almacenamiento externo
+        if (ContextCompat.checkSelfPermission(
+                context,
+                Manifest.permission.WRITE_EXTERNAL_STORAGE
+            ) == PackageManager.PERMISSION_GRANTED
+        ) {
+            // Iniciar la descarga
+            downloadAndInstall(context, apkUrl)
+            isDownloading = true
+        } else {
+            // Solicitar permisos de almacenamiento externo
+            ActivityCompat.requestPermissions(
+                context as Activity,
+                arrayOf(Manifest.permission.WRITE_EXTERNAL_STORAGE),
+                REQUEST_MANAGE_EXTERNAL_STORAGE_PERMISSION
+            )
+        }
     }) {
-        Text("Descargar e Instalar APK")
+        Text("Buscar actualizaciones")
+    }
+
+    // Mostrar ProgressBar durante la descarga
+    if (isDownloading) {
+        LinearProgressIndicator(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp)
+        )
     }
 }
+
+
+private fun downloadAndInstall(context: Context, apkUrl: String) {
+    val downloadManager = context.getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
+
+    // Crear una solicitud de descarga
+    val request = DownloadManager.Request(Uri.parse(apkUrl))
+        .setTitle("app-debug.apk")
+        .setDescription("Descargando la última versión...")
+        .setDestinationInExternalPublicDir(Environment.DIRECTORY_DOWNLOADS, "app-debug.apk")
+        .setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED)
+        .setAllowedOverMetered(true)
+        .setAllowedOverRoaming(true)
+
+    // Enqueue la solicitud de descarga
+    val downloadId = downloadManager.enqueue(request)
+
+    // Agregar un BroadcastReceiver para controlar la finalización de la descarga
+    val onComplete = object : BroadcastReceiver() {
+        @SuppressLint("Range")
+        override fun onReceive(context: Context, intent: Intent) {
+            val downloadedId = intent.getLongExtra(DownloadManager.EXTRA_DOWNLOAD_ID, -1)
+            if (downloadedId == downloadId) {
+                Log.d("Download", "Descarga completada")
+
+                // Obtener el URI de la APK descargada
+                val downloadQuery = DownloadManager.Query()
+                downloadQuery.setFilterById(downloadId)
+                val cursor = downloadManager.query(downloadQuery)
+                if (cursor.moveToFirst()) {
+                    val filePath =
+                        cursor.getString(cursor.getColumnIndex(DownloadManager.COLUMN_LOCAL_URI))
+                    cursor.close()
+
+                    // Instalar la APK
+                    installApk(context, filePath)
+                }
+            }
+        }
+    }
+
+    // Registrar el BroadcastReceiver
+    context.registerReceiver(onComplete, IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE))
+}
+
+private fun installApk(context: Context, filePath: String) {
+    try {
+        // Convertir el URI a un archivo
+        val file = File(Uri.parse(filePath).path!!)
+        Log.d("InstallApk", "File path: ${file.absolutePath}")
+
+        // Obtener el directorio de descargas
+        val downloadsDirectory =
+            Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
+
+        // Construir la ruta completa del archivo APK en el directorio de descargas
+        val apkFile = File(downloadsDirectory, file.name)
+        Log.d("InstallApk", "APK File path: ${apkFile.absolutePath}")
+
+        // Obtener el URI del archivo utilizando FileProvider
+        val contentUri = FileProvider.getUriForFile(
+            context,
+            "com.intec.telemedicina.fileprovider",
+            apkFile
+        )
+        Log.d("InstallApk", "Content URI: $contentUri")
+
+        // Crear un intent para la instalación de la APK
+        val installIntent = Intent(Intent.ACTION_VIEW).apply {
+            data = contentUri
+            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_GRANT_READ_URI_PERMISSION
+        }
+
+
+        // Iniciar la actividad de instalación
+        Log.d("InstallApk", "Starting installation activity...")
+        context.startActivity(installIntent)
+
+        Log.d("InstallApk", "Intento de instalación exitoso")
+
+    } catch (e: Exception) {
+        // Capturar excepciones y registrarlas
+        Log.e("InstallApk", "Error al intentar instalar la APK", e)
+    }
+}
+
+
+
+
+
+
+
+
+

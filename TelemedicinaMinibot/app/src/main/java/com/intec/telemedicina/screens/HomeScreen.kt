@@ -24,8 +24,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.MailOutline
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Place
-import androidx.compose.material.icons.outlined.AccountCircle
-import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -215,11 +213,13 @@ fun MqttButton(navController: NavController, mqttViewModel: MqttViewModel) {
 @Composable
 fun ClockInBtn(navController: NavController, mqttViewModel: MqttViewModel) {
     Box(contentAlignment = Alignment.TopStart) {
-        Icon(
-            imageVector = Icons.Outlined.AccountCircle,
-            contentDescription = "clockInButton",
-            tint = Color.White, // Color del icono
-            modifier = Modifier.size(dimensionResource(id = R.dimen.mqtt_button_size))
-        )
+        Image(
+            painter = painterResource(id = R.drawable.clockicon),
+            contentDescription = "logo",
+            modifier = Modifier
+                .size(dimensionResource(id = R.dimen.mqtt_button_size))
+                .clickable {
+                    mqttViewModel.navigateToAdminPanelScreen()
+                })
     }
 }
