@@ -18,10 +18,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -39,7 +37,6 @@ fun NumericPad(
     onClick: () -> Unit,
     titleText: String
 ) {
-    var enteredCode by remember { mutableStateOf("") }
     val showErrorAnimation by numericPanelViewModel.showErrorAnimation
 
     val shakeModifier = if (showErrorAnimation) {
@@ -61,6 +58,13 @@ fun NumericPad(
         color = Color.Black
     )
 
+    DisposableEffect(Unit) {
+        numericPanelViewModel.resetDigits()
+        onDispose {
+            numericPanelViewModel.resetDigits()
+        }
+    }
+
     Box(modifier = shakeModifier) {
         Column(
             modifier = Modifier
@@ -76,7 +80,7 @@ fun NumericPad(
                 color = Color.White
             )
             Text(
-                text = enteredCode,
+                text = numericPanelViewModel.enteredCode.value,
                 style = textStyle.copy(fontSize = 12.sp),
                 modifier = Modifier
                     .padding(6.dp),
@@ -93,22 +97,19 @@ fun NumericPad(
                 ) {
                     row.forEach { number ->
                         if (number.isNotBlank()) {
-                            TransparentButton(
-
+                            NumericPadButton(
                                 text = number,
                                 onClick = {
                                     when (number) {
                                         "Borrar" -> {
-                                            if (enteredCode.isNotEmpty()) {
-                                                enteredCode = enteredCode.dropLast(1)
-                                            }
+                                            numericPanelViewModel.removeLastDigit()
                                         }
 
                                         "Enviar" -> {
                                             onClick()
                                         }
 
-                                        else -> enteredCode += number.first()
+                                        else -> numericPanelViewModel.enteredCode.value += number.first()
                                     }
                                 },
                             )

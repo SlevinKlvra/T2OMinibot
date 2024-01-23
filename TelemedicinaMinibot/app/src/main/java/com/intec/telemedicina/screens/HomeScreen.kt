@@ -77,7 +77,7 @@ fun HomeScreen(
         Column(modifier = Modifier.fillMaxSize()) {
             Cabecera(navController = navController, mqttViewModel = mqttViewModel)
             if (!adminMode) Spacer(modifier = Modifier.size(30.dp))
-            Botones(navController = navController, mqttViewModel = mqttViewModel)
+            Botones(mqttViewModel = mqttViewModel)
             if (adminMode) {
                 LazyRowUbicaciones(
                     mqttViewModel = mqttViewModel,
@@ -101,7 +101,7 @@ fun Cabecera(navController: NavController, mqttViewModel: MqttViewModel) {
             horizontalArrangement = Arrangement.SpaceEvenly,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            MqttButton(navController = navController, mqttViewModel = mqttViewModel)
+            MqttButton(mqttViewModel = mqttViewModel)
             Text(
                 text = "¿Cuál es el motivo de su visita?",
                 color = Color.White,
@@ -109,7 +109,7 @@ fun Cabecera(navController: NavController, mqttViewModel: MqttViewModel) {
                 fontWeight = FontWeight.SemiBold,
                 textAlign = TextAlign.Center
             )
-            ClockInBtn(navController = navController, mqttViewModel = mqttViewModel)
+            ClockInBtn(mqttViewModel = mqttViewModel)
         }
     }
 }
@@ -146,7 +146,7 @@ fun LazyRowUbicaciones(
 }
 
 @Composable
-fun Botones(navController: NavController, mqttViewModel: MqttViewModel) {
+fun Botones(mqttViewModel: MqttViewModel) {
 
     /*val rutas = listOf(
         AppScreens.UnknownVisitScreen.route,
@@ -196,7 +196,7 @@ fun Botones(navController: NavController, mqttViewModel: MqttViewModel) {
 }
 
 @Composable
-fun MqttButton(navController: NavController, mqttViewModel: MqttViewModel) {
+fun MqttButton(mqttViewModel: MqttViewModel) {
     Box(contentAlignment = Alignment.TopStart) {
         Image(
             painter = painterResource(id = R.drawable.intecrobots_circulo),
@@ -206,12 +206,11 @@ fun MqttButton(navController: NavController, mqttViewModel: MqttViewModel) {
                 .clickable {
                     mqttViewModel.navigateToAdminPanelScreen()
                 })
-        //navController.navigate(AppScreens.AdminPanelScreen.route) })
     }
 }
 
 @Composable
-fun ClockInBtn(navController: NavController, mqttViewModel: MqttViewModel) {
+fun ClockInBtn(mqttViewModel: MqttViewModel) {
     Box(contentAlignment = Alignment.TopStart) {
         Image(
             painter = painterResource(id = R.drawable.clockicon),
@@ -219,7 +218,7 @@ fun ClockInBtn(navController: NavController, mqttViewModel: MqttViewModel) {
             modifier = Modifier
                 .size(dimensionResource(id = R.dimen.mqtt_button_size))
                 .clickable {
-                    mqttViewModel.navigateToAdminPanelScreen()
+                    mqttViewModel.navigateToClockInScreen()
                 })
     }
 }

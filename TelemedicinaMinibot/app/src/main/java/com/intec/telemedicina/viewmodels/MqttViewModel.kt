@@ -184,7 +184,7 @@ class MqttViewModel @Inject constructor(
     private var hasHandledPersonDetection = false
 
     enum class NavigationState {
-        EyesScreen, HomeScreen, NumericPanelScreen, MeetingScreen, UnknownVisitsScreen, PackageAndMailManagementScreen, DrivingScreen, MqttScreen, AdminPanelScreen
+        EyesScreen, HomeScreen, NumericPanelScreen, MeetingScreen, UnknownVisitsScreen, PackageAndMailManagementScreen, DrivingScreen, MqttScreen, AdminPanelScreen, ClockInScreen
     }
 
     // Observador para cambios en brokerIp
@@ -603,6 +603,11 @@ class MqttViewModel @Inject constructor(
     fun navigateToEyesScreen() {
         detectionJob?.cancel()
         _navigationState.value = NavigationState.EyesScreen
+    }
+
+    fun navigateToClockInScreen() {
+        detectionJob?.cancel()
+        _navigationState.value = NavigationState.ClockInScreen
     }
 
     private fun repeatCommand() {

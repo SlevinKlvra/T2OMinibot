@@ -83,13 +83,9 @@ class NumericPanelViewModel(
     }
 
     // Función para verificar el código para configuración avanzada
-    fun checkForAdvancedSettingsAccess(code: String): Boolean {
+    fun checkForAdvancedSettingsAccess(): Boolean {
         // Aquí iría la lógica para verificar el código
-        if (code == "8998") {
-            return true
-        } else {
-            return false
-        }
+        return enteredCode.value == "8998"
     }
 
     private fun navigateToNumericPanelScreen() {
@@ -176,7 +172,7 @@ class NumericPanelViewModel(
     private var currentToken: String = ""
 
 
-    fun checkForTaskExecutionHardcoded(){
+    fun checkForTaskExecutionHardcoded() {
         val meetingInfoList = listOf(
             MeetingResponse(
                 1,
@@ -189,12 +185,14 @@ class NumericPanelViewModel(
                 "amazon",
                 "Carlos",
                 "carlos@intecrobots.com"
-            ))
+            )
+        )
         val meetingInfo = meetingInfoList.first()
         collectedMeetingInfo.value = meetingInfo
         _isCodeCorrect.value = true
     }
-    fun checkForTaskExecution(code: String? = null) {
+
+    fun checkForTaskExecution() {
         Log.d("NumericPanelViewModel", "checkForTaskExecution")
         viewModelScope.launch(Dispatchers.IO) {
             try {
@@ -206,7 +204,7 @@ class NumericPanelViewModel(
 
                 if (currentToken.isNotEmpty()) {
                     Log.d("checkForTaskExecution", "currentToken is not empty: $currentToken")
-                    val response = makeApiCall(currentToken, code)
+                    val response = makeApiCall(currentToken)
                     withContext(Dispatchers.Main) {
                         Log.d("TAG MAIN", "Respuesta: $response")
                         handleApiResponse(response)
@@ -220,11 +218,11 @@ class NumericPanelViewModel(
         }
     }
 
-    private suspend fun makeApiCall(token: String, code: String? = null): Response? {
+    private suspend fun makeApiCall(token: String): Response {
         Log.d("TAG MAIN", "Haciendo llamada a la API: token: $token")
         val client = OkHttpClient()
         val request = Request.Builder()
-            .url("https://t2o.intecrobots.com/api/visitas/consultacodigototal?codigo=${code ?: enteredCode.value}")
+            .url("https://t2o.intecrobots.com/api/visitas/consultacodigototal?codigo=${enteredCode.value}")
             .addHeader("Authorization", "Bearer $token")
             .get()
             .build()
