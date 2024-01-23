@@ -85,8 +85,10 @@ class MainActivity : ComponentActivity() {
 
                 // Establece el callback
                 robotMan.setNavigationCallback(object : RobotManager.NavigationCallback {
-                    override fun onNavigationComplete() {
-                        mqttViewModel.onNavigationComplete()
+                    override fun onNavigationCompleted() {
+                        Log.d("MainActivity prev", "onNavigationComplete: ${mqttViewModel.isNavigationComplete.value}")
+                        mqttViewModel.onNavigationCompleted()
+                        Log.d("MainActivity after", "onNavigationComplete: ${mqttViewModel.isNavigationComplete.value}")
                     }
                     override fun onNavigationStarted() {
                         mqttViewModel.onNavigationStarted()

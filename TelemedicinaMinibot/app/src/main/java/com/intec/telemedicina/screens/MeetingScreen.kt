@@ -6,7 +6,11 @@ import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -27,6 +31,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
 import coil.ImageLoader
 import coil.compose.rememberAsyncImagePainter
 import coil.decode.GifDecoder
@@ -45,7 +51,6 @@ fun MeetingScreen(
     Log.d("Current Screen", "MeetingScreen")
 
     val meetingInfo = numericPanelViewModel.collectedMeetingInfo.value
-    var message = remember { mutableStateOf("") }
 
     var messageIndex by remember { mutableStateOf(0) }
 
@@ -75,10 +80,8 @@ fun MeetingScreen(
                 messageIndex = 2
             }
             2 -> {
-                robotManager.speak("He notificado a ${meetingInfo.anfitrion} de tu llegada. Veo que ha llegado puntual. Acompáñeme a la sala que se le ha asignado.", false)
+                robotManager.speak("He notificado a ${meetingInfo.anfitrion} de tu llegada. ", false)
                 delay(8000L)
-                Log.d("MeetingScreen Launched", "${isNavigationComplete.value}")
-                robotManager.startNavigation(1, meetingInfo.puntomapa, mqttViewModel.coordinateDeviation.value!!.toDouble(), mqttViewModel.navigationTimeout.value!!.toLong())
                 messageIndex = 3
             }
             3 -> {
@@ -87,9 +90,19 @@ fun MeetingScreen(
             4 -> {
                 robotManager.speak("Hemos llegado. Tome asiento y en breves momentos comenzará la reunión. Muchas gracias", false)
                 delay(5000L)
-                messageIndex = 5
+                messageIndex = 7
             }
             5 -> {
+                robotManager.speak("Veo que ha llegado puntual. Acompáñeme a la sala que se le ha asignado.", false)
+                robotManager.startNavigation(1, meetingInfo.puntomapa, mqttViewModel.coordinateDeviation.value!!.toDouble(), mqttViewModel.navigationTimeout.value!!.toLong())
+                messageIndex = 3
+            }
+            6 -> {
+                robotManager.speak("Todavía no es la hora establecida para la reunión. Por favor, tome asiento. En breves instantes vendrán a buscarle", false)
+                delay(5000L)
+                messageIndex = 7
+            }
+            7 -> {
                 robotManager.returnToPosition(mqttViewModel.returnDestination.value!!)
                 // Considera agregar un delay o manejar cuando se debe cambiar a messageIndex 6 si es necesario
             }
@@ -102,15 +115,106 @@ fun MeetingScreen(
         }
     }
 
+    LaunchedEffect(numericPanelViewModel.isMeetingTimeWithinThreshold()){
+        if (numericPanelViewModel.isMeetingTimeWithinThreshold()) {
+            messageIndex = 5
+        } else {
+            messageIndex = 6
+        }
+    }
+
     FuturisticGradientBackground {
         Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
             when (messageIndex) {
-                0 -> Text("Hola, ${meetingInfo.visitante}")
-                1 -> Text("Estoy notificando a ${meetingInfo.anfitrion} de tu llegada")
-                2 -> Text("Te acompaño a la sala asignada")
-                3 -> Text("Yendo a ${meetingInfo.puntomapa}")
-                4 -> Text("Hemos llegado a ${meetingInfo.puntomapa}. Tome asiento y en breves momentos comenzará la reunión. Muchas gracias")
-                5 -> Text("Regresando a ${mqttViewModel.returnDestination.value}")
+                0 -> Text(color = Color.White,
+                    fontSize = 65.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    textAlign = TextAlign.Center,
+                    maxLines = 2,
+                    text = "Hola, ${meetingInfo.visitante}"
+                )
+                1 -> {
+
+                    Box{
+                        Column (
+                            modifier = Modifier.padding(16.dp),
+                            horizontalAlignment = Alignment.CenterHorizontally
+                        ){
+                            Text(
+                                color = Color.White,
+                                fontSize = 45.sp,
+                                fontWeight = FontWeight.SemiBold,
+                                textAlign = TextAlign.Center,
+                                maxLines = 2,
+                                text = "Estoy notificando a ${meetingInfo.anfitrion} de tu llegada"
+                            )
+                            Spacer(modifier = Modifier.height(8.dp))
+                            Image(
+                                painter = rememberAsyncImagePainter(R.drawable.emailsend, imageEmotionsLoader),
+                                contentDescription = null,
+                                modifier = Modifier
+                                    .padding(bottom = 1.dp) // Adjust the padding as needed
+                                    .width(100.dp)
+                                    .height(100.dp)
+                            )
+                        }
+                    }
+                }
+
+                2 ->
+                    Text(
+                    color = Color.White,
+                    fontSize = 65.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    textAlign = TextAlign.Center,
+                    maxLines = 2,
+                    text = "Te acompaño a la sala asignada"
+                )
+
+                3 -> Text(
+                    color = Color.White,
+                    fontSize = 25.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    textAlign = TextAlign.Center,
+                    maxLines = 2,
+                    text = "Yendo a ${meetingInfo.puntomapa}"
+                )
+
+                4 -> Text(
+                    color = Color.White,
+                    fontSize = 25.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    textAlign = TextAlign.Center,
+                    maxLines = 2,
+                    text = "Hemos llegado a ${meetingInfo.puntomapa}. Tome asiento y en breves momentos comenzará la reunión. Muchas gracias"
+                )
+
+                5 -> Text(
+                    color = Color.White,
+                    fontSize = 25.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    textAlign = TextAlign.Center,
+                    maxLines = 2,
+                    text = "Veo que ha llegado puntual. Acompáñeme a la sala que se le ha asignado."
+                )
+
+                6 -> Text(
+                    color = Color.White,
+                    fontSize = 25.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    textAlign = TextAlign.Center,
+                    maxLines = 2,
+                    text = "Todavía no es la hora establecida para la reunión. Por favor, espere en la sala de espera. En breves instantes vendrán a buscarle. Gracias"
+                )
+
+                7 -> Text(
+                    color = Color.White,
+                    fontSize = 25.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    textAlign = TextAlign.Center,
+                    maxLines = 2,
+                    text = "Regresando a ${mqttViewModel.returnDestination.value}"
+                )
             }
         }
     }

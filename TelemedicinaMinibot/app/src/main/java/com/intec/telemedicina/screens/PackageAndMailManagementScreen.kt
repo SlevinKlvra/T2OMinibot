@@ -1,5 +1,6 @@
 package com.intec.telemedicina.screens
 
+import android.os.Build
 import android.util.Log
 import androidx.compose.animation.core.FastOutLinearInEasing
 import androidx.compose.animation.core.RepeatMode
@@ -29,6 +30,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -37,12 +39,16 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import coil.ImageLoader
+import coil.decode.GifDecoder
+import coil.decode.ImageDecoderDecoder
 import com.intec.telemedicina.components.GoBackButton
 import com.intec.telemedicina.components.NumericPad
 import com.intec.telemedicina.components.TransparentButton
@@ -50,6 +56,7 @@ import com.intec.telemedicina.components.TransparentButtonWithIcon
 import com.intec.telemedicina.robotinterface.RobotManager
 import com.intec.telemedicina.viewmodels.MqttViewModel
 import com.intec.telemedicina.viewmodels.NumericPanelViewModel
+import kotlinx.coroutines.delay
 
 @Composable
 fun PackageAndMailManagementScreen(
@@ -69,6 +76,56 @@ fun PackageAndMailManagementScreen(
 
     val isCodeCorrect by numericPanelViewModel.isCodeCorrect.collectAsState()
 
+    var messageIndex by remember { mutableStateOf(1) }
+
+    val meetingInfo = numericPanelViewModel.collectedMeetingInfo.value
+
+    val imageEmotionsLoader = ImageLoader.Builder(LocalContext.current)
+        .components {
+            if (Build.VERSION.SDK_INT >= 28) {
+                add(ImageDecoderDecoder.Factory())
+            } else {
+                add(GifDecoder.Factory())
+            }
+        }
+        .build()
+
+    val isNavigationComplete = mqttViewModel.isNavigationComplete.observeAsState()
+
+    LaunchedEffect(isNavigationComplete.value) {
+        if (isNavigationComplete.value == true) {
+            messageIndex = 4
+        }
+    }
+
+    LaunchedEffect(messageIndex){
+        when(messageIndex){
+            1 -> robotManager.speak("¿Dispone de código de entrega?", false)
+            2 -> robotManager.speak("Por favor, introduzca el código que se le ha proporcionado", false)
+            3 -> {
+                robotManager.speak("Acompáñeme a la sección de mensajería para depositar el paquete", false)
+                robotManager.startNavigation(1, "correo", mqttViewModel.coordinateDeviation.value!!.toDouble(), mqttViewModel.navigationTimeout.value!!.toLong())
+                messageIndex = 4
+            }
+            4 -> {}
+            5 -> robotManager.speak("Código introducido correctamente. Por favor, acompáñeme a la sección de mensajería.", false)
+            6 -> {
+                robotManager.speak("Notificando a ${meetingInfo.anfitrion} de que su entrega ha llegado. Espere por favor.", false)
+                delay(5000L)
+                robotManager.speak("Notificación enviada.", false)
+                messageIndex = 3
+            }
+            7 -> {
+                robotManager.speak("Hemos llegado. Puede depositar el paquete aquí. Gracias.", false)
+                delay(8000L)
+                messageIndex = 8
+            }
+            8 -> {
+                robotManager.returnToPosition(mqttViewModel.returnDestination.value!!)
+                // Considera agregar un delay o manejar cuando se debe cambiar a messageIndex 6 si es necesario
+            }
+        }
+    }
 
     LaunchedEffect(shouldCheckCode.value) {
         if (shouldCheckCode.value) {
@@ -80,6 +137,12 @@ fun PackageAndMailManagementScreen(
     LaunchedEffect(isCodeCorrect) {
         if (isCodeCorrect) {
             currentPage++
+        }
+    }
+
+    LaunchedEffect(isNavigationComplete.value) {
+        if (isNavigationComplete.value == true) {
+            messageIndex = 7
         }
     }
 
@@ -117,18 +180,19 @@ fun PackageAndMailManagementScreen(
                                 icon1 = Icons.Outlined.Check,
                                 icon2 = Icons.Outlined.Clear,
                                 text = "¿Dispone de código de entrega?",
-                                onButton1Click = { currentPage++; hasCode = true },
-                                onButton2Click = { currentPage++; hasCode = false })
+                                onButton1Click = { currentPage++; hasCode = true; messageIndex = 2 },
+                                onButton2Click = { currentPage++; hasCode = false; messageIndex = 3 })
                         }
                     }
 
                     2 -> {
-                        if (hasCode)
+                        if (hasCode){
                             NumericPad(
                                 numericPanelViewModel = numericPanelViewModel,
                                 onClick = { shouldCheckCode.value = true },
                                 titleText = "Por favor, introduce el código que se te ha proporcionado"
                             )
+                        }
                         else {
                             Row(modifier = Modifier.fillMaxSize()) {
                                 NoCodeStep(robotManager, mqttViewModel)

@@ -54,7 +54,7 @@ fun NumericPanelScreen(
 
     LaunchedEffect(shouldCheckCode.value) {
         if (shouldCheckCode.value) {
-            numericPanelViewModel.checkForTaskExecutionHardcoded()
+            numericPanelViewModel.checkForTaskExecution()
             shouldCheckCode.value = false
         }
     }
