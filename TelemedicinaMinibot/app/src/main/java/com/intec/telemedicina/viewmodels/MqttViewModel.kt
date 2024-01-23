@@ -125,13 +125,13 @@ class MqttViewModel @Inject constructor(
     var interactionState = MutableStateFlow(InteractionState.NONE)
     var isDriving = MutableStateFlow(false)
     var isPaused = MutableStateFlow(false)
+    var isFinished = MutableStateFlow(false)
     var question = MutableStateFlow("")
     var notUnderstood = MutableStateFlow(false)
 
     val showQuestionsDialog = MutableStateFlow(false)
     val showWelcomeDialog = MutableStateFlow(false)
 
-    val showDrivingScreenFace = MutableStateFlow(false)
     val closeDrivingScreenFace = MutableStateFlow(false)
 
     val openHomeScreen = MutableStateFlow(false)
@@ -519,15 +519,27 @@ class MqttViewModel @Inject constructor(
     }
 
     fun setDrivingState(){
-        Log.d("DrivingState", "DrivingState")
+        Log.d("DrivingState", "setDrivingState")
         robotMan.onNavigationStarted = { navigationStarted -> //navigationStarted: Boolean
             if(navigationStarted){
 
                 Log.d("DrivingState", navigationState.value.toString())
                 isDriving.value = true
                 isPaused.value = false
-                showDrivingScreenFace.value = true
             }
+        }
+    }
+
+    fun setFinishedState(){
+        Log.d("DrivingState", "setPausedState")
+        robotMan.onNavigationFinished = {navigationFinished ->
+
+            if(navigationFinished){
+                Log.d("DrivingState", navigationState.value.toString())
+                isDriving.value = false
+                isPaused.value = true
+            }
+
         }
     }
     fun onResultUnknownVisitor(text: String){
@@ -581,6 +593,7 @@ class MqttViewModel @Inject constructor(
     }
 
     fun navigateToDrivingScreen() {
+        Log.d("MqttViewModel", "Navigating to DrivingScreen")
         detectionJob?.cancel()
         _navigationState.value = NavigationState.DrivingScreen
     }
@@ -821,104 +834,18 @@ class MqttViewModel @Inject constructor(
                 isPaused.value = false
             }
 
-            //navigationListener.onStatusUpdate(Definition.ACTION_NAVI_STOP_MOVE,"YESSSSS")
-            "robot/voice_cmds/text_to_speech" -> {
-                Log.d("TextToSpeech", message)
-                //playTextViaTTS(message)
-                robotMan.speak(message,false)
-            }
-
-            "robot/voice_cmds/question_si_no" -> {
-                question.value = message
-            }
-
-            "robot/voice_cmds/question" -> {
-                //Log.d("Question",message)
-                //_mqttQuestion.value = message
-                question.value = message
-                //showQuestionsDialog()
-                //Open window with question --> Yes/No
-                //Send response back
-            }
-            "robot/voice_cmds/remove_question" -> {
-                question.value = ""
-                notUnderstood.value = false
-            }
-            "robot/welcome_cmd" -> { //return answer on --> "robot/welcome_pub"
-                //robotApi.startNavigation(1, "Punto de recepción", 0.01, 100000, navigationListener)
-                showWelcomeDialog()
-            }
-            "robot/focus" -> {
-                val personList: List<Person> = PersonApi.getInstance().getAllPersons()
-                Log.d("PERSON LIST",personList.toString())
-                Log.d("FOCUS","We will try to focus on the user!")
-                /*RobotApi.getInstance().startFocusFollow(
-                    0,
-                    personList.get(0).remoteFaceId.toInt(),
-                    1000000,
-                    5F,
-                    object : ActionListener() {
-                        override fun onStatusUpdate(status: Int, data: String?) {
-                            when (status) {
-                                Definition.STATUS_TRACK_TARGET_SUCCEED -> {Log.d("Focus", "Focus on person")}
-                                Definition.STATUS_GUEST_LOST -> {Log.d("Focus", "Focus on person lost")}
-                                Definition.STATUS_GUEST_FARAWAY -> {Log.d("Focus", "Focus on person faraway")}
-                                Definition.STATUS_GUEST_APPEAR -> {Log.d("Focus", "Focus on person appear")}
-                            }
-                        }
-
-                        override fun onError(errorCode: Int, errorString: String?) {
-                            when (errorCode) {
-                                Definition.ERROR_SET_TRACK_FAILED, Definition.ERROR_TARGET_NOT_FOUND -> {Log.d("Focus", "Focus on person failed")}
-                                Definition.ACTION_RESPONSE_ALREADY_RUN -> {Log.d("Focus", "Focus on person already running")}
-                                Definition.ACTION_RESPONSE_REQUEST_RES_ERROR -> {Log.d("Focus", "Focus on person request res error")}
-                            }
-                        }
-
-                        override fun onResult(status: Int, responseString: String?) {
-                            //Log.d(TAG, "startTrackPerson onResult status: $status")
-                            when (status) {
-                                Definition.ACTION_RESPONSE_STOP_SUCCESS -> {}
-                            }
-                        }
-                    })*/
-            }
-
-            "robot/unfocus" -> {
-                Log.d("UNFOCUS","We will not focus on the user anymore!")
-                //RobotApi.getInstance().stopFocusFollow(0)
-            }
             "robot/move_forward" -> {
                 robotMan.moveForward()
-            }
-            "robot/stop_stt" -> {
-                Log.d("STT","Listening disabled")
-                robotMan.setRecognizable(false)
-            }
-            "robot/faceType" -> {
-                faceType.value = Face.valueOf(message)
-            }
-            "robot/interactionState" -> {
-                interactionState.value = InteractionState.valueOf(message)
-            }
-            "robot/close_screen" -> {
-                closeDrivingScreenFace.value = true
             }
             "robot/wake_up" -> {
                 robotMan.wakeUp()
             }
+
             "robot/nav_cmds/driving_finished" -> {
                 Log.d("DRIVINGFINISHED","Preparing home screen")
                 //isDriving.value = false
             }
-            "robot/open_homescreen" -> {
-                openHomeScreen.value = true
-            }
-            "robot/notUnderstood" -> {
-                notUnderstood.value = true
-            }
-            "robot/nav_cmds/request_move" -> {
-            }
+
             "zigbee2mqtt/Pulsador/action" -> {
                 Log.d("ZIGBEE", message.toString())
                 if(message.toString() == "single"){
@@ -934,24 +861,8 @@ class MqttViewModel @Inject constructor(
         }
     }
 
-    fun closeEyescreen(){
-        openEyesScreen.value = false
-    }
-
-    fun closeHomescreen(){
-        openHomeScreen.value = false
-    }
-
     fun getListPoses(){
         posesList.value = robotMan.getPoses()
-    }
-
-    fun deactivateOpenDrivingScreenFace(){
-        showDrivingScreenFace.value = false
-    }
-
-    fun deactivateCloseDrivingScreenFace(){
-        closeDrivingScreenFace.value = false
     }
 
     // LiveData to handle keyboard hide state
@@ -968,28 +879,9 @@ class MqttViewModel @Inject constructor(
         _shouldHideKeyboard.value = false
     }
 
-    fun showQuestionsDialog(){
-        Log.d("MQTTViewModel", "Showing questions dialog")
-        showQuestionsDialog.value = true
-    }
-
-    fun hideQuestionsDialog(){
-        Log.d("MQTTViewModel", "Hiding questions dialog")
-        showQuestionsDialog.value = false
-    }
-
-    fun showWelcomeDialog(){
-        Log.d("MQTTViewModel", "Showing welcome dialog")
-        showWelcomeDialog.value = true
-    }
-
-    fun hideWelcomeDialog(){
-        Log.d("MQTTViewModel", "Hiding welcome dialog")
-        showWelcomeDialog.value = false
-    }
-
-    fun setPaused(isPaused_temp : Boolean) {
-        isPaused.value = isPaused_temp
+    fun setPaused(isPausedTemp : Boolean) {
+        Log.d("MQTTViewModel", "Setting isPaused: $isPausedTemp")
+        isPaused.value = isPausedTemp
         robotMan.pauseNavigation(0)
     }
 

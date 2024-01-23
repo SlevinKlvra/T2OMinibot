@@ -69,7 +69,6 @@ fun HomeScreen(
         Log.d("HomeScreen openEyes", "true")
         //navController.navigate(AppScreens.EyesScreen.route)
         mqttViewModel.navigateToEyesScreen()
-        mqttViewModel.closeHomescreen()
     }
 
     FuturisticGradientBackground {

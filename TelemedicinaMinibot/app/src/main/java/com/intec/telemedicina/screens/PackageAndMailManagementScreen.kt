@@ -83,54 +83,47 @@ fun PackageAndMailManagementScreen(
         }
     }
 
-    LaunchedEffect(messageIndex) {
-        when (messageIndex) {
-            1 -> robotManager.speak("¿Dispone de código de entrega?", false)
-            2 -> robotManager.speak(
-                "Por favor, introduzca el código que se le ha proporcionado",
-                false
-            )
+    LaunchedEffect(messageIndex){
+        when(messageIndex){
+            1 -> {
+                Log.d("SECUENCIA","$messageIndex: ¿Dispone de código de entrega?")
+                robotManager.speak("¿Dispone de código de entrega?", false)
+            }
+            2 -> {
 
+                Log.d("SECUENCIA","$messageIndex: Por favor, introduzca el código que se le ha proporcionado")
+                robotManager.speak("Por favor, introduzca el código que se le ha proporcionado", false)
+            }
             3 -> {
-                robotManager.speak(
-                    "Acompáñeme a la sección de mensajería para depositar el paquete",
-                    false
-                )
-                robotManager.startNavigation(
-                    1,
-                    "correo",
-                    mqttViewModel.coordinateDeviation.value!!.toDouble(),
-                    mqttViewModel.navigationTimeout.value!!.toLong()
-                )
+                Log.d("SECUENCIA","$messageIndex: Acompáñeme a la sección de mensajería para depositar el paquete")
+                robotManager.speak("Acompáñeme a la sección de mensajería para depositar el paquete", false)
+                robotManager.startNavigation(1, "correo", mqttViewModel.coordinateDeviation.value!!.toDouble(), mqttViewModel.navigationTimeout.value!!.toLong())
                 messageIndex = 4
             }
-
-            4 -> {}
-            5 -> robotManager.speak(
-                "Código introducido correctamente. Por favor, acompáñeme a la sección de mensajería.",
-                false
-            )
-
+            4 -> {
+                Log.d("SECUENCIA","$messageIndex: VACIO")
+            }
+            5 -> {
+                Log.d("SECUENCIA","$messageIndex: Código introducido correctamente. Por favor, acompáñeme a la sección de mensajería")
+                robotManager.speak("Código introducido correctamente. Por favor, acompáñeme a la sección de mensajería", false)
+            }
             6 -> {
-                robotManager.speak(
-                    "Notificando a ${meetingInfo.anfitrion} de que su entrega ha llegado. Espere por favor.",
-                    false
-                )
+                Log.d("SECUENCIA","$messageIndex: Notificando a ${meetingInfo.anfitrion} de que su entrega ha llegado. Espere por favor")
+                robotManager.speak("Notificando a ${meetingInfo.anfitrion} de que su entrega ha llegado. Espere por favor", false)
                 delay(5000L)
                 robotManager.speak("Notificación enviada.", false)
                 messageIndex = 3
             }
 
             7 -> {
-                robotManager.speak(
-                    "Hemos llegado. Puede depositar el paquete aquí. Gracias.",
-                    false
-                )
+                Log.d("SECUENCIA","$messageIndex: Hemos llegado. Puede depositar el paquete aquí. Gracias.")
+                robotManager.speak("Hemos llegado. Puede depositar el paquete aquí. Gracias.", false)
                 delay(8000L)
                 messageIndex = 8
             }
 
             8 -> {
+                Log.d("SECUENCIA","$messageIndex: REGRESANDO")
                 robotManager.returnToPosition(mqttViewModel.returnDestination.value!!)
                 // Considera agregar un delay o manejar cuando se debe cambiar a messageIndex 6 si es necesario
             }
@@ -184,40 +177,55 @@ fun PackageAndMailManagementScreen(
                     })
                 }
             }
+                when (currentPage) {
+                    1 -> {
 
-            when (currentPage) {
-                1 -> {
-                    Row() {
-                        ButtonsStep(
-                            icon1 = Icons.Outlined.Check,
-                            icon2 = Icons.Outlined.Clear,
-                            text = "¿Dispone de código de entrega?",
-                            onButton1Click = {
-                                currentPage++; hasCode = true; messageIndex = 2
-                            },
-                            onButton2Click = {
-                                currentPage++; hasCode = false; messageIndex = 3
-                            })
+                        Log.d("SECUENCIA T","$messageIndex: ¿Dispone de código de entrega?")
+                        Row() {
+                            ButtonsStep(
+                                icon1 = Icons.Outlined.Check,
+                                icon2 = Icons.Outlined.Clear,
+                                text = "¿Dispone de código de entrega?",
+                                onButton1Click = { currentPage++; hasCode = true; messageIndex = 2 },
+                                onButton2Click = { currentPage++; hasCode = false; messageIndex = 3 })
+                        }
                     }
                 }
-
-                2 -> {
-                    if (hasCode) {
-                        NumericPad(
-                            numericPanelViewModel = numericPanelViewModel,
-                            onClick = { shouldCheckCode.value = true },
-                            titleText = "Por favor, introduce el código de entrega"
-                        )
-                    } else {
-                        Row(modifier = Modifier.fillMaxSize()) {
-                            NoCodeStep(robotManager, mqttViewModel)
+                    2 -> {
+                        Log.d("SECUENCIA T","$messageIndex: Por favor, introduzca el código que se le ha proporcionado")
+                        if (hasCode){
+                            NumericPad(
+                                numericPanelViewModel = numericPanelViewModel,
+                                onClick = { shouldCheckCode.value = true },
+                                titleText = "Por favor, introduce el código de entrega"
+                            )
+                        }
+                        else {
+                            Row(modifier = Modifier.fillMaxSize()) {
+                                NoCodeStep(robotManager, mqttViewModel)
+                            }
                         }
                     }
                 }
 
-                3 -> {
-                    Row(modifier = Modifier.fillMaxSize()) {
-                        NotificationStep(navController = navController)
+                    3 -> {
+                        Log.d("SECUENCIA T","$messageIndex: Acompáñeme a la sección de mensajería para depositar el paquete")
+                        Row(modifier = Modifier.fillMaxSize()) {
+                            NotificationStep(navController = navController)
+                        }
+                    }
+                    4 -> {
+                        Log.d("SECUECIA T","$messageIndex: VACIO")
+                    }
+                    5 -> {
+                        Log.d("SECUENCIA T","$messageIndex: Código introducido correctamente. Por favor, acompáñeme a la sección de mensajería")
+                        robotManager.speak("Código correcto.", false)
+                    }
+                    6 -> {
+                        Log.d("SECUENCIA T","$messageIndex: Notificando a ${meetingInfo.anfitrion} de que su entrega ha llegado. Espere por favor")
+                        robotManager.speak("Notificando a ${meetingInfo.anfitrion} de que su entrega ha llegado.", false)
+                        //TO-DO: Implementar notificación
+                        messageIndex = 3
                     }
                 }
             }

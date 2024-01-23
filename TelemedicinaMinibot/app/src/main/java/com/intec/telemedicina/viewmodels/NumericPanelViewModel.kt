@@ -98,11 +98,6 @@ class NumericPanelViewModel(
         }
     }
 
-    private fun navigateToNumericPanelScreen() {
-        robotMan.speak("Deacuerdo, introduce el código que se te ha proporcionado", false)
-        _navigationState.value = MqttViewModel.NavigationState.NumericPanelScreen
-    }
-
     // Estado para indicar si el código es correcto
     private val _isCodeCorrect = MutableStateFlow(false)
     val isCodeCorrect: StateFlow<Boolean> = _isCodeCorrect.asStateFlow()
@@ -180,27 +175,6 @@ class NumericPanelViewModel(
     }*/
 
     private var currentToken: String = ""
-
-
-    fun checkForTaskExecutionHardcoded() {
-        val meetingInfoList = listOf(
-            MeetingResponse(
-                1,
-                "22/01/2024",
-                "22/01/2024",
-                "8:00:00",
-                "9:00:00",
-                "Sergio",
-                "Sergio@intecrobots.com",
-                "amazon",
-                "Carlos",
-                "carlos@intecrobots.com"
-            )
-        )
-        val meetingInfo = meetingInfoList.first()
-        collectedMeetingInfo.value = meetingInfo
-        _isCodeCorrect.value = true
-    }
 
     fun checkForTaskExecution() {
         Log.d("NumericPanelViewModel", "checkForTaskExecution")

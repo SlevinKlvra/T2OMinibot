@@ -98,6 +98,7 @@ class RobotManager @Inject constructor(private val skillApi: SkillApi, @Applicat
         personListener = object : PersonListener() {
             override fun personChanged() {
                 val personList = PersonApi.getInstance().allPersons
+                Log.d("RobotMan PersonListener", "Person changed: $personList")
                 onPersonDetected?.invoke(personList)
             }
         }
@@ -132,6 +133,7 @@ class RobotManager @Inject constructor(private val skillApi: SkillApi, @Applicat
         val lostTimeout = 10 // Define el tiempo en segundos antes de reportar la pérdida del objetivo
         val maxDistance = 2.5F //Define la distancia máxima en metros para el seguimiento
 
+
         // Inicia el seguimiento de la persona con el ID de cara dado
         RobotApi.getInstance().startFocusFollow(reqId, faceId,
             lostTimeout.toLong(), maxDistance, object : ActionListener() {
@@ -140,35 +142,35 @@ class RobotManager @Inject constructor(private val skillApi: SkillApi, @Applicat
                     Definition.STATUS_TRACK_TARGET_SUCCEED -> {
                         // El seguimiento del objetivo ha tenido éxito
                         isFollowing.value = true
-                        //Log.d("TAG", "Seguimiento del objetivo exitoso ${isFollowing.value}")
+                        Log.d("startFocusFolow", "Seguimiento del objetivo exitoso ${isFollowing.value}")
 
                     }
                     Definition.STATUS_GUEST_LOST -> {
                         // El objetivo se ha perdido
                         isFollowing.value = false
-                        //Log.d("TAG", "Objetivo perdido : ${isFollowing.value}")
+                        Log.d("startFocusfollow", "Objetivo perdido : ${isFollowing.value}")
                     }
                     Definition.STATUS_GUEST_FARAWAY -> {
                         // El objetivo está fuera de rango
-                        //Log.d("TAG", "Objetivo fuera de rango")
+                        Log.d("startFocusFollow", "Objetivo fuera de rango")
                     }
                     Definition.STATUS_GUEST_APPEAR -> {
                         // El objetivo está en rango nuevamente
 
                         isFollowing.value = true
-                        //Log.d("TAG", "Objetivo detectado nuevamente: ${isFollowing.value}")
+                        Log.d("startFocusFollow", "Objetivo detectado nuevamente: ${isFollowing.value}")
                     }
                 }
             }
 
             override fun onError(errorCode: Int, errorString: String?) {
                 // Maneja los errores aquí
-                //Log.e("TAG", "Error en el seguimiento: $errorString")
+                Log.e("startFocusFollow", "Error en el seguimiento: $errorString")
             }
 
             override fun onResult(status: Int, responseString: String?) {
                 // Maneja el resultado aquíPerson
-                Log.d("TAG", "Respuesta del seguimiento: $responseString")
+                Log.d("startFocusFollow", "Respuesta del seguimiento: $responseString")
             }
         })
     }
@@ -176,6 +178,8 @@ class RobotManager @Inject constructor(private val skillApi: SkillApi, @Applicat
     fun stopFocusFollow() {
         // Código para detener el enfoque
         // ...
+        Log.d("stopFocusFollow", "Deteniendo seguimiento")
+        unregisterPersonListener()
         RobotApi.getInstance().stopFocusFollow(1);
         isFollowing.value = false
     }
@@ -297,7 +301,6 @@ class RobotManager @Inject constructor(private val skillApi: SkillApi, @Applicat
     ){
         Log.d("START NAVIGATION", "Comenzando navegación")
         stopFocusFollow()
-        unregisterPersonListener()
         callbackNavigationStarted(true)
 
         RobotApi.getInstance().goPosition(0, RobotApi.getInstance().getSpecialPose(destName).toJson(), object : CommandListener(){
@@ -362,8 +365,8 @@ class RobotManager @Inject constructor(private val skillApi: SkillApi, @Applicat
 
                     if(robotStatus.status == "END"){
                         callbackNavigationStarted(false)
-                        registerPersonListener()
                         startFocusFollow(0)
+                        registerPersonListener()
                         Log.d("ROBOT STATUS END", robotStatus.toString())
                         navigationCallback?.onNavigationCompleted()
                     }

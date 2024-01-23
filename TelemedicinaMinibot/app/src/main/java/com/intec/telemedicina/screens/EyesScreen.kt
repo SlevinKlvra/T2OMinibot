@@ -19,6 +19,7 @@ import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -51,6 +52,7 @@ fun EyesScreen(navController: NavController, mqttViewModel: MqttViewModel, robot
     val interactionState by mqttViewModel.interactionState.collectAsState()
     val isDriving by mqttViewModel.isDriving.collectAsState()
     val isPaused by mqttViewModel.isPaused.collectAsState()
+    val isFinished by mqttViewModel.isFinished.collectAsState()
     val question by mqttViewModel.question.collectAsState()
     val notUnderstood by mqttViewModel.notUnderstood.collectAsState()
 
@@ -61,14 +63,29 @@ fun EyesScreen(navController: NavController, mqttViewModel: MqttViewModel, robot
         //mqttViewModel.subscribeToAllTopics(mqttViewModel.resumeTopics())
     }
 
+    if(isDriving){
+        Log.d("isDriving EyesScreen", "stopFocus and unregister")
+        robotManager.stopFocusFollow()
+        robotManager.unregisterPersonListener()
+    }
+
+    if(isFinished or isPaused){
+        Log.d("isDriving EyesScreen", "register and startFocus")
+        robotManager.registerPersonListener()
+        robotManager.startFocusFollow(0)
+    }
+
     Box(
         Modifier
             .clickable {
                 if (isDriving) {
                     mqttViewModel.setPaused(true)
                     mqttViewModel.navigateToDrivingScreen()
-                } else {
+
+                } else if(isFinished){
                     mqttViewModel.navigateToHomeScreen()
+                    robotManager.registerPersonListener()
+                    robotManager.startFocusFollow(0)
                 }
             }
             .background(Color.Black)

@@ -70,79 +70,120 @@ fun MeetingScreen(
     LaunchedEffect(messageIndex) {
         when (messageIndex) {
             0 -> {
+                Log.d("SECUENCIA", "$messageIndex: Hola, ${meetingInfo.visitante}")
                 robotManager.speak("Hola, ${meetingInfo.visitante}", false)
                 delay(3000L)
                 messageIndex = 1
             }
+
             1 -> {
+                Log.d("SECUENCIA", "$messageIndex: Estoy notificando a ${meetingInfo.anfitrion} de tu llegada")
                 robotManager.speak("Notificando a ${meetingInfo.anfitrion} de tu llegada", false)
                 delay(5000L)
                 messageIndex = 2
             }
+
             2 -> {
-                robotManager.speak("He notificado a ${meetingInfo.anfitrion} de tu llegada. ", false)
+                Log.d("SECUENCIA", "$messageIndex: He notificado a ${meetingInfo.anfitrion} de tu llegada.")
+                robotManager.speak(
+                    "He notificado a ${meetingInfo.anfitrion} de tu llegada. ",
+                    false
+                )
                 delay(8000L)
                 messageIndex = 3
             }
+
             3 -> {
+                Log.d("SECUENCIA", "$messageIndex: TRUE: A 5, FALSE A 6")
+                if(numericPanelViewModel.isMeetingTimeWithinThreshold()){
+                    messageIndex = 5
+                } else {
+                    messageIndex = 6
+                }
                 // Nada aquí. La navegación se inicia cuando isNavigationComplete cambia
             }
+
             4 -> {
-                robotManager.speak("Hemos llegado. Tome asiento y en breves momentos comenzará la reunión. Muchas gracias", false)
+                Log.d("SECUENCIA", "$messageIndex: Hemos llegado. Tome asiento y en breves momentos comenzará la reunión. Muchas gracias")
+                robotManager.speak(
+                    "Hemos llegado. Tome asiento y en breves momentos comenzará la reunión. Muchas gracias",
+                    false
+                )
                 delay(5000L)
                 messageIndex = 7
             }
+
             5 -> {
-                robotManager.speak("Veo que ha llegado puntual. Acompáñeme a la sala que se le ha asignado.", false)
-                robotManager.startNavigation(1, meetingInfo.puntomapa, mqttViewModel.coordinateDeviation.value!!.toDouble(), mqttViewModel.navigationTimeout.value!!.toLong())
-                messageIndex = 3
+
+                Log.d("SECUENCIA", "$messageIndex: Veo que ha llegado puntual. Acompáñeme a la sala que se le ha asignado.")
+                robotManager.speak(
+                    "Veo que ha llegado puntual. Acompáñeme a la sala que se le ha asignado.",
+                    false
+                )
+                mqttViewModel.setDrivingState()
+                robotManager.startNavigation(
+                    1,
+                    meetingInfo.puntomapa,
+                    mqttViewModel.coordinateDeviation.value!!.toDouble(),
+                    mqttViewModel.navigationTimeout.value!!.toLong()
+                )
+                messageIndex = 8
             }
+
             6 -> {
-                robotManager.speak("Todavía no es la hora establecida para la reunión. Por favor, tome asiento. En breves instantes vendrán a buscarle", false)
+                Log.d("SECUENCIA", "$messageIndex: Todavía no es la hora establecida para la reunión. Por favor, tome asiento. En breves instantes vendrán a buscarle")
+                robotManager.speak(
+                    "Todavía no es la hora establecida para la reunión. Por favor, tome asiento. En breves instantes vendrán a buscarle",
+                    false
+                )
                 delay(5000L)
                 messageIndex = 7
             }
+
             7 -> {
                 robotManager.returnToPosition(mqttViewModel.returnDestination.value!!)
                 // Considera agregar un delay o manejar cuando se debe cambiar a messageIndex 6 si es necesario
+            }
+
+            8 -> {
+
             }
         }
     }
 
     LaunchedEffect(isNavigationComplete.value) {
-        if (isNavigationComplete.value == true) {
+        if (messageIndex == 5) {
             messageIndex = 4
         }
     }
 
-    LaunchedEffect(numericPanelViewModel.isMeetingTimeWithinThreshold()){
-        if (numericPanelViewModel.isMeetingTimeWithinThreshold()) {
-            messageIndex = 5
-        } else {
-            messageIndex = 6
-        }
-    }
-
     FuturisticGradientBackground {
-        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+        Box(modifier = Modifier
+            .fillMaxSize()
+            .height(65.dp), contentAlignment = Alignment.Center) {
             when (messageIndex) {
-                0 -> Text(color = Color.White,
+                0 -> {
+                    Log.d("SECUENCIA T", "$messageIndex: Hola, ${meetingInfo.visitante}")
+                    Text(
+                    color = Color.White,
                     fontSize = 65.sp,
                     fontWeight = FontWeight.SemiBold,
                     textAlign = TextAlign.Center,
                     maxLines = 2,
                     text = "Hola, ${meetingInfo.visitante}"
-                )
-                1 -> {
+                    )
+                }
 
-                    Box{
-                        Column (
+                1 -> {
+                    Log.d("SECUENCIA T", "$messageIndex: Estoy notificando a ${meetingInfo.anfitrion} de tu llegada")
+                    Box {
+                        Column(
                             modifier = Modifier.padding(16.dp),
                             horizontalAlignment = Alignment.CenterHorizontally
-                        ){
+                        ) {
                             Text(
                                 color = Color.White,
-                                fontSize = 45.sp,
+                                fontSize = 25.sp,
                                 fontWeight = FontWeight.SemiBold,
                                 textAlign = TextAlign.Center,
                                 maxLines = 2,
@@ -150,7 +191,10 @@ fun MeetingScreen(
                             )
                             Spacer(modifier = Modifier.height(8.dp))
                             Image(
-                                painter = rememberAsyncImagePainter(R.drawable.emailsend, imageEmotionsLoader),
+                                painter = rememberAsyncImagePainter(
+                                    R.drawable.emailsend,
+                                    imageEmotionsLoader
+                                ),
                                 contentDescription = null,
                                 modifier = Modifier
                                     .padding(bottom = 1.dp) // Adjust the padding as needed
@@ -161,60 +205,93 @@ fun MeetingScreen(
                     }
                 }
 
-                2 ->
+                2 -> {
+
+                    Log.d("SECUENCIA T", "$messageIndex: He notificado a ${meetingInfo.anfitrion} de tu llegada")
+                    Box {
+                        Column {
+                            Text(
+                                color = Color.White,
+                                fontSize = 25.sp,
+                                fontWeight = FontWeight.SemiBold,
+                                textAlign = TextAlign.Center,
+                                maxLines = 2,
+                                text = "He notificado a ${meetingInfo.anfitrion} de tu llegada"
+                            )
+                            Spacer(modifier = Modifier.height(5.dp))
+                            Text(
+                                text = "Reunión programada a las ${meetingInfo.start_time}",
+                                color = Color.White,
+                                fontSize = 15.sp,
+                                fontWeight = FontWeight.Light,
+                                textAlign = TextAlign.Center,
+                                maxLines = 1
+                            )
+                            Spacer(modifier = Modifier.height(5.dp))
+                        }
+                    }
+
+                }
+
+                3 -> {
+
+                }
+                4 -> {
+                    Log.d("SECUENCIA T", "$messageIndex: Yendo a ${meetingInfo.puntomapa}")
                     Text(
-                    color = Color.White,
-                    fontSize = 65.sp,
-                    fontWeight = FontWeight.SemiBold,
-                    textAlign = TextAlign.Center,
-                    maxLines = 2,
-                    text = "Te acompaño a la sala asignada"
-                )
+                        color = Color.White,
+                        fontSize = 25.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        textAlign = TextAlign.Center,
+                        maxLines = 2,
+                        text = "Hemos llegado a ${meetingInfo.puntomapa}. Tome asiento y en breves momentos comenzará la reunión. Muchas gracias"
+                    )
+                }
 
-                3 -> Text(
-                    color = Color.White,
-                    fontSize = 25.sp,
-                    fontWeight = FontWeight.SemiBold,
-                    textAlign = TextAlign.Center,
-                    maxLines = 2,
-                    text = "Yendo a ${meetingInfo.puntomapa}"
-                )
+                5 -> {
+                    Log.d("SECUENCIA T", "$messageIndex: Veo que ha llegado puntual. Acompáñeme a la sala que se le ha asignado.")
+                    Text(
+                        color = Color.White,
+                        fontSize = 25.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        textAlign = TextAlign.Center,
+                        maxLines = 2,
+                        text = "Veo que ha llegado puntual. Acompáñeme a la sala que se le ha asignado."
+                    )
+                    Spacer(modifier = Modifier.height(10.dp))
+                    Text(
+                        color = Color.White,
+                        fontSize = 20.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        textAlign = TextAlign.Center,
+                        maxLines = 2,
+                        text = "Yendo a ${meetingInfo.puntomapa}"
+                    )
+                }
 
-                4 -> Text(
-                    color = Color.White,
-                    fontSize = 25.sp,
-                    fontWeight = FontWeight.SemiBold,
-                    textAlign = TextAlign.Center,
-                    maxLines = 2,
-                    text = "Hemos llegado a ${meetingInfo.puntomapa}. Tome asiento y en breves momentos comenzará la reunión. Muchas gracias"
-                )
+                6 -> {
+                    Log.d("SECUENCIA T", "$messageIndex: Todavía no es la hora establecida para la reunión. Por favor, espere en la sala de espera. En breves instantes vendrán a buscarle. Gracias")
+                    Text(
+                        color = Color.White,
+                        fontSize = 25.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        textAlign = TextAlign.Center,
+                        maxLines = 2,
+                        text = "Todavía no es la hora establecida para la reunión. Por favor, espere en la sala de espera. En breves instantes vendrán a buscarle. Gracias"
+                    )
+                }
 
-                5 -> Text(
-                    color = Color.White,
-                    fontSize = 25.sp,
-                    fontWeight = FontWeight.SemiBold,
-                    textAlign = TextAlign.Center,
-                    maxLines = 2,
-                    text = "Veo que ha llegado puntual. Acompáñeme a la sala que se le ha asignado."
-                )
-
-                6 -> Text(
-                    color = Color.White,
-                    fontSize = 25.sp,
-                    fontWeight = FontWeight.SemiBold,
-                    textAlign = TextAlign.Center,
-                    maxLines = 2,
-                    text = "Todavía no es la hora establecida para la reunión. Por favor, espere en la sala de espera. En breves instantes vendrán a buscarle. Gracias"
-                )
-
-                7 -> Text(
-                    color = Color.White,
-                    fontSize = 25.sp,
-                    fontWeight = FontWeight.SemiBold,
-                    textAlign = TextAlign.Center,
-                    maxLines = 2,
-                    text = "Regresando a ${mqttViewModel.returnDestination.value}"
-                )
+                7 -> {
+                    Log.d("SECUENCIA T", "$messageIndex: Regresando a ${mqttViewModel.returnDestination.value}")
+                    Text(
+                        color = Color.White,
+                        fontSize = 25.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        textAlign = TextAlign.Center,
+                        maxLines = 2,
+                        text = "Regresando a ${mqttViewModel.returnDestination.value}"
+                    )
+                }
             }
         }
     }
