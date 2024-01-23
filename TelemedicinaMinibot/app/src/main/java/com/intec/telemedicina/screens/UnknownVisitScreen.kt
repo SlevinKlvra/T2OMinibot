@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
@@ -21,6 +22,7 @@ import androidx.compose.material.icons.outlined.LocationOn
 import androidx.compose.material.icons.outlined.Person
 import androidx.compose.material.icons.outlined.ShoppingCart
 import androidx.compose.material3.Button
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -45,6 +47,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.intec.telemedicina.components.GoBackButton
+import com.intec.telemedicina.components.LoadingSpinner
 import com.intec.telemedicina.components.TransparentButtonWithIcon
 import com.intec.telemedicina.robotinterface.RobotManager
 import com.intec.telemedicina.viewmodels.MqttViewModel
@@ -91,6 +94,7 @@ fun UnknownVisitScreen(
     }
 
     val context = LocalContext.current
+    val isLoading by numericPanelViewModel.isLoading.collectAsState()
 
     var currentPage by remember { mutableStateOf(1) }
     val totalPages = 7
@@ -109,9 +113,10 @@ fun UnknownVisitScreen(
         }
     }
 
-    var sendingData by remember { mutableStateOf(false) }
-    LaunchedEffect(sendingData) {
-        if (sendingData) {
+    var isSendingData by remember { mutableStateOf(false) }
+
+    LaunchedEffect(isSendingData) {
+        if (isSendingData) {
             try {
                 val success = withContext(Dispatchers.IO) {
                     numericPanelViewModel.postUnknownVisitor(userData)
@@ -125,7 +130,7 @@ fun UnknownVisitScreen(
             } catch (e: Exception) {
                 Log.e("Error", "Error al enviar la solicitud: $e")
             } finally {
-                sendingData = false
+                isSendingData = false
             }
         }
     }
@@ -187,13 +192,21 @@ fun UnknownVisitScreen(
                         Button(
                             onClick = {
                                 if (validateFields(context, userData)) {
-                                    sendingData = true
+                                    isSendingData = true
                                 }
                             },
-                            enabled = validateFields(context, userData) && !sendingData,
-                            modifier = Modifier.widthIn(min = 33.dp) // Establecer el ancho deseado
+                            enabled = validateFields(context, userData) && !isSendingData,
+                            modifier = Modifier.widthIn(min = 33.dp)
                         ) {
-                            Text("Enviar")
+                            if (isSendingData) {
+                                CircularProgressIndicator(
+                                    modifier = Modifier.size(10.dp),
+                                    strokeWidth = 2.dp,
+                                    color = Color.White
+                                )
+                            } else {
+                                Text("Enviar")
+                            }
                         }
                     }
                 }
@@ -230,7 +243,14 @@ fun UnknownVisitScreen(
                         message = userData.asunto,
                         onMessageChange = { userData = userData.copy(asunto = it) })
 
-                    7 -> LastStep(navController, mqttViewModel)
+                    7 -> {
+
+
+                        if (isLoading) LoadingSpinner()
+                        else {
+                            LastStep(numericPanelViewModel, mqttViewModel)
+                        }
+                    }
                 }
             }
         }
@@ -508,7 +528,8 @@ fun MessageStep(message: String, onMessageChange: (String) -> Unit) {
 
 
 @Composable
-fun LastStep(navController: NavController, mqttViewModel: MqttViewModel) {
+fun LastStep(numericPanelViewModel: NumericPanelViewModel, mqttViewModel: MqttViewModel) {
+
     Column(
         modifier = Modifier
             .fillMaxSize()

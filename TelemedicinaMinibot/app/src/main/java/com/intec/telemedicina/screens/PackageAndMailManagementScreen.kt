@@ -29,8 +29,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
@@ -38,7 +36,6 @@ import coil.ImageLoader
 import coil.decode.GifDecoder
 import coil.decode.ImageDecoderDecoder
 import com.intec.telemedicina.components.GoBackButton
-import com.intec.telemedicina.components.LoadingSpinner
 import com.intec.telemedicina.components.NumericPad
 import com.intec.telemedicina.components.TransparentButtonWithIcon
 import com.intec.telemedicina.robotinterface.RobotManager
@@ -54,15 +51,15 @@ fun PackageAndMailManagementScreen(
     numericPanelViewModel: NumericPanelViewModel
 ) {
     Log.d("Current Screen", "PackageAndMailManagementScreen")
-    val isLoading by numericPanelViewModel.isLoading.collectAsState()
 
     val shouldCheckCode = remember { mutableStateOf(false) }
+    val isCodeCorrect by numericPanelViewModel.isCodeCorrect.collectAsState()
+
     var hasCode by remember { mutableStateOf(false) }
 
     var currentPage by remember { mutableStateOf(1) }
     val totalPages = 3
 
-    val isCodeCorrect by numericPanelViewModel.isCodeCorrect.collectAsState()
 
     var messageIndex by remember { mutableStateOf(1) }
 
@@ -117,12 +114,14 @@ fun PackageAndMailManagementScreen(
                 robotManager.speak("Notificación enviada.", false)
                 messageIndex = 3
             }
+
             7 -> {
                 Log.d("SECUENCIA","$messageIndex: Hemos llegado. Puede depositar el paquete aquí. Gracias.")
                 robotManager.speak("Hemos llegado. Puede depositar el paquete aquí. Gracias.", false)
                 delay(8000L)
                 messageIndex = 8
             }
+
             8 -> {
                 Log.d("SECUENCIA","$messageIndex: REGRESANDO")
                 robotManager.returnToPosition(mqttViewModel.returnDestination.value!!)
@@ -133,6 +132,10 @@ fun PackageAndMailManagementScreen(
 
     LaunchedEffect(shouldCheckCode.value) {
         if (shouldCheckCode.value) {
+            Log.d(
+                "NumericPad",
+                "Before API Call - enteredCode: ${numericPanelViewModel.enteredCode.value}"
+            )
             numericPanelViewModel.checkForTaskExecution()
             shouldCheckCode.value = false
         }
@@ -153,30 +156,27 @@ fun PackageAndMailManagementScreen(
     mqttViewModel.setReturnDestinationDefaultValue()
 
     FuturisticGradientBackground {
-        if (isLoading) LoadingSpinner()
-        else {
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(2.dp),
-            ) {
-                Row() {
-                    if (currentPage != totalPages) {
-                        GoBackButton(onClick = {
-                            if (currentPage > 1) {
-                                currentPage--
-                            } else {
-                                Log.d(
-                                    "return",
-                                    "to home screen and to default return pos: ${mqttViewModel.returnDestination.value}"
-                                )
-                                robotManager.returnToPosition(mqttViewModel.returnDestination.value.toString())
-                                mqttViewModel.navigateToHomeScreen()
-                            }
-                        })
-                    }
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(2.dp),
+        ) {
+            Row() {
+                if (currentPage != totalPages) {
+                    GoBackButton(onClick = {
+                        if (currentPage > 1) {
+                            currentPage--
+                        } else {
+                            Log.d(
+                                "return",
+                                "to home screen and to default return pos: ${mqttViewModel.returnDestination.value}"
+                            )
+                            robotManager.returnToPosition(mqttViewModel.returnDestination.value.toString())
+                            mqttViewModel.navigateToHomeScreen()
+                        }
+                    })
                 }
-
+            }
                 when (currentPage) {
                     1 -> {
 
@@ -190,7 +190,7 @@ fun PackageAndMailManagementScreen(
                                 onButton2Click = { currentPage++; hasCode = false; messageIndex = 3 })
                         }
                     }
-
+                }
                     2 -> {
                         Log.d("SECUENCIA T","$messageIndex: Por favor, introduzca el código que se le ha proporcionado")
                         if (hasCode){
@@ -206,6 +206,7 @@ fun PackageAndMailManagementScreen(
                             }
                         }
                     }
+                }
 
                     3 -> {
                         Log.d("SECUENCIA T","$messageIndex: Acompáñeme a la sección de mensajería para depositar el paquete")
@@ -343,5 +344,3 @@ fun NoCodeStep(robotManager: RobotManager, mqttViewModel: MqttViewModel) {
         )
     }
 }
-
-

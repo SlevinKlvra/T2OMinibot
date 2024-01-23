@@ -85,7 +85,17 @@ class NumericPanelViewModel(
     // Función para verificar el código para configuración avanzada
     fun checkForAdvancedSettingsAccess(): Boolean {
         // Aquí iría la lógica para verificar el código
-        return enteredCode.value == "8998"
+        _isLoading.value = true
+        return if (enteredCode.value == "8998") {
+            _isLoading.value = false
+            true
+        } else {
+            triggerErrorAnimation()
+            Log.e("Error", "La respuesta es no válida")
+            robotMan.speak("El código no es válido. Inténtelo de nuevo", false)
+            _isLoading.value = false
+            false
+        }
     }
 
     // Estado para indicar si el código es correcto
@@ -194,15 +204,23 @@ class NumericPanelViewModel(
 
     private suspend fun makeApiCall(token: String): Response {
         Log.d("TAG MAIN", "Haciendo llamada a la API: token: $token")
+
+        // Log enteredCode value
+        Log.d("makeApiCall", "enteredCode value: ${enteredCode.value}")
+
         val client = OkHttpClient()
         val request = Request.Builder()
             .url("https://t2o.intecrobots.com/api/visitas/consultacodigototal?codigo=${enteredCode.value}")
             .addHeader("Authorization", "Bearer $token")
             .get()
             .build()
+
+        // Log the complete URL
         Log.d("makeApiCall Request", "URL: $request")
+
         return client.newCall(request).execute()
     }
+
 
     private suspend fun handleApiResponse(response: Response?) {
         if (response != null) {
@@ -214,7 +232,15 @@ class NumericPanelViewModel(
             if (response.isSuccessful) {
                 // Manejar respuesta exitosa
                 // Si la respuesta es exitosa, consideramos que el código es correcto.
-
+                if (responseBodyString?.contains("error") == true) {
+                    // Manejar caso de error en el cuerpo de la respuesta
+                    withContext(Dispatchers.Main) {
+                        triggerErrorAnimation()
+                        Log.e("Error", "La respuesta es no válida")
+                        robotMan.speak("El código no es válido. Inténtelo de nuevo", false)
+                    }
+                    return
+                }
                 val gson = Gson()
                 // Nuevo código para manejar la respuesta como un arreglo
                 val type = object : TypeToken<List<MeetingResponse>>() {}.type
@@ -319,6 +345,7 @@ class NumericPanelViewModel(
         return try {
             withContext(Dispatchers.IO) {
                 val client = OkHttpClient()
+                _isLoading.value = true
 
                 if (currentToken.isEmpty()) {
                     Log.d("checkForTaskExecution", "currentToken is empty")
@@ -362,6 +389,7 @@ class NumericPanelViewModel(
                             currentToken = newToken
                         }
                     }
+                    _isLoading.value = false
                     return@withContext response.isSuccessful
                 }
             }

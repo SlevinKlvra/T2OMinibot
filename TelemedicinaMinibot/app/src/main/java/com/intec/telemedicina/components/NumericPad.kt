@@ -19,6 +19,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -60,66 +61,69 @@ fun NumericPad(
 
     DisposableEffect(Unit) {
         numericPanelViewModel.resetDigits()
-        onDispose {
-            numericPanelViewModel.resetDigits()
-        }
+        onDispose { }
     }
 
-    Box(modifier = shakeModifier) {
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(8.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center
-        ) {
-            Text(
-                text = titleText,
-                style = textStyle.copy(fontSize = 15.sp),
-                modifier = Modifier.padding(bottom = 4.dp),
-                color = Color.White
-            )
-            Text(
-                text = numericPanelViewModel.enteredCode.value,
-                style = textStyle.copy(fontSize = 12.sp),
+    val isLoading by numericPanelViewModel.isLoading.collectAsState()
+
+    if (isLoading) LoadingSpinner()
+    else {
+        Box(modifier = shakeModifier) {
+            Column(
                 modifier = Modifier
-                    .padding(6.dp),
-                color = Color.White
-            )
+                    .fillMaxSize()
+                    .padding(8.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center
+            ) {
+                Text(
+                    text = titleText,
+                    style = textStyle.copy(fontSize = 15.sp),
+                    modifier = Modifier.padding(bottom = 4.dp),
+                    color = Color.White
+                )
+                Text(
+                    text = numericPanelViewModel.enteredCode.value,
+                    style = textStyle.copy(fontSize = 12.sp),
+                    modifier = Modifier
+                        .padding(6.dp),
+                    color = Color.White
+                )
 
-            // Teclado numérico
-            val buttons =
-                listOf("1", "2", "3", "4", "5", "6", "7", "8", "9", "Borrar", "0", "Enviar")
-            buttons.chunked(3).forEach { row ->
-                Row(
-                    horizontalArrangement = Arrangement.SpaceEvenly,
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    row.forEach { number ->
-                        if (number.isNotBlank()) {
-                            NumericPadButton(
-                                text = number,
-                                onClick = {
-                                    when (number) {
-                                        "Borrar" -> {
-                                            numericPanelViewModel.removeLastDigit()
+                // Teclado numérico
+                val buttons =
+                    listOf("1", "2", "3", "4", "5", "6", "7", "8", "9", "Borrar", "0", "Enviar")
+                buttons.chunked(3).forEach { row ->
+                    Row(
+                        horizontalArrangement = Arrangement.SpaceEvenly,
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        row.forEach { number ->
+                            if (number.isNotBlank()) {
+                                NumericPadButton(
+                                    text = number,
+                                    onClick = {
+                                        when (number) {
+                                            "Borrar" -> {
+                                                numericPanelViewModel.removeLastDigit()
+                                            }
+
+                                            "Enviar" -> {
+                                                onClick()
+                                            }
+
+                                            else -> numericPanelViewModel.addDigit(number.first())
                                         }
-
-                                        "Enviar" -> {
-                                            onClick()
-                                        }
-
-                                        else -> numericPanelViewModel.enteredCode.value += number.first()
-                                    }
-                                },
-                            )
-                        } else {
-                            Spacer(
-                                modifier = Modifier
-                                    .padding(4.dp)
-                                    .height(30.dp)
-                                    .width(100.dp)
-                            )
+                                    },
+                                )
+                            } else {
+                                Spacer(
+                                    modifier = Modifier
+                                        .padding(4.dp)
+                                        .height(30.dp)
+                                        .width(100.dp)
+                                )
+                            }
                         }
                     }
                 }
