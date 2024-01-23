@@ -9,7 +9,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.navigation.NavController
 import com.intec.telemedicina.components.GoBackButton
-import com.intec.telemedicina.components.LoadingSpinner
 import com.intec.telemedicina.components.NumericPad
 import com.intec.telemedicina.navigation.AppScreens
 import com.intec.telemedicina.robotinterface.RobotManager
@@ -26,8 +25,6 @@ fun NumericPanelScreen(
     Log.d("Current Screen", "NumericPanelScreen")
     val shouldCheckCode = remember { mutableStateOf(false) }
     val isCodeCorrect by numericPanelViewModel.isCodeCorrect.collectAsState()
-    val isLoading by numericPanelViewModel.isLoading.collectAsState()
-
 
     LaunchedEffect(shouldCheckCode.value) {
         if (shouldCheckCode.value) {
@@ -48,7 +45,6 @@ fun NumericPanelScreen(
             onClick = { shouldCheckCode.value = true },
             titleText = "Por favor, introduce el código que se te ha proporcionado"
         )
-        if (isLoading) LoadingSpinner()
         GoBackButton(onClick = { mqttViewModel.navigateToHomeScreen() })
     }
 }

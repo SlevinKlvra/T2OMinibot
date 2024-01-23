@@ -29,8 +29,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
@@ -38,7 +36,6 @@ import coil.ImageLoader
 import coil.decode.GifDecoder
 import coil.decode.ImageDecoderDecoder
 import com.intec.telemedicina.components.GoBackButton
-import com.intec.telemedicina.components.LoadingSpinner
 import com.intec.telemedicina.components.NumericPad
 import com.intec.telemedicina.components.TransparentButtonWithIcon
 import com.intec.telemedicina.robotinterface.RobotManager
@@ -54,15 +51,15 @@ fun PackageAndMailManagementScreen(
     numericPanelViewModel: NumericPanelViewModel
 ) {
     Log.d("Current Screen", "PackageAndMailManagementScreen")
-    val isLoading by numericPanelViewModel.isLoading.collectAsState()
 
     val shouldCheckCode = remember { mutableStateOf(false) }
+    val isCodeCorrect by numericPanelViewModel.isCodeCorrect.collectAsState()
+
     var hasCode by remember { mutableStateOf(false) }
 
     var currentPage by remember { mutableStateOf(1) }
     val totalPages = 3
 
-    val isCodeCorrect by numericPanelViewModel.isCodeCorrect.collectAsState()
 
     var messageIndex by remember { mutableStateOf(1) }
 
@@ -86,28 +83,53 @@ fun PackageAndMailManagementScreen(
         }
     }
 
-    LaunchedEffect(messageIndex){
-        when(messageIndex){
+    LaunchedEffect(messageIndex) {
+        when (messageIndex) {
             1 -> robotManager.speak("¿Dispone de código de entrega?", false)
-            2 -> robotManager.speak("Por favor, introduzca el código que se le ha proporcionado", false)
+            2 -> robotManager.speak(
+                "Por favor, introduzca el código que se le ha proporcionado",
+                false
+            )
+
             3 -> {
-                robotManager.speak("Acompáñeme a la sección de mensajería para depositar el paquete", false)
-                robotManager.startNavigation(1, "correo", mqttViewModel.coordinateDeviation.value!!.toDouble(), mqttViewModel.navigationTimeout.value!!.toLong())
+                robotManager.speak(
+                    "Acompáñeme a la sección de mensajería para depositar el paquete",
+                    false
+                )
+                robotManager.startNavigation(
+                    1,
+                    "correo",
+                    mqttViewModel.coordinateDeviation.value!!.toDouble(),
+                    mqttViewModel.navigationTimeout.value!!.toLong()
+                )
                 messageIndex = 4
             }
+
             4 -> {}
-            5 -> robotManager.speak("Código introducido correctamente. Por favor, acompáñeme a la sección de mensajería.", false)
+            5 -> robotManager.speak(
+                "Código introducido correctamente. Por favor, acompáñeme a la sección de mensajería.",
+                false
+            )
+
             6 -> {
-                robotManager.speak("Notificando a ${meetingInfo.anfitrion} de que su entrega ha llegado. Espere por favor.", false)
+                robotManager.speak(
+                    "Notificando a ${meetingInfo.anfitrion} de que su entrega ha llegado. Espere por favor.",
+                    false
+                )
                 delay(5000L)
                 robotManager.speak("Notificación enviada.", false)
                 messageIndex = 3
             }
+
             7 -> {
-                robotManager.speak("Hemos llegado. Puede depositar el paquete aquí. Gracias.", false)
+                robotManager.speak(
+                    "Hemos llegado. Puede depositar el paquete aquí. Gracias.",
+                    false
+                )
                 delay(8000L)
                 messageIndex = 8
             }
+
             8 -> {
                 robotManager.returnToPosition(mqttViewModel.returnDestination.value!!)
                 // Considera agregar un delay o manejar cuando se debe cambiar a messageIndex 6 si es necesario
@@ -117,6 +139,10 @@ fun PackageAndMailManagementScreen(
 
     LaunchedEffect(shouldCheckCode.value) {
         if (shouldCheckCode.value) {
+            Log.d(
+                "NumericPad",
+                "Before API Call - enteredCode: ${numericPanelViewModel.enteredCode.value}"
+            )
             numericPanelViewModel.checkForTaskExecution()
             shouldCheckCode.value = false
         }
@@ -137,61 +163,61 @@ fun PackageAndMailManagementScreen(
     mqttViewModel.setReturnDestinationDefaultValue()
 
     FuturisticGradientBackground {
-        if (isLoading) LoadingSpinner()
-        else {
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(2.dp),
-            ) {
-                Row() {
-                    if (currentPage != totalPages) {
-                        GoBackButton(onClick = {
-                            if (currentPage > 1) {
-                                currentPage--
-                            } else {
-                                Log.d(
-                                    "return",
-                                    "to home screen and to default return pos: ${mqttViewModel.returnDestination.value}"
-                                )
-                                robotManager.returnToPosition(mqttViewModel.returnDestination.value.toString())
-                                mqttViewModel.navigateToHomeScreen()
-                            }
-                        })
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(2.dp),
+        ) {
+            Row() {
+                if (currentPage != totalPages) {
+                    GoBackButton(onClick = {
+                        if (currentPage > 1) {
+                            currentPage--
+                        } else {
+                            Log.d(
+                                "return",
+                                "to home screen and to default return pos: ${mqttViewModel.returnDestination.value}"
+                            )
+                            robotManager.returnToPosition(mqttViewModel.returnDestination.value.toString())
+                            mqttViewModel.navigateToHomeScreen()
+                        }
+                    })
+                }
+            }
+
+            when (currentPage) {
+                1 -> {
+                    Row() {
+                        ButtonsStep(
+                            icon1 = Icons.Outlined.Check,
+                            icon2 = Icons.Outlined.Clear,
+                            text = "¿Dispone de código de entrega?",
+                            onButton1Click = {
+                                currentPage++; hasCode = true; messageIndex = 2
+                            },
+                            onButton2Click = {
+                                currentPage++; hasCode = false; messageIndex = 3
+                            })
                     }
                 }
 
-                when (currentPage) {
-                    1 -> {
-                        Row() {
-                            ButtonsStep(
-                                icon1 = Icons.Outlined.Check,
-                                icon2 = Icons.Outlined.Clear,
-                                text = "¿Dispone de código de entrega?",
-                                onButton1Click = { currentPage++; hasCode = true; messageIndex = 2 },
-                                onButton2Click = { currentPage++; hasCode = false; messageIndex = 3 })
-                        }
-                    }
-
-                    2 -> {
-                        if (hasCode){
-                            NumericPad(
-                                numericPanelViewModel = numericPanelViewModel,
-                                onClick = { shouldCheckCode.value = true },
-                                titleText = "Por favor, introduce el código de entrega"
-                            )
-                        }
-                        else {
-                            Row(modifier = Modifier.fillMaxSize()) {
-                                NoCodeStep(robotManager, mqttViewModel)
-                            }
-                        }
-                    }
-
-                    3 -> {
+                2 -> {
+                    if (hasCode) {
+                        NumericPad(
+                            numericPanelViewModel = numericPanelViewModel,
+                            onClick = { shouldCheckCode.value = true },
+                            titleText = "Por favor, introduce el código de entrega"
+                        )
+                    } else {
                         Row(modifier = Modifier.fillMaxSize()) {
-                            NotificationStep(navController = navController)
+                            NoCodeStep(robotManager, mqttViewModel)
                         }
+                    }
+                }
+
+                3 -> {
+                    Row(modifier = Modifier.fillMaxSize()) {
+                        NotificationStep(navController = navController)
                     }
                 }
             }
@@ -310,5 +336,3 @@ fun NoCodeStep(robotManager: RobotManager, mqttViewModel: MqttViewModel) {
         )
     }
 }
-
-

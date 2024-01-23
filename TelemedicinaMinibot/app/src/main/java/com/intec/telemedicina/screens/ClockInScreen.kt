@@ -17,10 +17,8 @@ fun ClockInScreen(
     numericPanelViewModel: NumericPanelViewModel
 ) {
 
-    val isLoading by numericPanelViewModel.isLoading.collectAsState()
 
     FuturisticGradientBackground {
-        if (isLoading) LoadingSpinner()
         GoBackButton(onClick = { mqttViewModel.navigateToHomeScreen() })
         NumericPad(
             numericPanelViewModel = numericPanelViewModel,

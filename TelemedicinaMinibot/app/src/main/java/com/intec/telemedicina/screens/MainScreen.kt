@@ -30,8 +30,8 @@ fun MainScreen(
         }
 
         MqttViewModel.NavigationState.MqttScreen -> {
-            Log.d("HomeScreen enum", AppScreens.MqttScreen.route)
-            MqttScreen(navController, mqttViewModel)
+            Log.d("HomeScreen enum", AppScreens.MQTTScreen.route)
+            MQTTScreen(navController, mqttViewModel)
         }
 
         MqttViewModel.NavigationState.HomeScreen -> {
