@@ -502,7 +502,7 @@ class MqttViewModel @Inject constructor(
 
     val isNavigationComplete = MutableLiveData<Boolean>(false)
 
-    fun onNavigationComplete() {
+    fun onNavigationCompleted() {
         isNavigationComplete.value = true
     }
 

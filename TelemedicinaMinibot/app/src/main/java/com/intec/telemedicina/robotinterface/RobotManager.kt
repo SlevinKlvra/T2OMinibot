@@ -278,7 +278,7 @@ class RobotManager @Inject constructor(private val skillApi: SkillApi, @Applicat
 
     // Definición del callback
     interface NavigationCallback {
-        fun onNavigationComplete()
+        fun onNavigationCompleted()
         fun onNavigationStarted()
         fun onSpeakFinished()
     }
@@ -325,7 +325,7 @@ class RobotManager @Inject constructor(private val skillApi: SkillApi, @Applicat
                             "navigation_started" -> {
                                 speak("Estoy yendo a $destName",false)
                                 status_ = "START"
-                                navigationCallback?.onNavigationComplete()
+                                navigationCallback?.onNavigationStarted()
                                 val robotStatus = RobotStatus(destName, status_)
 
                                 val json = gson.toJson(robotStatus)
@@ -364,8 +364,8 @@ class RobotManager @Inject constructor(private val skillApi: SkillApi, @Applicat
                         callbackNavigationStarted(false)
                         registerPersonListener()
                         startFocusFollow(0)
-                        Log.d("ROBOT STATUS NUEVO", robotStatus.toString())
-                        navigationCallback?.onNavigationComplete()
+                        Log.d("ROBOT STATUS END", robotStatus.toString())
+                        navigationCallback?.onNavigationCompleted()
                     }
 
                     val json = gson.toJson(robotStatus)

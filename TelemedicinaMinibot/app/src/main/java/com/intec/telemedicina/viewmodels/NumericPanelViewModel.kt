@@ -245,9 +245,10 @@ class NumericPanelViewModel(
                 // Nuevo código para manejar la respuesta como un arreglo
                 val type = object : TypeToken<List<MeetingResponse>>() {}.type
                 val meetingInfoList = gson.fromJson<List<MeetingResponse>>(responseBodyString, type)
-
+                Log.d("handleApiResponse Success", "meetingInfoList: $meetingInfoList)")
                 withContext(Dispatchers.Main) {
                     if (meetingInfoList.isNotEmpty()) {
+                        Log.d("handleApiResponse Success", "meetingInfoList is not empty")
                         val meetingInfo = meetingInfoList.first()
                         collectedMeetingInfo.value = meetingInfo
                         _isCodeCorrect.value = true
