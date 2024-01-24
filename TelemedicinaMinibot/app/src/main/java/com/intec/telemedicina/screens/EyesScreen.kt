@@ -153,7 +153,7 @@ fun ImageExample(faceType : Face, interactionState: InteractionState, question :
             when(faceType){
                 Face.NEUTRAL -> {
                     Image(
-                        painter = rememberAsyncImagePainter(R.drawable.basicounscreen,imageEmotionsLoader),
+                        painter = rememberAsyncImagePainter(R.drawable.white_neutral,imageEmotionsLoader),
                         contentDescription = null,
                         modifier = Modifier.fillMaxSize()
                     )
