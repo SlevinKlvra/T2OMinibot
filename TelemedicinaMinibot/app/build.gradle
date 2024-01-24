@@ -7,11 +7,11 @@ plugins {
 }
 
 android {
-    namespace 'com.intec.telemedicina'
+    namespace 'com.intec.t2o'
     compileSdk 34
 
     defaultConfig {
-        applicationId "com.intec.telemedicina"
+        applicationId "com.intec.t2o"
         minSdk 26
         targetSdk 34
         versionCode 1
