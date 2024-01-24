@@ -1,4 +1,4 @@
-package com.intec.t2o.screens
+package com.intec.telemedicina.screens
 
 import android.util.Log
 import androidx.compose.foundation.Image
@@ -40,12 +40,12 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.ainirobot.coreservice.client.actionbean.Pose
-import com.intec.t2o.R
-import com.intec.t2o.components.NavigationButton
-import com.intec.t2o.components.TransparentButtonWithIconAndText
-import com.intec.t2o.navigation.AppScreens
-import com.intec.t2o.robotinterface.RobotManager
-import com.intec.t2o.viewmodels.MqttViewModel
+import com.intec.telemedicina.R
+import com.intec.telemedicina.components.NavigationButton
+import com.intec.telemedicina.components.TransparentButtonWithIconAndText
+import com.intec.telemedicina.navigation.AppScreens
+import com.intec.telemedicina.robotinterface.RobotManager
+import com.intec.telemedicina.viewmodels.MqttViewModel
 
 @Composable
 fun HomeScreen(

@@ -87,15 +87,6 @@ fun PackageAndMailManagementScreen(
         }
         .build()
 
-    val isNavigationComplete = mqttViewModel.isNavigationComplete.observeAsState()
-    val isSpeakingFinished = mqttViewModel.isSpeakFinish.observeAsState()
-
-    LaunchedEffect(isNavigationComplete.value) {
-        if (isNavigationComplete.value == true) {
-            messageIndex = 4
-        }
-    }
-
     LaunchedEffect(messageIndex){
         when(messageIndex){
             1 -> {
@@ -126,7 +117,7 @@ fun PackageAndMailManagementScreen(
                                 robotManager.speak("Hemos llegado. Puede depositar el paquete aquí. Yo vuelvo a mi puesto. Muchas gracias.", false, object : RobotManager.SpeakCompleteListener {
                                     override fun onSpeakComplete() {
                                         // Acciones a realizar después de hablar
-                                        robotManager.returnToPosition(mqttViewModel.returnDestination.value!!)
+                                        mqttViewModel.returnToPosition(mqttViewModel.returnDestination.value!!)
                                     }
                                 })
                             }
@@ -150,26 +141,13 @@ fun PackageAndMailManagementScreen(
                 Log.d("SECUENCIA","$messageIndex: Notificando a ${meetingInfo.anfitrion} de que su entrega ha llegado. Espere por favor")
                 robotManager.speak("Notificando a ${meetingInfo.anfitrion} de que su entrega ha llegado. Espere por favor", false, object : RobotManager.SpeakCompleteListener {
                     override fun onSpeakComplete() {
-                        // Acciones a realizar después de hablar
-                    }
-                })
-                delay(5000L)
-                if(isSpeakingFinished.value!!){
-                    robotManager.speak("Notificación enviada.", false, object : RobotManager.SpeakCompleteListener {
-                        override fun onSpeakComplete() {
-                            // Acciones a realizar después de hablar
-                            messageIndex = 3
-                        }
-                    })
-                }
-            }
-
-            7 -> {
-                Log.d("SECUENCIA","$messageIndex: Hemos llegado. Puede depositar el paquete aquí. Gracias.")
-                robotManager.speak("Hemos llegado. Puede depositar el paquete aquí. Yo vuelvo a mi puesto. Muchas gracias.", false, object : RobotManager.SpeakCompleteListener {
-                    override fun onSpeakComplete() {
-                        // Acciones a realizar después de hablar
-                        robotManager.returnToPosition(mqttViewModel.returnDestination.value!!)
+                        //TODO: Realizar notificación
+                        robotManager.speak("Notificación enviada.", false, object : RobotManager.SpeakCompleteListener {
+                            override fun onSpeakComplete() {
+                                // Acciones a realizar después de hablar
+                                messageIndex = 3
+                            }
+                        })
                     }
                 })
             }
@@ -193,12 +171,6 @@ fun PackageAndMailManagementScreen(
         }
     }
 
-    LaunchedEffect(isNavigationComplete.value) {
-        if (isNavigationComplete.value == true) {
-            messageIndex = 7
-        }
-    }
-
     mqttViewModel.setReturnDestinationDefaultValue()
 
     FuturisticGradientBackground {
@@ -218,7 +190,7 @@ fun PackageAndMailManagementScreen(
                                     "return",
                                     "to home screen and to default return pos: ${mqttViewModel.returnDestination.value}"
                                 )
-                                robotManager.returnToPosition(mqttViewModel.returnDestination.value.toString())
+                                mqttViewModel.returnToPosition(mqttViewModel.returnDestination.value.toString())
                             }
                         })
                     }

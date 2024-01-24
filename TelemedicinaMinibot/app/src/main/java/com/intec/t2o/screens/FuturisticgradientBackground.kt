@@ -1,4 +1,4 @@
-package com.intec.t2o.screens
+package com.intec.telemedicina.screens
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
@@ -8,8 +8,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.tooling.preview.Preview
-import com.intec.t2o.ui.theme.md_theme_dark_primary
-import com.intec.t2o.ui.theme.seed
+import com.intec.telemedicina.ui.theme.md_theme_dark_primary
+import com.intec.telemedicina.ui.theme.seed
 
 @Composable
 fun FuturisticGradientBackground(content: @Composable () -> Unit) {

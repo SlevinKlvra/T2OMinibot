@@ -1,4 +1,4 @@
-package com.intec.t2o.components
+package com.intec.telemedicina.components
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -21,7 +21,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.intec.t2o.screens.FuturisticGradientBackground
+import com.intec.telemedicina.screens.FuturisticGradientBackground
 
 @Composable
 @Preview(showBackground = true)

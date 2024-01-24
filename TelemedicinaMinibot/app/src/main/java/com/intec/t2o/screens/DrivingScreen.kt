@@ -115,7 +115,7 @@ fun DrivingScreen(
                         icon = Icons.Outlined.Clear,
                         onClick = {
                             mqttViewModel.coutndownJob?.cancel()
-                            mqttViewModel.robotMan.returnToPosition(mqttViewModel.returnDestination.value!!)
+                            mqttViewModel.returnToPosition(mqttViewModel.returnDestination.value!!)
                             mqttViewModel.navigateToEyesScreen()
                         })
                 }

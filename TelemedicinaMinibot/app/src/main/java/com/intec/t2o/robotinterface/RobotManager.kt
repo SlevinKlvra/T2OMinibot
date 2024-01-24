@@ -1,5 +1,6 @@
 package com.intec.t2o.robotinterface
 
+import android.annotation.SuppressLint
 import android.content.Context
 import android.util.Log
 import androidx.compose.runtime.mutableStateOf
@@ -29,11 +30,11 @@ import org.json.JSONArray
 import org.json.JSONException
 import javax.inject.Inject
 
+
 class RobotManager @Inject constructor(
     private val skillApi: SkillApi,
     @ApplicationContext applicationContext: Context
-) :
-    MqttMessageListener {
+) : MqttMessageListener {
 
     var context: Context = applicationContext
 
@@ -422,30 +423,15 @@ class RobotManager @Inject constructor(
         RobotApi.getInstance().stopGoPosition(0)
     }
 
-    fun returnToPosition(positionToReturn: String) {
-        //TODO: Save last known coordinates when starting a navigation
-        if(positionToReturn != ""){
-            startNavigation(0,positionToReturn,0.1,1000000, navigationCompleteListener = object : NavigationCompleteListener {
-                override fun onNavigationComplete() {
-                    // Acciones a realizar después de hablar
-                }
-            })
-        }
-        else{
-            speak("Actualmente no existe un destino al que haya ido previamente",false, object : RobotManager.SpeakCompleteListener {
-                override fun onSpeakComplete() {
-                    // Acciones a realizar después de hablar
-                }
-            })
-        }
-    }
-
     interface SpeakCompleteListener {
         fun onSpeakComplete()
     }
 
     interface NavigationCompleteListener {
         fun onNavigationComplete()
+    }
+    interface NavigationRequestListener {
+        fun navigateToEyesScreen()
     }
 
     fun speak(text : String, listen: Boolean, speakCompleteListener: SpeakCompleteListener){

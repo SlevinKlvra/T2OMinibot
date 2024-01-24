@@ -1,4 +1,4 @@
-package com.intec.t2o.viewmodels
+package com.intec.telemedicina.viewmodels
 
 import android.app.Application
 import android.util.Log
@@ -12,16 +12,16 @@ import androidx.lifecycle.viewModelScope
 import com.ainirobot.coreservice.client.RobotApi
 import com.ainirobot.coreservice.client.actionbean.Pose
 import com.ainirobot.coreservice.client.listener.Person
-import com.intec.t2o.data.APIConfig
-import com.intec.t2o.data.Face
-import com.intec.t2o.data.InteractionState
-import com.intec.t2o.data.RobotConfig
-import com.intec.t2o.mqtt.MQTTConfig
-import com.intec.t2o.mqtt.MqttManager
-import com.intec.t2o.mqtt.MqttManagerCallback
-import com.intec.t2o.mqtt.MqttMessageListener
-import com.intec.t2o.preferences.PreferencesRepository
-import com.intec.t2o.robotinterface.RobotManager
+import com.intec.telemedicina.data.APIConfig
+import com.intec.telemedicina.data.Face
+import com.intec.telemedicina.data.InteractionState
+import com.intec.telemedicina.data.RobotConfig
+import com.intec.telemedicina.mqtt.MQTTConfig
+import com.intec.telemedicina.mqtt.MqttManager
+import com.intec.telemedicina.mqtt.MqttManagerCallback
+import com.intec.telemedicina.mqtt.MqttMessageListener
+import com.intec.telemedicina.preferences.PreferencesRepository
+import com.intec.telemedicina.robotinterface.RobotManager
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -640,7 +640,7 @@ class MqttViewModel @Inject constructor(
                     "startDetection",
                     "ELAPSED TIME: $elapsedTime, detection state: ${detectedPerson.isNullOrEmpty()}, return to pos: ${returnDestination.value}"
                 )
-                robotMan.returnToPosition(returnDestination.value!!)
+                returnToPosition(returnDestination.value!!)
                 navigateToEyesScreen()
                 detectionJob?.cancel()
             }
@@ -869,5 +869,24 @@ class MqttViewModel @Inject constructor(
     fun setAdminState(newState: Boolean) {
         adminState.value = newState
         Log.d("ADMIN STATE", adminState.value.toString())
+    }
+
+    fun returnToPosition(positionToReturn: String) {
+        //TODO: Save last known coordinates when starting a navigation
+        if(positionToReturn != ""){
+            robotMan.startNavigation(0,positionToReturn,coordinateDeviation.value!!.toDouble(),navigationTimeout.value!!.toLong(), navigationCompleteListener = object :
+                RobotManager.NavigationCompleteListener {
+                override fun onNavigationComplete() {
+                    navigateToEyesScreen()
+                }
+            })
+        }
+        else{
+            robotMan.speak("Actualmente no existe un destino al que haya ido previamente",false, object : RobotManager.SpeakCompleteListener {
+                override fun onSpeakComplete() {
+                    // Acciones a realizar después de hablar
+                }
+            })
+        }
     }
 }

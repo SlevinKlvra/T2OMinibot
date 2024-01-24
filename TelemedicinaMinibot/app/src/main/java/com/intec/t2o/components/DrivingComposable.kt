@@ -120,7 +120,7 @@ fun DrivingComposable(
                         icon = Icons.Outlined.Clear,
                         onClick = {
                             mqttViewModel.coutndownJob?.cancel()
-                            robotManager.returnToPosition(mqttViewModel.returnDestination.value!!)
+                            mqttViewModel.returnToPosition(mqttViewModel.returnDestination.value!!)
                             onClose()
                         })
                 }
