@@ -640,7 +640,7 @@ class MqttViewModel @Inject constructor(
                     "startDetection",
                     "ELAPSED TIME: $elapsedTime, detection state: ${detectedPerson.isNullOrEmpty()}, return to pos: ${returnDestination.value}"
                 )
-                robotMan.returnToPosition(returnDestination.value!!)
+                returnToPosition(returnDestination.value!!)
                 navigateToEyesScreen()
                 detectionJob?.cancel()
             }
@@ -869,5 +869,24 @@ class MqttViewModel @Inject constructor(
     fun setAdminState(newState: Boolean) {
         adminState.value = newState
         Log.d("ADMIN STATE", adminState.value.toString())
+    }
+
+    fun returnToPosition(positionToReturn: String) {
+        //TODO: Save last known coordinates when starting a navigation
+        if(positionToReturn != ""){
+            robotMan.startNavigation(0,positionToReturn,coordinateDeviation.value!!.toDouble(),navigationTimeout.value!!.toLong(), navigationCompleteListener = object :
+                RobotManager.NavigationCompleteListener {
+                override fun onNavigationComplete() {
+                    navigateToEyesScreen()
+                }
+            })
+        }
+        else{
+            robotMan.speak("Actualmente no existe un destino al que haya ido previamente",false, object : RobotManager.SpeakCompleteListener {
+                override fun onSpeakComplete() {
+                    // Acciones a realizar después de hablar
+                }
+            })
+        }
     }
 }
