@@ -62,11 +62,14 @@ fun HomeScreen(
     val openEyesScreen by mqttViewModel.openEyesScreen.collectAsState()
 
     LaunchedEffect(key1 = true) {
-        robotManager.speak("Bienvenido a t, 2, o, media. ¿Cuál es el motivo de su visita?", true, object : RobotManager.SpeakCompleteListener {
-            override fun onSpeakComplete() {
-                // Acciones a realizar después de hablar
-            }
-        } )
+        robotManager.speak(
+            "Bienvenido a t, 2, o, media. ¿Cuál es el motivo de su visita?",
+            true,
+            object : RobotManager.SpeakCompleteListener {
+                override fun onSpeakComplete() {
+                    // Acciones a realizar después de hablar
+                }
+            })
     }
 
     if (openEyesScreen) {
@@ -141,12 +144,17 @@ fun LazyRowUbicaciones(
             Log.d("DESTINATIONS", item.name)
             // Un botón con el onClick y el estilo que quieras
             NavigationButton(item.name, onClick = {
-                mqttViewModel.robotMan.startNavigation(0, item.name, 0.1, 1000000, navigationCompleteListener = object :
-                    RobotManager.NavigationCompleteListener {
-                    override fun onNavigationComplete() {
-                        // Acciones a realizar después de hablar
-                    }
-                })
+                mqttViewModel.robotMan.startNavigation(
+                    0,
+                    item.name,
+                    0.1,
+                    1000000,
+                    navigationCompleteListener = object :
+                        RobotManager.NavigationCompleteListener {
+                        override fun onNavigationComplete() {
+                            // Acciones a realizar después de hablar
+                        }
+                    })
                 navController.navigate(AppScreens.EyesScreen.route)
             })
         }

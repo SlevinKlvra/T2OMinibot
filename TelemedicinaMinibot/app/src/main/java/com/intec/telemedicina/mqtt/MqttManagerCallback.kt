@@ -17,13 +17,11 @@ class MqttManagerCallback(
 ) : MqttCallbackExtended {
 
     override fun messageArrived(topic: String, message: MqttMessage) {
-        onMessageArrived("Topic: $topic, Message: ${message.toString()}")
-        Log.d("MQTT Message Arrived","$topic: $message")
+        onMessageArrived("Topic: $topic, Message: $message")
+        Log.d("MQTT Message Arrived", "$topic: $message")
         val receivedMessage = message?.toString() ?: return
         listener.onMessageReceived(topic, receivedMessage)
         // Aquí puedes manejar la lógica cuando llega un mensaje
-
-
     }
 
     override fun connectComplete(reconnect: Boolean, serverURI: String) {

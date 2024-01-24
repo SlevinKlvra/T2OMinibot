@@ -44,8 +44,6 @@ class MainActivity : ComponentActivity() {
 
     // TODO: Pass robotManager to the viewmodel and try out the navigation
 
-    private val REQUEST_MANAGE_EXTERNAL_STORAGE_PERMISSION = 123
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -59,19 +57,39 @@ class MainActivity : ComponentActivity() {
                 // Establece el callback
                 robotMan.setNavigationCallback(object : RobotManager.NavigationCallback {
                     override fun onNavigationCompleted() {
-                        Log.d("MainActivity prev", "onNavigationComplete: ${mqttViewModel.isNavigationComplete.value}")
+                        Log.d(
+                            "MainActivity prev",
+                            "onNavigationComplete: ${mqttViewModel.isNavigationComplete.value}"
+                        )
                         mqttViewModel.onNavigationCompleted()
-                        Log.d("MainActivity after", "onNavigationComplete: ${mqttViewModel.isNavigationComplete.value}")
+                        Log.d(
+                            "MainActivity after",
+                            "onNavigationComplete: ${mqttViewModel.isNavigationComplete.value}"
+                        )
                     }
+
                     override fun onNavigationStarted() {
-                        Log.d("MainActivity prev", "onNavigationStart: ${mqttViewModel.isNavigationStart.value}")
+                        Log.d(
+                            "MainActivity prev",
+                            "onNavigationStart: ${mqttViewModel.isNavigationStart.value}"
+                        )
                         mqttViewModel.onNavigationStarted()
-                        Log.d("MainActivity prev", "onNavigationStart: ${mqttViewModel.isNavigationStart.value}")
+                        Log.d(
+                            "MainActivity prev",
+                            "onNavigationStart: ${mqttViewModel.isNavigationStart.value}"
+                        )
                     }
+
                     override fun onSpeakFinished() {
-                        Log.d("MainActivity prev", "onSpeakFinish: ${mqttViewModel.isSpeakFinish.value}")
+                        Log.d(
+                            "MainActivity prev",
+                            "onSpeakFinish: ${mqttViewModel.isSpeakFinish.value}"
+                        )
                         mqttViewModel.onSpeakFinished()
-                        Log.d("MainActivity prev", "onSpeakFinish: ${mqttViewModel.isSpeakFinish.value}")
+                        Log.d(
+                            "MainActivity prev",
+                            "onSpeakFinish: ${mqttViewModel.isSpeakFinish.value}"
+                        )
                     }
                 })
 
