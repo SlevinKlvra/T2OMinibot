@@ -182,12 +182,6 @@ fun MeetingScreen(
         }
     }
 
-    LaunchedEffect(isNavigationComplete.value) {
-        if (messageIndex == 5) {
-            messageIndex = 4
-        }
-    }
-
     FuturisticGradientBackground {
         Box(modifier = Modifier
             .fillMaxSize()
@@ -326,7 +320,7 @@ fun MeetingScreen(
             }
         }
 
-        if (messageIndex == 3) {
+        if (messageIndex == 3 || messageIndex == 6) {
             PressableEyes(
                 modifier = Modifier.fillMaxSize(),
                 onClick = {
@@ -335,6 +329,7 @@ fun MeetingScreen(
                 }
             )
         }
+
         if (showDrivingComposable) {
             DrivingComposable(
                 navController = navController,

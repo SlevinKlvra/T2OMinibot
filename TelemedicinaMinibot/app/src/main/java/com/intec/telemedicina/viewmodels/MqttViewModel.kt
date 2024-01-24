@@ -872,12 +872,13 @@ class MqttViewModel @Inject constructor(
     }
 
     fun returnToPosition(positionToReturn: String) {
+        navigateToEyesScreen()
         //TODO: Save last known coordinates when starting a navigation
         if(positionToReturn != ""){
             robotMan.startNavigation(0,positionToReturn,coordinateDeviation.value!!.toDouble(),navigationTimeout.value!!.toLong(), navigationCompleteListener = object :
                 RobotManager.NavigationCompleteListener {
                 override fun onNavigationComplete() {
-                    navigateToEyesScreen()
+
                 }
             })
         }

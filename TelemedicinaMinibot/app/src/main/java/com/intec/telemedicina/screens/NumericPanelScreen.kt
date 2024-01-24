@@ -23,19 +23,41 @@ fun NumericPanelScreen(
     robotManager: RobotManager
 ) {
     Log.d("Current Screen", "NumericPanelScreen")
+    robotManager.speak("Por favor, introduzca el código que se le ha proporcionado.", false, object : RobotManager.SpeakCompleteListener {
+        override fun onSpeakComplete() {
+            // Acciones a realizar después de hablar
+        }
+    })
+    
     val shouldCheckCode = remember { mutableStateOf(false) }
     val isCodeCorrect by numericPanelViewModel.isCodeCorrect.collectAsState()
 
     LaunchedEffect(shouldCheckCode.value) {
         if (shouldCheckCode.value) {
-            numericPanelViewModel.checkForTaskExecution()
-            shouldCheckCode.value = false
+            robotManager.speak("Comprobando", false, object : RobotManager.SpeakCompleteListener {
+                override fun onSpeakComplete() {
+                    // Acciones a realizar después de hablar
+                    numericPanelViewModel.checkForTaskExecution()
+                    shouldCheckCode.value = false
+                }
+            })
+        } else {
+            robotManager.speak("Código incorrecto. Por favor, asegúrese de introducir el código correctamente o contacte con un miembro del staff.", false, object : RobotManager.SpeakCompleteListener {
+                override fun onSpeakComplete() {
+                    // Acciones a realizar después de hablar
+                }
+            })
         }
     }
 
     LaunchedEffect(isCodeCorrect) {
         if (isCodeCorrect) {
-            navController.navigate(AppScreens.MeetingScreen.route)
+            robotManager.speak("Código correcto", false, object : RobotManager.SpeakCompleteListener {
+                override fun onSpeakComplete() {
+                    // Acciones a realizar después de hablar
+                    navController.navigate(AppScreens.MeetingScreen.route)
+                }
+            })
         }
     }
 
