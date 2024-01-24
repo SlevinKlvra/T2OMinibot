@@ -147,11 +147,6 @@ fun LazyRowUbicaciones(
 @Composable
 fun Botones(mqttViewModel: MqttViewModel) {
 
-    /*val rutas = listOf(
-        AppScreens.UnknownVisitScreen.route,
-        AppScreens.NumericPanelScreen.route,
-        AppScreens.PackageAndMailManagementScreen.route
-    )*/
     // Una lista de iconos para los botones
     val iconos = listOf(Icons.Default.Person, Icons.Default.Place, Icons.Default.MailOutline)
     // Una lista de textos para los botones

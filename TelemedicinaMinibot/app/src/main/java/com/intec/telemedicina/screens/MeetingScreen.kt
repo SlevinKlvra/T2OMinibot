@@ -296,32 +296,3 @@ fun MeetingScreen(
         }
     }
 }
-
-/*@Preview(showBackground = true, name = "10-inch Tablet Landscape", widthDp = 960, heightDp = 600)
-@Composable
-fun MeetingScreenPreview() {
-    MeetingScreen()
-}*/
-
-/*@Composable
-fun MeetingScreen(navController: NavController, mqttViewModel: MqttViewModel, numericPanelViewModel: NumericPanelViewModel, robotManager: RobotManager) {
-
-    val meetingInfo = numericPanelViewModel.collectedMeetingInfo.value // Directamente accede al valor
-
-    FuturisticGradientBackground {
-        if (meetingInfo.start_time.isNotEmpty()) {
-            //if (numericPanelViewModel.isMeetingTimeWithinThreshold()) {
-            if (true) {
-                // Lógica para dirigir al cliente a la sala asignada
-                Text(textAlign = TextAlign.Center,text = "Bienvenid@, Sergio")
-                robotManager.speak("Su código ha sido verificado. He notificado a ${meetingInfo.nombre} de su llegada. Veo que ha sido puntual. ¿Quiere que le acompañe a la sala?", true)
-            } else {
-                // Lógica para dirigir al cliente a la sala de espera
-                Text("Por favor, diríjase a la sala de espera")
-            }
-        } else {
-            // Lógica para dirigir al cliente a la sala de espera
-            Text("Por favor, diríjase a la sala de espera")
-        }
-    }
-}*/
