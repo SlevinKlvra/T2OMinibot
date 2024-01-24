@@ -119,8 +119,19 @@ fun PackageAndMailManagementScreen(
                 robotManager.speak("Acompáñeme a la sección de mensajería para depositar el paquete", false, object : RobotManager.SpeakCompleteListener {
                     override fun onSpeakComplete() {
                         // Acciones a realizar después de hablar
-                        robotManager.startNavigation(1, "correo", mqttViewModel.coordinateDeviation.value!!.toDouble(), mqttViewModel.navigationTimeout.value!!.toLong())
-                        messageIndex = 4
+                        robotManager.startNavigation(1, "correo", mqttViewModel.coordinateDeviation.value!!.toDouble(), mqttViewModel.navigationTimeout.value!!.toLong(), navigationCompleteListener = object :
+                            RobotManager.NavigationCompleteListener {
+                            override fun onNavigationComplete() {
+                                // Acciones a realizar después de hablar
+                                robotManager.speak("Hemos llegado. Puede depositar el paquete aquí. Yo vuelvo a mi puesto. Muchas gracias.", false, object : RobotManager.SpeakCompleteListener {
+                                    override fun onSpeakComplete() {
+                                        // Acciones a realizar después de hablar
+                                        robotManager.returnToPosition(mqttViewModel.returnDestination.value!!)
+                                    }
+                                })
+                            }
+                        })
+                        //messageIndex = 4
                     }
                 })
             }
@@ -161,7 +172,6 @@ fun PackageAndMailManagementScreen(
                         robotManager.returnToPosition(mqttViewModel.returnDestination.value!!)
                     }
                 })
-                delay(8000L)
             }
         }
     }
@@ -209,7 +219,6 @@ fun PackageAndMailManagementScreen(
                                     "to home screen and to default return pos: ${mqttViewModel.returnDestination.value}"
                                 )
                                 robotManager.returnToPosition(mqttViewModel.returnDestination.value.toString())
-                                mqttViewModel.navigateToHomeScreen()
                             }
                         })
                     }

@@ -288,8 +288,9 @@ class RobotManager @Inject constructor(
         reqId: Int,
         destName: String,
         coordinateDeviation: Double,
-        time: Long
-    ) {
+        time: Long,
+        navigationCompleteListener: NavigationCompleteListener
+    ){
         Log.d("START NAVIGATION", "Comenzando navegación a $destName")
         setLastPosition(destName)
 
@@ -369,22 +370,23 @@ class RobotManager @Inject constructor(
                     }
                 }
 
-                override fun onResult(result: Int, message: String?, extraData: String?) {
-                    super.onResult(result, message, extraData)
-                    if (message.toBoolean()) {
-                        var status_ = "END"
-                        val gson = Gson()
-                        val robotStatus = RobotStatus(destName, status_)
-                        Log.d("ROBOT STATUS NUEVO", robotStatus.toString())
+            override fun onResult(result: Int, message: String?, extraData: String?) {
+                super.onResult(result, message, extraData)
+                if(message.toBoolean()){
+                    var status_ : String = ""
+                    status_ = "END"
+                    var gson = Gson()
+                    val robotStatus = RobotStatus(destName, status_)
+                    Log.d("ROBOT STATUS NUEVO", robotStatus.toString())
 
-                        if (robotStatus.status == "END") {
-                            callbackNavigationStarted(false)
-                            startFocusFollow(0)
-                            registerPersonListener()
-                            Log.d("ROBOT STATUS END", robotStatus.toString())
-                            navigationCallback?.onNavigationCompleted()
-                        }
-
+                    if(robotStatus.status == "END"){
+                        navigationCompleteListener.onNavigationComplete()
+                        callbackNavigationStarted(false)
+                        startFocusFollow(0)
+                        registerPersonListener()
+                        Log.d("ROBOT STATUS END", robotStatus.toString())
+                        navigationCallback?.onNavigationCompleted()
+                    }
                         val json = gson.toJson(robotStatus)
                     }
                 }
@@ -394,7 +396,16 @@ class RobotManager @Inject constructor(
     fun resumeNavigation() {
         if (!lastDestination.value.isNullOrEmpty()) {
             Log.d("RESUME NAVIGATION", "Continuing navigation: ${lastDestination.value}")
-            startNavigation(0, lastDestination.value, 0.1, 1000000)
+            startNavigation(0, lastDestination.value, 0.1, 1000000, navigationCompleteListener = object : NavigationCompleteListener {
+                override fun onNavigationComplete() {
+                    // Acciones a realizar después de hablar
+                    speak("Continuando navegación",false, object : SpeakCompleteListener {
+                        override fun onSpeakComplete() {
+                            // Acciones a realizar después de hablar
+                        }
+                    })
+                }
+            })
         } else {
             Log.d("RESUME NAVIGATION", "No last navigated location available")
         }
@@ -413,17 +424,19 @@ class RobotManager @Inject constructor(
 
     fun returnToPosition(positionToReturn: String) {
         //TODO: Save last known coordinates when starting a navigation
-        if (positionToReturn != "") {
-            startNavigation(0, positionToReturn, 0.1, 1000000)
-        } else {
-            speak(
-                "Actualmente no existe un destino al que haya ido previamente",
-                false,
-                object : SpeakCompleteListener {
-                    override fun onSpeakComplete() {
-                        // Acciones a realizar después de hablar
-                    }
-                })
+        if(positionToReturn != ""){
+            startNavigation(0,positionToReturn,0.1,1000000, navigationCompleteListener = object : NavigationCompleteListener {
+                override fun onNavigationComplete() {
+                    // Acciones a realizar después de hablar
+                }
+            })
+        }
+        else{
+            speak("Actualmente no existe un destino al que haya ido previamente",false, object : RobotManager.SpeakCompleteListener {
+                override fun onSpeakComplete() {
+                    // Acciones a realizar después de hablar
+                }
+            })
         }
     }
 
@@ -431,8 +444,12 @@ class RobotManager @Inject constructor(
         fun onSpeakComplete()
     }
 
-    fun speak(text: String, listen: Boolean, speakCompleteListener: SpeakCompleteListener) {
-        skillApi.playText(TTSEntity("sid-012345", text), object : TextListener() {
+    interface NavigationCompleteListener {
+        fun onNavigationComplete()
+    }
+
+    fun speak(text : String, listen: Boolean, speakCompleteListener: SpeakCompleteListener){
+        skillApi.playText(TTSEntity("sid-012345",text), object : TextListener() {
             override fun onStart() {
                 // Iniciar reproducción
             }
@@ -541,7 +558,11 @@ class RobotManager @Inject constructor(
     fun scheduleWithCoroutine() = runBlocking {
         launch {
             delay(6000L)
-            startNavigation(0, "entrada", 0.1234, 0)
+            startNavigation(0,"entrada",0.1234,0, navigationCompleteListener = object : NavigationCompleteListener {
+                override fun onNavigationComplete() {
+                    // Acciones a realizar después de hablar
+                }
+            })
         }
     }
 }

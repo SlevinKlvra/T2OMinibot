@@ -50,7 +50,7 @@ fun ImageExample() {
             // Background big image
             Image(
                 painter = rememberAsyncImagePainter(
-                    R.drawable.blue_neutral,
+                    R.drawable.white_neutral,
                     imageEmotionsLoader
                 ),
                 contentDescription = null,

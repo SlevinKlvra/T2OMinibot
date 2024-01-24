@@ -141,7 +141,12 @@ fun LazyRowUbicaciones(
             Log.d("DESTINATIONS", item.name)
             // Un botón con el onClick y el estilo que quieras
             NavigationButton(item.name, onClick = {
-                mqttViewModel.robotMan.startNavigation(0, item.name, 0.1, 1000000)
+                mqttViewModel.robotMan.startNavigation(0, item.name, 0.1, 1000000, navigationCompleteListener = object :
+                    RobotManager.NavigationCompleteListener {
+                    override fun onNavigationComplete() {
+                        // Acciones a realizar después de hablar
+                    }
+                })
                 navController.navigate(AppScreens.EyesScreen.route)
             })
         }

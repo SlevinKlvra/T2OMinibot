@@ -55,7 +55,6 @@ fun ClockInScreen(
                     // Acciones a realizar después de hablar
                 }
             })
-
             Column(
                 modifier = Modifier
                     .fillMaxSize()
