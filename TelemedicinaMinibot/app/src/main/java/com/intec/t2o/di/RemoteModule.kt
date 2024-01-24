@@ -1,15 +1,13 @@
-package com.intec.telemedicina.di
+package com.intec.t2ocina.di
 
 import android.app.Application
 import android.content.Context
 import android.content.SharedPreferences
 import com.ainirobot.coreservice.client.listener.ActionListener
 import com.ainirobot.coreservice.client.speech.SkillApi
-import com.intec.telemedicina.api.RickAndMortyApi
-import com.intec.telemedicina.preferences.PreferencesRepository
-import com.intec.telemedicina.robotinterface.RobotManager
-import com.intec.telemedicina.utils.BASE_URL
-import com.intec.telemedicina.viewmodels.MqttViewModel
+import com.intec.t2o.api.RickAndMortyApi
+import com.intec.t2o.preferences.PreferencesRepository
+import com.intec.t2o.utils.BASE_URL
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -27,7 +25,7 @@ object RemoteModule {
     @Provides
     @Singleton
     fun provideRickAndMortyApi(): RickAndMortyApi {
-        return  Retrofit.Builder()
+        return Retrofit.Builder()
             .baseUrl(BASE_URL)
             .addConverterFactory(GsonConverterFactory.create())
             .build()

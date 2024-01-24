@@ -1,4 +1,4 @@
-package com.intec.telemedicina
+package com.intec.t2o
 
 import android.os.Bundle
 import android.util.Log
@@ -12,14 +12,14 @@ import androidx.compose.ui.Modifier
 import com.ainirobot.coreservice.client.ApiListener
 import com.ainirobot.coreservice.client.RobotApi
 import com.ainirobot.coreservice.client.speech.SkillApi
-import com.intec.telemedicina.di.MqttViewModelFactory
-import com.intec.telemedicina.di.NumericPanelViewModelFactory
-import com.intec.telemedicina.navigation.AppNavigation
-import com.intec.telemedicina.robot.modulecallback.ModuleCallback
-import com.intec.telemedicina.robotinterface.RobotManager
-import com.intec.telemedicina.ui.theme.PlantillaJetpackTheme
-import com.intec.telemedicina.viewmodels.MqttViewModel
-import com.intec.telemedicina.viewmodels.NumericPanelViewModel
+import com.intec.t2o.di.MqttViewModelFactory
+import com.intec.t2o.di.NumericPanelViewModelFactory
+import com.intec.t2o.navigation.AppNavigation
+import com.intec.t2o.robot.modulecallback.ModuleCallback
+import com.intec.t2o.robotinterface.RobotManager
+import com.intec.t2o.ui.theme.PlantillaJetpackTheme
+import com.intec.t2o.viewmodels.MqttViewModel
+import com.intec.t2o.viewmodels.NumericPanelViewModel
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
 
