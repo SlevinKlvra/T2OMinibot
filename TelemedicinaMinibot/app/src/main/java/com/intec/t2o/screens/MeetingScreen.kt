@@ -4,6 +4,7 @@ import android.annotation.SuppressLint
 import android.os.Build
 import android.util.Log
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -15,7 +16,6 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -54,17 +54,13 @@ fun MeetingScreen(
 
     var messageIndex by remember { mutableStateOf(0) }
 
-    val isNavigationComplete = mqttViewModel.isNavigationComplete.observeAsState()
-
-    val imageEmotionsLoader = ImageLoader.Builder(LocalContext.current)
-        .components {
+    val imageEmotionsLoader = ImageLoader.Builder(LocalContext.current).components {
             if (Build.VERSION.SDK_INT >= 28) {
                 add(ImageDecoderDecoder.Factory())
             } else {
                 add(GifDecoder.Factory())
             }
-        }
-        .build()
+        }.build()
 
 
     var showDrivingComposable by remember { mutableStateOf(false) }
@@ -74,8 +70,7 @@ fun MeetingScreen(
         when (messageIndex) {
             0 -> {
                 Log.d("SECUENCIA", "$messageIndex: Hola, ${meetingInfo.visitante}")
-                robotManager.speak(
-                    "Hola, ${meetingInfo.visitante}",
+                robotManager.speak("Hola, ${meetingInfo.visitante}",
                     false,
                     object : RobotManager.SpeakCompleteListener {
                         override fun onSpeakComplete() {
@@ -90,8 +85,7 @@ fun MeetingScreen(
                     "SECUENCIA",
                     "$messageIndex: Estoy notificando a ${meetingInfo.anfitrion} de tu llegada"
                 )
-                robotManager.speak(
-                    "Estoy notificando a ${meetingInfo.anfitrion} de tu llegada",
+                robotManager.speak("Estoy notificando a ${meetingInfo.anfitrion} de tu llegada",
                     false,
                     object : RobotManager.SpeakCompleteListener {
                         override fun onSpeakComplete() {
@@ -106,8 +100,7 @@ fun MeetingScreen(
                     "SECUENCIA",
                     "$messageIndex: He notificado a ${meetingInfo.anfitrion} de tu llegada."
                 )
-                robotManager.speak(
-                    "He notificado a ${meetingInfo.anfitrion} de tu llegada. ",
+                robotManager.speak("He notificado a ${meetingInfo.anfitrion} de tu llegada. ",
                     false,
                     object : RobotManager.SpeakCompleteListener {
                         override fun onSpeakComplete() {
@@ -118,8 +111,7 @@ fun MeetingScreen(
                                 messageIndex = 6
                             }
                         }
-                    }
-                )
+                    })
             }
 
             3 -> {
@@ -133,8 +125,7 @@ fun MeetingScreen(
                     "SECUENCIA",
                     "$messageIndex: Hemos llegado. Tome asiento y en breves momentos comenzará la reunión. Muchas gracias"
                 )
-                robotManager.speak(
-                    "Hemos llegado. Tome asiento y en breves momentos comenzará la reunión. Muchas gracias",
+                robotManager.speak("Hemos llegado. Tome asiento y en breves momentos comenzará la reunión. Muchas gracias",
                     false,
                     object : RobotManager.SpeakCompleteListener {
                         override fun onSpeakComplete() {
@@ -150,14 +141,12 @@ fun MeetingScreen(
                     "SECUENCIA",
                     "$messageIndex: Veo que ha llegado puntual. Acompáñeme a la sala que se le ha asignado."
                 )
-                robotManager.speak(
-                    "Veo que ha llegado puntual. Acompáñeme a la sala que se le ha asignado.",
+                robotManager.speak("Veo que ha llegado puntual. Acompáñeme a la sala que se le ha asignado.",
                     false,
                     object : RobotManager.SpeakCompleteListener {
                         override fun onSpeakComplete() {
                             // Acciones a realizar después de hablar
-                            robotManager.startNavigation(
-                                1,
+                            robotManager.startNavigation(1,
                                 meetingInfo.puntomapa,
                                 mqttViewModel.coordinateDeviation.value!!.toDouble(),
                                 mqttViewModel.navigationTimeout.value!!.toLong(),
@@ -165,21 +154,18 @@ fun MeetingScreen(
                                     RobotManager.NavigationCompleteListener {
                                     override fun onNavigationComplete() {
                                         // Acciones a realizar después de hablar
-                                        robotManager.speak(
-                                            "Hemos llegado. Tome asiento y en breves momentos comenzará la reunión. Yo vuelvo a mi puesto. Muchas gracias",
+                                        robotManager.speak("Hemos llegado. Tome asiento y en breves momentos comenzará la reunión. Yo vuelvo a mi puesto. Muchas gracias",
                                             false,
                                             object : RobotManager.SpeakCompleteListener {
                                                 override fun onSpeakComplete() {
                                                     // Acciones a realizar después de hablar
                                                     mqttViewModel.returnToPosition(mqttViewModel.returnDestination.value!!)
                                                 }
-                                            }
-                                        )
+                                            })
                                     }
                                 })
                         }
-                    }
-                )
+                    })
             }
 
             6 -> {
@@ -187,32 +173,30 @@ fun MeetingScreen(
                     "SECUENCIA",
                     "$messageIndex: Todavía no es la hora establecida para la reunión. Por favor, tome asiento. En breves instantes vendrán a buscarle"
                 )
-                robotManager.speak(
-                    "Todavía no es la hora establecida para la reunión. Por favor, tome asiento. En breves instantes vendrán a buscarle, muchas gracias.",
+                robotManager.speak("Todavía no es la hora establecida para la reunión. Por favor, tome asiento. En breves instantes vendrán a buscarle, muchas gracias.",
                     false,
                     object : RobotManager.SpeakCompleteListener {
                         override fun onSpeakComplete() {
                             // Acciones a realizar después de hablar
                             mqttViewModel.returnToPosition(mqttViewModel.returnDestination.value!!)
                         }
-                    }
-                )
+                    })
             }
         }
     }
 
+    // api/contactosvisitas/notificaremailllegada email idvisita
+
     FuturisticGradientBackground {
         Box(
-            modifier = Modifier
-                .fillMaxSize(),
-            contentAlignment = Alignment.Center
+            modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center
         ) {
             when (messageIndex) {
                 0 -> {
                     Log.d("SECUENCIA T", "$messageIndex: Hola, ${meetingInfo.visitante}")
                     Text(
                         color = Color.White,
-                        fontSize = 65.sp,
+                        fontSize = 50.sp,
                         fontWeight = FontWeight.SemiBold,
                         textAlign = TextAlign.Center,
                         maxLines = 2,
@@ -241,8 +225,7 @@ fun MeetingScreen(
                             Spacer(modifier = Modifier.height(8.dp))
                             Image(
                                 painter = rememberAsyncImagePainter(
-                                    R.drawable.emailsend,
-                                    imageEmotionsLoader
+                                    R.drawable.emailsend, imageEmotionsLoader
                                 ),
                                 contentDescription = null,
                                 modifier = Modifier
@@ -261,7 +244,13 @@ fun MeetingScreen(
                         "$messageIndex: He notificado a ${meetingInfo.anfitrion} de tu llegada"
                     )
                     Box {
-                        Column {
+                        Column(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .padding(16.dp),
+                                verticalArrangement = Arrangement.Center,
+                                horizontalAlignment = Alignment.CenterHorizontally
+                        ) {
                             Text(
                                 color = Color.White,
                                 fontSize = 25.sp,
@@ -279,7 +268,6 @@ fun MeetingScreen(
                                 textAlign = TextAlign.Center,
                                 maxLines = 1
                             )
-                            Spacer(modifier = Modifier.height(5.dp))
                         }
                     }
 
@@ -290,8 +278,7 @@ fun MeetingScreen(
                 }
 
                 4 -> {
-                    Log.d("SECUENCIA T", "$messageIndex: Yendo a ${meetingInfo.puntomapa}")
-                    /*Text(
+                    Log.d("SECUENCIA T", "$messageIndex: Yendo a ${meetingInfo.puntomapa}")/*Text(
                         color = Color.White,
                         fontSize = 25.sp,
                         fontWeight = FontWeight.SemiBold,
@@ -305,8 +292,7 @@ fun MeetingScreen(
                     Log.d(
                         "SECUENCIA T",
                         "$messageIndex: Veo que ha llegado puntual. Acompáñeme a la sala que se le ha asignado."
-                    )
-                    /*Text(
+                    )/*Text(
                         color = Color.White,
                         fontSize = 25.sp,
                         fontWeight = FontWeight.SemiBold,
@@ -329,8 +315,7 @@ fun MeetingScreen(
                     Log.d(
                         "SECUENCIA T",
                         "$messageIndex: Todavía no es la hora establecida para la reunión. Por favor, espere en la sala de espera. En breves instantes vendrán a buscarle. Gracias"
-                    )
-                    /*Text(
+                    )/*Text(
                         color = Color.White,
                         fontSize = 25.sp,
                         fontWeight = FontWeight.SemiBold,
@@ -344,8 +329,7 @@ fun MeetingScreen(
                     Log.d(
                         "SECUENCIA T",
                         "$messageIndex: Regresando a ${mqttViewModel.returnDestination.value}"
-                    )
-                    /*Text(
+                    )/*Text(
                         color = Color.White,
                         fontSize = 25.sp,
                         fontWeight = FontWeight.SemiBold,
@@ -358,22 +342,17 @@ fun MeetingScreen(
         }
 
         if (messageIndex == 5 || messageIndex == 6) {
-            PressableEyes(
-                modifier = Modifier.fillMaxSize(),
-                onClick = {
-                    robotManager.stopNavigation()
-                    showDrivingComposable = true
-                }
-            )
+            PressableEyes(modifier = Modifier.fillMaxSize(), onClick = {
+                robotManager.stopNavigation()
+                showDrivingComposable = true
+            })
         }
 
         if (showDrivingComposable) {
-            DrivingComposable(
-                navController = navController,
+            DrivingComposable(navController = navController,
                 mqttViewModel = mqttViewModel,
                 robotManager = robotManager,
-                onClose = { showDrivingComposable = false }
-            )
+                onClose = { showDrivingComposable = false })
         }
     }
 }
