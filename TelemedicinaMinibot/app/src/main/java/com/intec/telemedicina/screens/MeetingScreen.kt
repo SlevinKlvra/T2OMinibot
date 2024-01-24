@@ -158,7 +158,7 @@ fun MeetingScreen(
                                 object : RobotManager.SpeakCompleteListener {
                                     override fun onSpeakComplete() {
                                         // Acciones a realizar después de hablar
-                                        robotManager.returnToPosition(mqttViewModel.returnDestination.value!!)
+                                        mqttViewModel.returnToPosition(mqttViewModel.returnDestination.value!!)
                                     }
                                 }
                             )
@@ -183,7 +183,7 @@ fun MeetingScreen(
             }
 
             7 -> {
-                robotManager.returnToPosition(mqttViewModel.returnDestination.value!!)
+                mqttViewModel.returnToPosition(mqttViewModel.returnDestination.value!!)
                 // Considera agregar un delay o manejar cuando se debe cambiar a messageIndex 6 si es necesario
             }
 

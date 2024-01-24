@@ -9,6 +9,7 @@ import com.intec.telemedicina.api.RickAndMortyApi
 import com.intec.telemedicina.preferences.PreferencesRepository
 import com.intec.telemedicina.robotinterface.RobotManager
 import com.intec.telemedicina.utils.BASE_URL
+import com.intec.telemedicina.viewmodels.MqttViewModel
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
