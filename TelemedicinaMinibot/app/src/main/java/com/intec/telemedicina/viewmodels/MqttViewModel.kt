@@ -791,11 +791,11 @@ class MqttViewModel @Inject constructor(
 
             "robot/nav_cmds/go_charger" -> RobotApi.getInstance().goCharging(0)
             "robot/nav_cmds/stop_navigation" -> {
-                robotMan.stopNavigation(0)
+                robotMan.stopNavigation()
             }
 
             "robot/nav_cmds/pause_navigation" -> {
-                robotMan.pauseNavigation(0)
+                robotMan.pauseNavigation()
             }
 
             "robot/nav_cmds/resume_navigation" -> {
@@ -863,7 +863,7 @@ class MqttViewModel @Inject constructor(
     fun setPaused(isPausedTemp: Boolean) {
         Log.d("MQTTViewModel", "Setting isPaused: $isPausedTemp")
         isPaused.value = isPausedTemp
-        robotMan.pauseNavigation(0)
+        robotMan.pauseNavigation()
     }
 
     fun setAdminState(newState: Boolean) {

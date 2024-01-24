@@ -297,7 +297,7 @@ fun PackageAndMailManagementScreen(
             PressableEyes(
                 modifier = Modifier.fillMaxSize(),
                 onClick = {
-                    robotManager.stopNavigation(0)
+                    robotManager.stopNavigation()
                     showDrivingComposable = true
                 }
             )
