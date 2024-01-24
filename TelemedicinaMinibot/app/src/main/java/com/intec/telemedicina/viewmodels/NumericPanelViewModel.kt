@@ -34,17 +34,11 @@ import java.time.LocalTime
 
 class NumericPanelViewModel(
     application: Application,
-    robotMan: RobotManager
+    var robotMan: RobotManager
 ) : AndroidViewModel(application) {
 
     var collectedMeetingInfo =
         mutableStateOf(MeetingResponse(0, "", "", "", "", "", "", "", "", ""))
-
-    private val _navigationState =
-        MutableStateFlow(MqttViewModel.NavigationState.NumericPanelScreen)
-    val navigationState: StateFlow<MqttViewModel.NavigationState> = _navigationState.asStateFlow()
-
-    var robotMan = robotMan
 
     // Estado para almacenar el código ingresado
     var enteredCode = mutableStateOf("")
@@ -57,7 +51,7 @@ class NumericPanelViewModel(
     val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()
 
     // Función para activar la animación de error
-    fun triggerErrorAnimation() {
+    private fun triggerErrorAnimation() {
         showErrorAnimation.value = true
         // Restablecer el estado después de un tiempo para permitir que la animación se ejecute
         viewModelScope.launch {
@@ -102,81 +96,26 @@ class NumericPanelViewModel(
         }
     }
 
-    // Estado para indicar si el código es correcto
-    private val _isCodeCorrect = MutableStateFlow(false)
-    val isCodeCorrect: StateFlow<Boolean> = _isCodeCorrect.asStateFlow()
-
-    /*fun checkForTaskExecution() {
-        viewModelScope.launch(Dispatchers.IO) {
-            try {
-
-                _isLoading.value = true
-
-                val client = OkHttpClient()
-                val request = Request.Builder()
-                    .url("https://t2o.intecrobots.com/api/visitas/consultacodigototal?codigo=${enteredCode.value}")
-                    .addHeader(
-                        "Authorization",
-                        "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9.eyJhdWQiOiI1IiwianRpIjoiMTM1NjZjOWQ4NmM2Nzc2YWI1ODYwMTI5NTAzYWIwOWNiNzZlMWNhNzlhZGVkOTg3NTM2MTU0NmE1MmUyNGU2MmIzM2YxOWIyMGI2MzI4YWQiLCJpYXQiOjE3MDUzMTI5NDEuNTM4MTQyOTE5NTQwNDA1MjczNDM3NSwibmJmIjoxNzA1MzEyOTQxLjUzODE0NTA2NTMwNzYxNzE4NzUsImV4cCI6MTczNjkzNTM0MS41MzI1OTk5MjU5OTQ4NzMwNDY4NzUsInN1YiI6IjEiLCJzY29wZXMiOltdfQ.P6Sah1BK-FyV3taMI8hK5VH5qZWdwBbh25qZOy7ejWI-tow0qSs9S0a5DR9rp1TQOCFR1sTT0Cvn-rlH_0jcfpQ8atvzmbGOXEmq-18LrVhNcKiHzM71vnOYdl-YPPd77wGqNpsR3hLJecUCvSitKF-dtmqnfsjHgJGERdEA0cQtEw_XNG6gUoJoT9_ZEbp1aALb9M6WX1OD6xGyqysH3em-qbEcLh66h7vEWuo3IohbQLl1XaPvUqb7g4EFCEYd300Hj24IRJ7F6rxjeLapjTpy8zFZRjL5L_BT2EpHFaHYY0XnOZ9FY6_YsLFNfG-s3HRr2yPtNwDs_7rJN6fmo0zycaJZyiW7lUPC06pFCMIUOoetwZ2Z3BcxVqsKoy0nkWq2TxE7TevToqsAh0_1XkYrOlbfk0V7HNbP9IbVEYfDY_gUOwZW0y_kbSR5rc_IrQX7Fp8GjDzmZLSOI2WqyG7vpQGAbFeJGk5D3zxwnj0aeD_QpvrVG3zjnSwp-cZjIGx_B_CYoAwNPlPicYjO2KXPU8hUPM-X_2DPbZDHYM56aimXSX6Io-q7Z8qzXw6Gqxpp3ruFzGezMIeSJ3GQ5Yn5z8QmbTp2Kj1X4gUPR9bXmh3mrKvg3dS0fRm7w4LMJSGEPc5F_aJm2nVm9yJwtpuAWLcaFN8m2fUxiSwda3k"
-                    )
-                    .get()
-                    .build()
-
-                client.newCall(request).execute().use { response ->
-                    Log.d("CheckForApiExecution", response.toString())
-                    if (response.isSuccessful) {
-                        // Si la respuesta es exitosa, consideramos que el código es correcto.
-                        val responseData = response.body?.string() ?: ""
-                        val gson = Gson()
-                        // Nuevo código para manejar la respuesta como un arreglo
-                        val type = object : TypeToken<List<MeetingResponse>>() {}.type
-                        val meetingInfoList =
-                            gson.fromJson<List<MeetingResponse>>(responseData, type)
-
-                        withContext(Dispatchers.Main) {
-                            if (meetingInfoList.isNotEmpty()) {
-                                val meetingInfo = meetingInfoList.first()
-                                collectedMeetingInfo.value = meetingInfo
-                                _isCodeCorrect.value = true
-                                Log.d(
-                                    "CheckForApiExecution",
-                                    "El código es correcto: ${isCodeCorrect.value}"
-                                )
-                                Log.d("meetingInfo", "${collectedMeetingInfo.value}")
-                            } else {
-                                // Manejar el caso de que la lista esté vacía
-                                triggerErrorAnimation()
-                                robotMan.speak("El código no es válido. Inténtelo de nuevo", false)
-                            }
-                        }
-
-                    } else {
-                        // Si la respuesta no es exitosa, activamos la animación y hacemos que el robot hable.
-                        withContext(Dispatchers.Main) {
-                            triggerErrorAnimation()
-                            robotMan.speak("El código no es válido. Inténtelo de nuevo", false)
-                        }
-                    }
-                }
-            } catch (e: Exception) {
-                withContext(Dispatchers.Main) {
-                    triggerErrorAnimation()
-                    robotMan.speak(
-                        "El código no es correcto. Inténtelo de nuevo o contacte con un miembro del staff",
-                        false
-                    )
-                    Log.e("Error", "Error en la solicitud de red: ${e.message}")
-                }
-            } finally {
-                // Indicar que la carga ha terminado (independientemente del resultado)
-                _isLoading.value = false
-            }
+    fun clockIn(): Boolean {
+        _isLoading.value = true
+        return if (enteredCode.value == "12321") {
+            Log.d(
+                "current time", System.currentTimeMillis().toString()
+            )
+            _isLoading.value = false
+            true
+        } else {
+            triggerErrorAnimation()
+            Log.e("Error", "La respuesta es no válida")
+            robotMan.speak("El código no es válido. Inténtelo de nuevo", false)
+            _isLoading.value = false
+            false
         }
     }
 
-    private fun refreshToken(){
-
-    }*/
+    // Estado para indicar si el código es correcto
+    private val _isCodeCorrect = MutableStateFlow(false)
+    val isCodeCorrect: StateFlow<Boolean> = _isCodeCorrect.asStateFlow()
 
     private var currentToken: String = ""
 
@@ -206,7 +145,7 @@ class NumericPanelViewModel(
         }
     }
 
-    private suspend fun makeApiCall(token: String): Response {
+    private fun makeApiCall(token: String): Response {
         Log.d("TAG MAIN", "Haciendo llamada a la API: token: $token")
 
         // Log enteredCode value
@@ -332,7 +271,7 @@ class NumericPanelViewModel(
     }
 
 
-    private suspend fun refreshToken(): String? {
+    private fun refreshToken(): String? {
         return try {
 
             val client = OkHttpClient()
@@ -428,7 +367,7 @@ class NumericPanelViewModel(
     }
 
 
-    fun getMeetingTimeThreshold(): Long {
+    private fun getMeetingTimeThreshold(): Long {
         val sharedPrefs =
             getApplication<Application>().getSharedPreferences("MyPrefs", Context.MODE_PRIVATE)
         return sharedPrefs.getLong("meetingTimeThreshold", 10)

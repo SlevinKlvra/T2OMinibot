@@ -4,7 +4,6 @@ import android.app.Application
 import android.util.Log
 import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
-import androidx.constraintlayout.motion.utils.ViewState
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
@@ -13,9 +12,6 @@ import androidx.lifecycle.viewModelScope
 import com.ainirobot.coreservice.client.RobotApi
 import com.ainirobot.coreservice.client.actionbean.Pose
 import com.ainirobot.coreservice.client.listener.Person
-import com.ainirobot.coreservice.client.listener.TextListener
-import com.ainirobot.coreservice.client.person.PersonApi
-import com.ainirobot.coreservice.client.speech.entity.TTSEntity
 import com.intec.telemedicina.data.APIConfig
 import com.intec.telemedicina.data.Face
 import com.intec.telemedicina.data.InteractionState
@@ -24,7 +20,6 @@ import com.intec.telemedicina.mqtt.MQTTConfig
 import com.intec.telemedicina.mqtt.MqttManager
 import com.intec.telemedicina.mqtt.MqttManagerCallback
 import com.intec.telemedicina.mqtt.MqttMessageListener
-import com.intec.telemedicina.navigation.AppScreens
 import com.intec.telemedicina.preferences.PreferencesRepository
 import com.intec.telemedicina.robotinterface.RobotManager
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -33,7 +28,6 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -41,7 +35,7 @@ import javax.inject.Inject
 @HiltViewModel
 class MqttViewModel @Inject constructor(
     application: Application,
-    robotMan : RobotManager,
+    var robotMan: RobotManager,
     private val preferencesRepository: PreferencesRepository
 ) : AndroidViewModel(application), MqttMessageListener {
 
@@ -59,21 +53,7 @@ class MqttViewModel @Inject constructor(
     private val _isListening = MutableLiveData<Boolean>()
     val isListening: LiveData<Boolean> = _isListening
 
-    var robotMan = robotMan
-
-
     //MEETING SECUENCE
-    var meetingSecuenceStatus = mutableStateOf(0)
-    var meetingMesssage = mutableStateOf("")
-
-    fun setMeetingSecuenceStatus(status: Int){
-        meetingSecuenceStatus.value = status
-    }
-
-    fun getMeetingSecuenceStatus(): Int{
-        return meetingSecuenceStatus.value
-    }
-
     fun stopListening() {
         // Detener el reconocimiento de voz
         _isListening.value = false
@@ -84,7 +64,7 @@ class MqttViewModel @Inject constructor(
         Log.d("ADMIN STATE", adminState.value.toString())
     }
 
-    var coutndownJob : Job? = null
+    var coutndownJob: Job? = null
     fun startCountdown() {
         coutndownJob = viewModelScope.launch {
             var currentCount = 5
@@ -105,10 +85,8 @@ class MqttViewModel @Inject constructor(
     val adminState = MutableStateFlow(false)
 
     private val _connectionState = mutableStateOf("Disconnected")
-    val connectionState get()= _connectionState
-    var navigation : Boolean = false
-    private var _mqttQuestion = MutableLiveData<String>()
-    val mqttQuestion : MutableLiveData<String> get() = _mqttQuestion
+    val connectionState get() = _connectionState
+    var navigation: Boolean = false
 
     val posesList = MutableStateFlow(emptyList<Pose>())
 
@@ -129,12 +107,8 @@ class MqttViewModel @Inject constructor(
     var question = MutableStateFlow("")
     var notUnderstood = MutableStateFlow(false)
 
-    val showQuestionsDialog = MutableStateFlow(false)
-    val showWelcomeDialog = MutableStateFlow(false)
-
     val closeDrivingScreenFace = MutableStateFlow(false)
 
-    val openHomeScreen = MutableStateFlow(false)
     val openEyesScreen = MutableStateFlow(false)
 
     var initiatedStatus = mutableStateOf(false)
@@ -161,7 +135,7 @@ class MqttViewModel @Inject constructor(
     val coordinateDeviation: MutableLiveData<Float> = MutableLiveData()
     val navigationTimeout: MutableLiveData<Long> = MutableLiveData()
 
-    private val mqttManager : MqttManager
+    private val mqttManager: MqttManager
     private var mqttConfigInstance = MQTTConfig(
         SERVER_URI = "tcp://192.168.2.243:1883",
         client_id = "Robot",
@@ -170,9 +144,16 @@ class MqttViewModel @Inject constructor(
         password = "intecfullpassword"
     )
 
-    private var apiConfigInstance = APIConfig(APIUser = "api_default_user", APIPassword = "api_default_pass")
+    private var apiConfigInstance =
+        APIConfig(APIUser = "api_default_user", APIPassword = "api_default_pass")
 
-    private var robotConfigInstance = RobotConfig(idleWaitingTime = 10, meetingTimeThreshold = 10, returnDestination = "entrada", coordinateDeviation = 0.1, navigationTimeout = 1000000)
+    private var robotConfigInstance = RobotConfig(
+        idleWaitingTime = 10,
+        meetingTimeThreshold = 10,
+        returnDestination = "entrada",
+        coordinateDeviation = 0.1,
+        navigationTimeout = 1000000
+    )
 
     //NAVEGACIÓN ENTRE SCREENS
     private val _navigationState = MutableStateFlow(NavigationState.EyesScreen)
@@ -249,7 +230,7 @@ class MqttViewModel @Inject constructor(
         actualizarConfiguracionRobot()
     }
 
-    private val navigationTimeoutObserver = Observer<Long> {nuevoNavigationTimeout ->
+    private val navigationTimeoutObserver = Observer<Long> { nuevoNavigationTimeout ->
         actualizarConfiguracionRobot()
     }
 
@@ -297,15 +278,15 @@ class MqttViewModel @Inject constructor(
         return preferencesRepository.getReturnDestination()
     }
 
-    fun setReturnDestinationDefaultValue(){
+    fun setReturnDestinationDefaultValue() {
         returnDestination.value = getReturnDestinationDefaultValue()
     }
 
-    fun getCoordinateDeviationDefaultValue(): Float{
+    fun getCoordinateDeviationDefaultValue(): Float {
         return preferencesRepository.getCoordinateDeviation()
     }
 
-    fun getNavigationTimeoutDefaultValue(): Long{
+    fun getNavigationTimeoutDefaultValue(): Long {
         return preferencesRepository.getNavigationTimeout()
     }
 
@@ -360,7 +341,7 @@ class MqttViewModel @Inject constructor(
     }
 
     private fun actualizarConfiguracionMQTT() {
-        brokerIp.value?.let {serverUri ->
+        brokerIp.value?.let { serverUri ->
             //Obtener campos MQTT
             val port = preferencesRepository.getBrokerPort()
             val clientId = preferencesRepository.getMqttClient()
@@ -381,13 +362,13 @@ class MqttViewModel @Inject constructor(
         }
     }
 
-    fun actualizarConfiguracionRobot(){
+    fun actualizarConfiguracionRobot() {
         idleWaitingTime.value.let { idleWaitingTime ->
             //Obtener campos Robot
             val idleWaitingTime = preferencesRepository.getIdleWaitingTime()
             val meetingTimeThreshold = preferencesRepository.getMeetingTimeThreshold()
             val returnDestination = preferencesRepository.getReturnDestination()
-            val coordinateDeviation =preferencesRepository.getCoordinateDeviation()
+            val coordinateDeviation = preferencesRepository.getCoordinateDeviation()
             val navigationTimeout = preferencesRepository.getNavigationTimeout()
 
             //Actualizar configuración Robot
@@ -400,7 +381,8 @@ class MqttViewModel @Inject constructor(
             )
         }
     }
-    fun actualizarConfiguracionAPI(){
+
+    fun actualizarConfiguracionAPI() {
         apiUser.value.let { apiUser ->
             // Obtener campos API
             val apiUser = preferencesRepository.getApiUsuario()
@@ -412,6 +394,7 @@ class MqttViewModel @Inject constructor(
 
         }
     }
+
     //waitTime, meetingMeetingThreshold, returnDestination, coordinateDeviation, navigationTimeout
     fun guardarConfiguracionRobot(
         receivedWaitingIdleTime: Int,
@@ -419,8 +402,11 @@ class MqttViewModel @Inject constructor(
         receivedReturnDestination: String,
         receivedCoordinateDeviation: Float,
         receivedRobotTimeout: Long,
-    ){
-        Log.d("MqttViewModel", "Guardando configuración Robot: $receivedWaitingIdleTime, $receivedMeetingTimeThreshold, $receivedReturnDestination, $receivedCoordinateDeviation, $receivedRobotTimeout")
+    ) {
+        Log.d(
+            "MqttViewModel",
+            "Guardando configuración Robot: $receivedWaitingIdleTime, $receivedMeetingTimeThreshold, $receivedReturnDestination, $receivedCoordinateDeviation, $receivedRobotTimeout"
+        )
 
         preferencesRepository.setIdleWaitingTime(receivedWaitingIdleTime)
         preferencesRepository.setMeetingTimeThreshold(receivedMeetingTimeThreshold)
@@ -438,8 +424,11 @@ class MqttViewModel @Inject constructor(
     fun guardarConfiguracionAPI(
         receivedApiUser: String,
         receivedApiPassword: String,
-    ){
-        Log.d("MqttViewModel", "Guardando configuración API: $receivedApiPassword, $receivedApiUser")
+    ) {
+        Log.d(
+            "MqttViewModel",
+            "Guardando configuración API: $receivedApiPassword, $receivedApiUser"
+        )
 
         preferencesRepository.setApiUsuario(receivedApiUser)
         preferencesRepository.setApiPassword(receivedApiPassword)
@@ -455,7 +444,10 @@ class MqttViewModel @Inject constructor(
         mqttQoS: String,
         mqttClient: String,
     ) {
-        Log.d("MqttViewModel", "Guardando configuración: $ip, $port, $mqttUser, $mqttPassword, $mqttQoS, $mqttClient")
+        Log.d(
+            "MqttViewModel",
+            "Guardando configuración: $ip, $port, $mqttUser, $mqttPassword, $mqttQoS, $mqttClient"
+        )
         preferencesRepository.setBrokerIp(ip)
         preferencesRepository.setBrokerPort(port)
         preferencesRepository.setMqttUsuario(mqttUser)
@@ -473,6 +465,7 @@ class MqttViewModel @Inject constructor(
         brokerClient.value = mqttClient
 
     }
+
     override fun onCleared() {
         super.onCleared()
         brokerIp.removeObserver(brokerIpObserver)
@@ -519,10 +512,10 @@ class MqttViewModel @Inject constructor(
         isNavigationStart.value = true
     }
 
-    fun setDrivingState(){
+    fun setDrivingState() {
         Log.d("DrivingState", "setDrivingState")
         robotMan.onNavigationStarted = { navigationStarted -> //navigationStarted: Boolean
-            if(navigationStarted){
+            if (navigationStarted) {
                 Log.d("DrivingState", navigationState.value.toString())
                 isDriving.value = true
                 isPaused.value = false
@@ -530,19 +523,7 @@ class MqttViewModel @Inject constructor(
         }
     }
 
-    fun setFinishedState(){
-        Log.d("DrivingState", "setPausedState")
-        robotMan.onNavigationFinished = {navigationFinished ->
-
-            if(navigationFinished){
-                Log.d("DrivingState", navigationState.value.toString())
-                isDriving.value = false
-                isPaused.value = true
-            }
-
-        }
-    }
-    fun onResultUnknownVisitor(text: String){
+    fun onResultUnknownVisitor(text: String) {
         // Actualizar el texto cuando se recibe un resultado
         Log.d("onResultUnknownVisitor", "text: $text")
         _capturedText.value = text
@@ -554,16 +535,13 @@ class MqttViewModel @Inject constructor(
         if (containsMeetingKeyword(speechResult)) {
             // Lógica cuando se detectan palabras clave
             navigateToNumericPanelScreen()
-        }
-        else if(containsVisitKeyword(speechResult)){
+        } else if (containsVisitKeyword(speechResult)) {
             Log.d("speechResult", "Se ha detectado una visita")
             navigateToUnknownVisitsScreen()
-        }
-        else if(containsDealerKeyword(speechResult)){
+        } else if (containsDealerKeyword(speechResult)) {
             Log.d("speechResult", "Se ha detectado un repartidor")
             navigateToPackageAndMailManagementScreen()
-        }
-        else if(containSiWord(speechResult)){
+        } else if (containSiWord(speechResult)) {
             Log.d("speechResult", "Se ha detectado un si")
             //robotMan.stopFocusFollow()
             robotMan.speak("Deacuerdo, por aquí por favor", false, object : RobotManager.SpeakCompleteListener {
@@ -634,37 +612,37 @@ class MqttViewModel @Inject constructor(
     }
 
     fun startPersonDetection(waitTimeInSeconds: Int) {
-        //Log.d("startPersonDetection", "$waitTimeInSeconds")
         detectionJob?.cancel()
         detectionJob = viewModelScope.launch {
             val waitTimeInMillis = waitTimeInSeconds * 1000L
             var elapsedTime = 0L // Reinicia el temporizador
-            var detectedPerson : List<Person>? = robotMan.detectPerson(0)
+            val detectedPerson: List<Person>? = robotMan.detectPerson(0)
 
             while (detectedPerson.isNullOrEmpty() && elapsedTime < waitTimeInMillis) {
 
                 delay(1000)
                 elapsedTime += 1000
-                Log.d("startDetection", "CURRENT ELAPSED TIME: $elapsedTime is less than $waitTimeInMillis. current detection state: ${detectedPerson.isNullOrEmpty()}")
+                Log.d(
+                    "startDetection",
+                    "CURRENT ELAPSED TIME: $elapsedTime is less than $waitTimeInMillis. current detection state: ${detectedPerson.isNullOrEmpty()}"
+                )
 
             }
 
-            if(!detectedPerson.isNullOrEmpty()){
+            if (!detectedPerson.isNullOrEmpty()) {
                 Log.d("startDetection", "PERSONS LIST IS NOT NULL NEITHER EMPTY. RESTARTING TIME")
                 elapsedTime = 0 // Reinicia el temporizador
                 detectionJob?.cancel()
-                //navigateToHomeScreen()
-                //detectionJob?.cancel()
             }
 
             if (detectedPerson.isNullOrEmpty() && elapsedTime >= waitTimeInMillis && !navigationFinished.value) {
-                Log.d("startDetection", "ELAPSED TIME: $elapsedTime, detection state: ${detectedPerson.isNullOrEmpty()}, return to pos: ${returnDestination.value}")
-                //robotMan.unregisterPersonListener()
+                Log.d(
+                    "startDetection",
+                    "ELAPSED TIME: $elapsedTime, detection state: ${detectedPerson.isNullOrEmpty()}, return to pos: ${returnDestination.value}"
+                )
                 robotMan.returnToPosition(returnDestination.value!!)
                 navigateToEyesScreen()
-                elapsedTime = 0
                 detectionJob?.cancel()
-                //robotMan.goCharge()
             }
         }
     }
@@ -679,7 +657,7 @@ class MqttViewModel @Inject constructor(
     private fun containsDealerKeyword(text: String): Boolean {
         val keywords = listOf(
             "mensajero", "mensajería",
-            "paquete", "envío","repartidor","reparto",
+            "paquete", "envío", "repartidor", "reparto",
             "entrega", "recogida",
             "courier", "paquetería",
             "envío express", "envío urgente",
@@ -757,7 +735,7 @@ class MqttViewModel @Inject constructor(
         initiatedStatus.value = false
     }
 
-    fun getInitiatedStatus() : Boolean {
+    fun getInitiatedStatus(): Boolean {
         return initiatedStatus.value
     }
 
@@ -788,87 +766,74 @@ class MqttViewModel @Inject constructor(
         addIncomingMessage("Publishing message: $message to topic: $topic")
         mqttManager.publishMessage(topic, message)
     }
+
     override fun onMessageReceived(topic: String, message: String) {
         addIncomingMessage(message)
-        Log.d("MQTT Message","$topic: $message")
+        Log.d("MQTT Message", "$topic: $message")
 
-        when(topic){
-            //"robot/nav_pub/status" -> robotApi.currentPose
+        when (topic) {
             "robot/nav_cmds/go_to" -> {
-                //isDriving.value = true
-                //Log.d("MQTTViewModel", "Starting navigation to: $message")
-                //robotApi.startNavigation(1, message.toString(), 0.01, 100000, navigationListener)
-                //RobotManager(getApplication<Application>().applicationContext).getRobotInterfaceMethod().startNavigation(1, message.toString(), 0.01, 100000)
 
-                //Log.d("Poses",robotMan.getPoses().toString())
-                //robotMan.printPoses()
-                //robotMan.startNavigation(0,"sillon",0.1234,0)
+                Log.d(
+                    "DISTANCE TO SILLON",
+                    RobotApi.getInstance().getPlaceDistance("sillon").toString()
+                )
+                Log.d("UPDATE SAFE DISTANCE", "Update the safe distance")
 
-                Log.d("DISTANCE TO SILLON",RobotApi.getInstance().getPlaceDistance("sillon").toString())
-                /*Log.d("DISTANCE IN FRONT",
-                    //RobotApi.getInstance().queryRadarStatus(0, CommandListener()).toString()
-                    ""
-                )*/
-                //RobotApi.getInstance().setObstaclesSafeDistance(0,1.0, CommandListener())
-                Log.d("UPDATE SAFE DISTANCE","Update the safe distance")
-
-                //RobotApi.getInstance().startInspection(0,100000, ActionListener())
                 setDrivingState()
-                robotMan.startNavigation(0,message.toString(),0.1234,0)
-
-                //RobotApi.getInstance().goForward(0, 0.2F,0.1F,false, CommandListener())
-
-
-                //RobotApi.getInstance().goForward(0, 0.3F, 0.1F, CommandListener())
-                //RobotManager(getApplication<Application>().applicationContext).getRobotInterfaceMethod().goPosition()
+                robotMan.startNavigation(0, message, 0.1234, 0)
             }
-            /*"robot/nav_cmds/go_to_coord" -> robotApi.startNavigation(1, message,0.01, 100000, navigationListener)*/
+
             "robot/nav_cmds/go_charger" -> RobotApi.getInstance().goCharging(0)
             "robot/nav_cmds/stop_navigation" -> {
-                //robotApi.stopNavigation(1)
                 robotMan.stopNavigation(0)
-                //isDriving.value = false
             }
 
             "robot/nav_cmds/pause_navigation" -> {
                 robotMan.pauseNavigation(0)
-                //isDriving.value = false
             }
 
             "robot/nav_cmds/resume_navigation" -> {
                 robotMan.resumeNavigation()
-                //isDriving.value = true
                 isPaused.value = false
             }
 
             "robot/move_forward" -> {
                 robotMan.moveForward()
             }
+
             "robot/wake_up" -> {
                 robotMan.wakeUp()
             }
 
             "robot/nav_cmds/driving_finished" -> {
-                Log.d("DRIVINGFINISHED","Preparing home screen")
-                //isDriving.value = false
+                Log.d("DRIVINGFINISHED", "Preparing home screen")
             }
 
             "zigbee2mqtt/Pulsador/action" -> {
-                Log.d("ZIGBEE", message.toString())
-                if(message.toString() == "single"){
-                    if(RobotApi.getInstance().chargeStatus) {
+                Log.d("ZIGBEE", message)
+                if (message == "single") {
+                    if (RobotApi.getInstance().chargeStatus) {
                         robotMan.scheduleWithCoroutine()
-                    }else{
+                    } else {
                         Log.d("ZIGBEE MQTT", "selected position: ${selectedItem.toString()}")
-                        Log.d("robot params", "${robotConfigInstance.returnDestination},${robotConfigInstance.coordinateDeviation},${robotConfigInstance.navigationTimeout}")
-                        robotMan.startNavigation(0,robotConfigInstance.returnDestination,robotConfigInstance.coordinateDeviation,robotConfigInstance.navigationTimeout)
+                        Log.d(
+                            "robot params",
+                            "${robotConfigInstance.returnDestination},${robotConfigInstance.coordinateDeviation},${robotConfigInstance.navigationTimeout}"
+                        )
+                        robotMan.startNavigation(
+                            0,
+                            robotConfigInstance.returnDestination,
+                            robotConfigInstance.coordinateDeviation,
+                            robotConfigInstance.navigationTimeout
+                        )
                     }
                 }
             }
         }
     }
 
-    fun getListPoses(){
+    fun getListPoses() {
         posesList.value = robotMan.getPoses()
     }
 
@@ -886,7 +851,7 @@ class MqttViewModel @Inject constructor(
         _shouldHideKeyboard.value = false
     }
 
-    fun setPaused(isPausedTemp : Boolean) {
+    fun setPaused(isPausedTemp: Boolean) {
         Log.d("MQTTViewModel", "Setting isPaused: $isPausedTemp")
         isPaused.value = isPausedTemp
         robotMan.pauseNavigation(0)

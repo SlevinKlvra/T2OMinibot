@@ -3,31 +3,17 @@ package com.intec.telemedicina.screens
 import android.content.Context
 import android.util.Log
 import android.widget.Toast
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
-import androidx.compose.foundation.text.KeyboardActions
-import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.AddCircle
-import androidx.compose.material.icons.outlined.ArrowBack
-import androidx.compose.material.icons.outlined.LocationOn
-import androidx.compose.material.icons.outlined.Person
-import androidx.compose.material.icons.outlined.ShoppingCart
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -37,18 +23,20 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
-import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalSoftwareKeyboardController
-import androidx.compose.ui.text.input.ImeAction
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.intec.telemedicina.components.GoBackButton
 import com.intec.telemedicina.components.LoadingSpinner
-import com.intec.telemedicina.components.TransparentButtonWithIcon
+import com.intec.telemedicina.components.novisit.CompanyStep
+import com.intec.telemedicina.components.novisit.EmailStep
+import com.intec.telemedicina.components.novisit.LastStep
+import com.intec.telemedicina.components.novisit.MessageStep
+import com.intec.telemedicina.components.novisit.NameStep
+import com.intec.telemedicina.components.novisit.UserExistenceSelection
+import com.intec.telemedicina.components.novisit.UserTypeSelection
 import com.intec.telemedicina.robotinterface.RobotManager
 import com.intec.telemedicina.viewmodels.MqttViewModel
 import com.intec.telemedicina.viewmodels.NumericPanelViewModel
@@ -85,10 +73,10 @@ fun UnknownVisitScreen(
             UserData(
                 tipo = null,
                 userExistence = null,
-                nombre = "test",
-                empresa = "test",
-                email = "test@gmail.com",
-                asunto = "testesttestestestest"
+                nombre = "",
+                empresa = "",
+                email = "",
+                asunto = ""
             )
         )
     }
@@ -195,7 +183,7 @@ fun UnknownVisitScreen(
                                     isSendingData = true
                                 }
                             },
-                            enabled = validateFields(context, userData) && !isSendingData,
+                            enabled = !isSendingData,
                             modifier = Modifier.widthIn(min = 33.dp)
                         ) {
                             if (isSendingData) {
@@ -227,7 +215,6 @@ fun UnknownVisitScreen(
                     3 -> NameStep(
                         name = userData.nombre,
                         onNameChange = { userData = userData.copy(nombre = it) },
-                        robotManager
                     )
 
                     4 -> CompanyStep(
@@ -244,11 +231,9 @@ fun UnknownVisitScreen(
                         onMessageChange = { userData = userData.copy(asunto = it) })
 
                     7 -> {
-
-
                         if (isLoading) LoadingSpinner()
                         else {
-                            LastStep(numericPanelViewModel, mqttViewModel)
+                            LastStep(mqttViewModel)
                         }
                     }
                 }
@@ -256,72 +241,6 @@ fun UnknownVisitScreen(
         }
     }
 }
-
-
-@Composable
-fun UserTypeSelection(onUserTypeSelected: (UserType) -> Unit) {
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(16.dp)
-    ) {
-        Text(
-            text = "Cliente o proveedor",
-            color = Color.White,
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(bottom = 8.dp),
-            textAlign = TextAlign.Center,
-            style = MaterialTheme.typography.headlineLarge
-        )
-        Row(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(8.dp),
-            horizontalArrangement = Arrangement.SpaceBetween
-        ) {
-            TransparentButtonWithIcon(text = "Cliente",
-                icon = Icons.Outlined.ShoppingCart,
-                onClick = { onUserTypeSelected(UserType.CLIENTE) })
-            TransparentButtonWithIcon(text = "Proveedor",
-                icon = Icons.Outlined.LocationOn,
-                onClick = { onUserTypeSelected(UserType.PROVEEDOR) })
-        }
-    }
-}
-
-@Composable
-fun UserExistenceSelection(onUserExistenceSelected: (UserExistence) -> Unit) {
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(8.dp)
-    ) {
-        Text(
-            text = "Usuario nuevo o existente",
-            color = Color.White,
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(bottom = 8.dp),
-            textAlign = TextAlign.Center,
-            style = MaterialTheme.typography.headlineLarge
-        )
-        Row(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(8.dp),
-            horizontalArrangement = Arrangement.SpaceBetween
-        ) {
-            TransparentButtonWithIcon(text = "Nuevo usuario",
-                icon = Icons.Outlined.AddCircle,
-                onClick = { onUserExistenceSelected(UserExistence.NUEVO) })
-            TransparentButtonWithIcon(text = "Usuario existente",
-                icon = Icons.Outlined.Person,
-                onClick = { onUserExistenceSelected(UserExistence.EXISTENTE) })
-        }
-    }
-}
-
 
 fun validateFields(context: Context, userData: UserData): Boolean {
     // Check if all fields are filled
@@ -345,226 +264,4 @@ fun validateFields(context: Context, userData: UserData): Boolean {
 
 fun showToast(context: Context, message: String) {
     Toast.makeText(context, message, Toast.LENGTH_LONG).show()
-}
-
-
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalComposeUiApi::class)
-@Composable
-fun NameStep(name: String, onNameChange: (String) -> Unit, robotManager: RobotManager) {
-    val keyboardController = LocalSoftwareKeyboardController.current
-
-    robotManager.speak("Dime tu nombre por favor", true, object : RobotManager.SpeakCompleteListener {
-        override fun onSpeakComplete() {
-            // Acciones a realizar después de hablar
-        }
-    })
-
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(8.dp),
-    ) {
-        Text(
-            text = "Nombre",
-            color = Color.White,
-            textAlign = TextAlign.Center,
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(bottom = 8.dp),
-            style = MaterialTheme.typography.headlineLarge
-        )
-
-        Text(
-            text = "Diga o introduzca su nombre:",
-            color = Color.White,
-            textAlign = TextAlign.Center,
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(bottom = 24.dp),
-            style = MaterialTheme.typography.bodyMedium
-        )
-
-        TextField(
-            value = name,
-            onValueChange = { onNameChange(it) },
-            label = { Text("Nombre") },
-            keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
-            keyboardActions = KeyboardActions(
-                onDone = { keyboardController?.hide() }),
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(bottom = 8.dp)
-        )
-    }
-}
-
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalComposeUiApi::class)
-@Composable
-fun EmailStep(email: String, onEmailChange: (String) -> Unit) {
-    val keyboardController = LocalSoftwareKeyboardController.current
-
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(8.dp)
-    ) {
-        Text(
-            text = "Correo Electrónico",
-            textAlign = TextAlign.Center,
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(bottom = 8.dp),
-            color = Color.White,
-            style = MaterialTheme.typography.headlineLarge
-        )
-
-        Text(
-            text = "Introduzca su correo electrónico:",
-            color = Color.White,
-            textAlign = TextAlign.Center,
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(bottom = 24.dp),
-            style = MaterialTheme.typography.bodyMedium
-        )
-
-        TextField(
-            value = email,
-            onValueChange = { onEmailChange(it) },
-            label = { Text("Correo Electrónico") },
-            keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
-            keyboardActions = KeyboardActions(
-                onDone = { keyboardController?.hide() }),
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(bottom = 8.dp)
-        )
-    }
-}
-
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalComposeUiApi::class)
-@Composable
-fun CompanyStep(company: String, onCompanyChange: (String) -> Unit) {
-    val keyboardController = LocalSoftwareKeyboardController.current
-
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(8.dp)
-    ) {
-        Text(
-            text = "Empresa",
-            textAlign = TextAlign.Center,
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(bottom = 8.dp),
-            color = Color.White,
-            style = MaterialTheme.typography.headlineLarge
-        )
-
-        Text(
-            text = "Introduzca empresa:",
-            color = Color.White,
-            textAlign = TextAlign.Center,
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(bottom = 24.dp),
-            style = MaterialTheme.typography.bodyMedium
-        )
-
-        TextField(
-            value = company,
-            onValueChange = { onCompanyChange(it) },
-            label = { Text("Empresa") },
-            keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
-            keyboardActions = KeyboardActions(
-                onDone = { keyboardController?.hide() }),
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(bottom = 8.dp)
-        )
-    }
-}
-
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalComposeUiApi::class)
-@Composable
-fun MessageStep(message: String, onMessageChange: (String) -> Unit) {
-    val keyboardController = LocalSoftwareKeyboardController.current
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(8.dp)
-    ) {
-        Text(
-            text = "Mensaje",
-            color = Color.White,
-            textAlign = TextAlign.Center,
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(bottom = 8.dp),
-            style = MaterialTheme.typography.headlineLarge
-        )
-
-        Text(
-            text = "Diga o introduzca su mensaje:",
-            color = Color.White,
-            textAlign = TextAlign.Center,
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(bottom = 24.dp),
-            style = MaterialTheme.typography.bodyMedium
-        )
-
-        TextField(
-            value = message,
-            onValueChange = { onMessageChange(it) },
-            keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
-            keyboardActions = KeyboardActions(
-                onDone = { keyboardController?.hide() }),
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(100.dp)
-                .padding(4.dp)
-                .border(width = 1.dp, color = Color.Black)
-        )
-    }
-}
-
-
-@Composable
-fun LastStep(numericPanelViewModel: NumericPanelViewModel, mqttViewModel: MqttViewModel) {
-
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(8.dp)
-    ) {
-        Text(
-            text = "Muchas gracias por su visita",
-            color = Color.White,
-            textAlign = TextAlign.Center,
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(bottom = 8.dp),
-            style = MaterialTheme.typography.headlineLarge
-        )
-
-        Text(
-            text = "Su información ha sido enviada. Nos pondremos en contacto con usted lo más rápido posible.",
-            color = Color.White,
-            textAlign = TextAlign.Center,
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(bottom = 24.dp)
-                .padding(horizontal = 85.dp),
-            style = MaterialTheme.typography.bodySmall,
-        )
-        Row(horizontalArrangement = Arrangement.Center, modifier = Modifier.fillMaxSize()) {
-            TransparentButtonWithIcon(
-                text = "Volver",
-                icon = Icons.Outlined.ArrowBack,
-                onClick = { mqttViewModel.navigateToHomeScreen() }
-            )
-        }
-    }
 }
