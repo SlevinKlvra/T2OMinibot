@@ -781,7 +781,12 @@ class MqttViewModel @Inject constructor(
                 Log.d("UPDATE SAFE DISTANCE", "Update the safe distance")
 
                 setDrivingState()
-                robotMan.startNavigation(0, message, 0.1234, 0)
+                robotMan.startNavigation(0, message, 0.1234, 0, navigationCompleteListener = object :
+                    RobotManager.NavigationCompleteListener {
+                    override fun onNavigationComplete() {
+                        // Acciones a realizar después de hablar
+                    }
+                })
             }
 
             "robot/nav_cmds/go_charger" -> RobotApi.getInstance().goCharging(0)
@@ -825,8 +830,12 @@ class MqttViewModel @Inject constructor(
                             0,
                             robotConfigInstance.returnDestination,
                             robotConfigInstance.coordinateDeviation,
-                            robotConfigInstance.navigationTimeout
-                        )
+                            robotConfigInstance.navigationTimeout, navigationCompleteListener = object :
+                                RobotManager.NavigationCompleteListener {
+                                override fun onNavigationComplete() {
+                                    // Acciones a realizar después de hablar
+                                }
+                        })
                     }
                 }
             }

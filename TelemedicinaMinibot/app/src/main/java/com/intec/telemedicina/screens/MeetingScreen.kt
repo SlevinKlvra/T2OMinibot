@@ -148,8 +148,22 @@ fun MeetingScreen(
                     1,
                     meetingInfo.puntomapa,
                     mqttViewModel.coordinateDeviation.value!!.toDouble(),
-                    mqttViewModel.navigationTimeout.value!!.toLong()
-                )
+                    mqttViewModel.navigationTimeout.value!!.toLong(), navigationCompleteListener = object :
+                        RobotManager.NavigationCompleteListener {
+                        override fun onNavigationComplete() {
+                            // Acciones a realizar después de hablar
+                            robotManager.speak(
+                                "Hemos llegado. Tome asiento y en breves momentos comenzará la reunión. Yo vuelvo a mi puesto. Muchas gracias",
+                                false,
+                                object : RobotManager.SpeakCompleteListener {
+                                    override fun onSpeakComplete() {
+                                        // Acciones a realizar después de hablar
+                                        robotManager.returnToPosition(mqttViewModel.returnDestination.value!!)
+                                    }
+                                }
+                            )
+                        }
+                    })
                 messageIndex = 8
             }
 

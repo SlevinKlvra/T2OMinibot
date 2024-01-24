@@ -107,7 +107,11 @@ class NumericPanelViewModel(
         } else {
             triggerErrorAnimation()
             Log.e("Error", "La respuesta es no válida")
-            robotMan.speak("El código no es válido. Inténtelo de nuevo", false)
+            robotMan.speak("El código no es válido. Inténtelo de nuevo", false, object : RobotManager.SpeakCompleteListener {
+                override fun onSpeakComplete() {
+                    // Acciones a realizar después de hablar
+                }
+            })
             _isLoading.value = false
             false
         }

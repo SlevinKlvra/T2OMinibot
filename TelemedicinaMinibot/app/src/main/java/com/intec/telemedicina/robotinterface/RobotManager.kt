@@ -306,7 +306,8 @@ class RobotManager @Inject constructor(private val skillApi: SkillApi, @Applicat
         reqId: Int,
         destName: String,
         coordinateDeviation: Double,
-        time: Long
+        time: Long,
+        navigationCompleteListener: NavigationCompleteListener
     ){
         Log.d("START NAVIGATION", "Comenzando navegación a $destName")
         setLastPosition(destName)
@@ -383,6 +384,7 @@ class RobotManager @Inject constructor(private val skillApi: SkillApi, @Applicat
                     Log.d("ROBOT STATUS NUEVO", robotStatus.toString())
 
                     if(robotStatus.status == "END"){
+                        navigationCompleteListener.onNavigationComplete()
                         callbackNavigationStarted(false)
                         startFocusFollow(0)
                         registerPersonListener()
@@ -399,7 +401,16 @@ class RobotManager @Inject constructor(private val skillApi: SkillApi, @Applicat
     fun resumeNavigation(){
         if (!lastDestination.value.isNullOrEmpty()) {
             Log.d("RESUME NAVIGATION", "Continuing navigation: ${lastDestination.value}")
-            startNavigation(0, lastDestination.value, 0.1, 1000000)
+            startNavigation(0, lastDestination.value, 0.1, 1000000, navigationCompleteListener = object : NavigationCompleteListener {
+                override fun onNavigationComplete() {
+                    // Acciones a realizar después de hablar
+                    speak("Continuando navegación",false, object : SpeakCompleteListener {
+                        override fun onSpeakComplete() {
+                            // Acciones a realizar después de hablar
+                        }
+                    })
+                }
+            })
         } else {
             Log.d("RESUME NAVIGATION", "No last navigated location available")
         }
@@ -429,7 +440,11 @@ class RobotManager @Inject constructor(private val skillApi: SkillApi, @Applicat
     fun returnToPosition(positionToReturn: String){
         //TODO: Save last known coordinates when starting a navigation
         if(positionToReturn != ""){
-            startNavigation(0,positionToReturn,0.1,1000000)
+            startNavigation(0,positionToReturn,0.1,1000000, navigationCompleteListener = object : NavigationCompleteListener {
+                override fun onNavigationComplete() {
+                    // Acciones a realizar después de hablar
+                }
+            })
         }
         else{
             speak("Actualmente no existe un destino al que haya ido previamente",false, object : RobotManager.SpeakCompleteListener {
@@ -442,6 +457,10 @@ class RobotManager @Inject constructor(private val skillApi: SkillApi, @Applicat
 
     interface SpeakCompleteListener {
         fun onSpeakComplete()
+    }
+
+    interface NavigationCompleteListener {
+        fun onNavigationComplete()
     }
 
     fun speak(text : String, listen: Boolean, speakCompleteListener: SpeakCompleteListener){
@@ -575,7 +594,11 @@ class RobotManager @Inject constructor(private val skillApi: SkillApi, @Applicat
         launch {
             //stopCharging()
             delay(6000L)
-            startNavigation(0,"entrada",0.1234,0)
+            startNavigation(0,"entrada",0.1234,0, navigationCompleteListener = object : NavigationCompleteListener {
+                override fun onNavigationComplete() {
+                    // Acciones a realizar después de hablar
+                }
+            })
         }
     }
 }
