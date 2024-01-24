@@ -24,11 +24,14 @@ fun AdminPanelScreen(
             ) {
                 mqttViewModel.navigateToMqttScreen()
             } else {
-                robotManager.speak("Código incorrecto", false, object : RobotManager.SpeakCompleteListener {
-                    override fun onSpeakComplete() {
-                        // Acciones a realizar después de hablar
-                    }
-                })
+                robotManager.speak(
+                    "Código incorrecto",
+                    false,
+                    object : RobotManager.SpeakCompleteListener {
+                        override fun onSpeakComplete() {
+                            // Acciones a realizar después de hablar
+                        }
+                    })
             }
         }, titleText = "Código de acceso administrador")
 

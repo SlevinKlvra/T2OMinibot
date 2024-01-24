@@ -12,7 +12,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 
 @Composable
-fun GoBackButton(onClick: () -> Unit){
+fun GoBackButton(onClick: () -> Unit) {
     FloatingActionButton(
         onClick = { onClick() },
         modifier = Modifier

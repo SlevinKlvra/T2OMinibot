@@ -44,8 +44,6 @@ class MainActivity : ComponentActivity() {
 
     // TODO: Pass robotManager to the viewmodel and try out the navigation
 
-    private val REQUEST_MANAGE_EXTERNAL_STORAGE_PERMISSION = 123
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -61,12 +59,13 @@ class MainActivity : ComponentActivity() {
                     override fun onNavigationCompleted() {
                         mqttViewModel.onNavigationCompleted()
                     }
+
                     override fun onNavigationStarted() {
                         mqttViewModel.onNavigationStarted()
                     }
+
                     override fun onSpeakFinished() {
                         mqttViewModel.onSpeakFinished()
-
                     }
                 })
 
