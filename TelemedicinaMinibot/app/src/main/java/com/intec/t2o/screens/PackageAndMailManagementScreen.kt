@@ -190,7 +190,7 @@ fun PackageAndMailManagementScreen(
                                     "return",
                                     "to home screen and to default return pos: ${mqttViewModel.returnDestination.value}"
                                 )
-                                mqttViewModel.returnToPosition(mqttViewModel.returnDestination.value.toString())
+                                mqttViewModel.returnToPosition(mqttViewModel.returnDestination.value!!)
                             }
                         })
                     }

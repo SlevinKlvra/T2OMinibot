@@ -131,9 +131,8 @@ fun MeetingScreen(
                         override fun onSpeakComplete() {
                             // Acciones a realizar después de hablar
                         }
-                    })
-                delay(5000L)
-                messageIndex = 7
+                    }
+                )
             }
 
             5 -> {
