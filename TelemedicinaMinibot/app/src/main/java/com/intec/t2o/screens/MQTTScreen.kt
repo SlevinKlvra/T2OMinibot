@@ -177,6 +177,32 @@ fun MQTTScreen(navController: NavController, mqttViewModel: MqttViewModel) {
                     Spacer(modifier = Modifier.width(5.dp)) // Espacio entre el Text y el Switch
                 }
             }
+            Spacer(modifier = Modifier.height(16.dp))
+            Text(fontWeight = FontWeight.Bold, text = "MQTT Connection Status: $connectionState")
+            Spacer(modifier = Modifier.height(16.dp))
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Button(onClick = {
+                    viewModel.connect()
+                    viewModel.triggerHideKeyboard()
+                }) {
+                    Text("Connect")
+                }
+                Button(onClick = {
+                    viewModel.disconnect()
+                    viewModel.triggerHideKeyboard()
+                }) {
+                    Text("Disconnect")
+                }
+                Button(onClick = {
+
+                }) {
+                    Text("Disconnect")
+                }
+            }
             Spacer(modifier = Modifier.height(8.dp))
             Text(fontWeight = FontWeight.Bold, text = "MQTT Connection params")
             Spacer(modifier = Modifier.height(8.dp))
@@ -486,32 +512,6 @@ fun MQTTScreen(navController: NavController, mqttViewModel: MqttViewModel) {
                 viewModel.guardarConfiguracionAPI(usuarioApi, passwordApi)
             }) {
                 Text("Guardar Configuración API")
-            }
-            Spacer(modifier = Modifier.height(16.dp))
-            Text(fontWeight = FontWeight.Bold, text = "MQTT Connection Status: $connectionState")
-            Spacer(modifier = Modifier.height(16.dp))
-
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                Button(onClick = {
-                    viewModel.connect()
-                    viewModel.triggerHideKeyboard()
-                }) {
-                    Text("Connect")
-                }
-                Button(onClick = {
-                    viewModel.disconnect()
-                    viewModel.triggerHideKeyboard()
-                }) {
-                    Text("Disconnect")
-                }
-                Button(onClick = {
-
-                }) {
-                    Text("Disconnect")
-                }
             }
 
             Spacer(modifier = Modifier.height(16.dp))
