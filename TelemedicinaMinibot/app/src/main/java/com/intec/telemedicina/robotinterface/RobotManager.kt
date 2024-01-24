@@ -133,7 +133,6 @@ class RobotManager @Inject constructor(private val skillApi: SkillApi, @Applicat
         val lostTimeout = 10 // Define el tiempo en segundos antes de reportar la pérdida del objetivo
         val maxDistance = 2.5F //Define la distancia máxima en metros para el seguimiento
 
-
         // Inicia el seguimiento de la persona con el ID de cara dado
         RobotApi.getInstance().startFocusFollow(reqId, faceId,
             lostTimeout.toLong(), maxDistance, object : ActionListener() {
@@ -278,6 +277,14 @@ class RobotManager @Inject constructor(private val skillApi: SkillApi, @Applicat
         return savePosesSharedPreferences.getDataList()
     }
 
+    fun getLastPosition() : String {
+        return lastDestination
+    }
+
+    private fun setLastPosition(lastPosition: String) {
+        lastDestination = lastPosition
+    }
+
     data class RobotStatus(val destName : String, val status : String)
 
     // Definición del callback
@@ -299,10 +306,11 @@ class RobotManager @Inject constructor(private val skillApi: SkillApi, @Applicat
         coordinateDeviation: Double,
         time: Long
     ){
-        Log.d("START NAVIGATION", "Comenzando navegación")
+        Log.d("START NAVIGATION", "Comenzando navegación a $destName")
+        setLastPosition(destName)
+
         stopFocusFollow()
         callbackNavigationStarted(true)
-
         RobotApi.getInstance().goPosition(0, RobotApi.getInstance().getSpecialPose(destName).toJson(), object : CommandListener(){
             override fun onError(errorCode: Int, errorString: String?, extraData: String?) {
                 super.onError(errorCode, errorString, extraData)
@@ -327,6 +335,8 @@ class RobotManager @Inject constructor(private val skillApi: SkillApi, @Applicat
                         when(data) {
                             "navigation_started" -> {
                                 speak("Estoy yendo a $destName",false)
+                                pausedLocation = destName
+                                Log.d("START NAVIGATION", "Asignado destino $destName a pausedLocation")
                                 status_ = "START"
                                 navigationCallback?.onNavigationStarted()
                                 val robotStatus = RobotStatus(destName, status_)
@@ -375,13 +385,13 @@ class RobotManager @Inject constructor(private val skillApi: SkillApi, @Applicat
                 }
             }
         })
-        pausedLocation = destName
     }
 
-    fun resumeNavigation(reqId: Int){
-        if(pausedLocation.isNotEmpty()){
-            Log.d("RESUME NAVIGATION","Continuing navigation: $pausedLocation")
-            startNavigation(0, pausedLocation, 0.1,1000000)
+    fun resumeNavigation(){
+        getLastPosition()
+        if(lastDestination.isNotEmpty()){
+            Log.d("RESUME NAVIGATION","Continuing navigation: $lastDestination")
+            startNavigation(0, lastDestination, 0.1,1000000)
         }
         else{
             Log.d("RESUME NAVIGATION","No last navigated location available")
@@ -529,6 +539,10 @@ class RobotManager @Inject constructor(private val skillApi: SkillApi, @Applicat
 
     fun moveForward() {
         RobotApi.getInstance().goForward(0, 0.1F,0.1F,false, CommandListener())
+    }
+
+    fun disableChargingInterface() {
+        RobotApi.getInstance().disableBattery()
     }
 
     fun goCharge() {

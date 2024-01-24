@@ -82,14 +82,15 @@ fun EyesScreen(navController: NavController, mqttViewModel: MqttViewModel, robot
                     mqttViewModel.setPaused(true)
                     mqttViewModel.navigateToDrivingScreen()
 
-                } else if(isFinished){
+                } else {
                     mqttViewModel.navigateToHomeScreen()
                     robotManager.registerPersonListener()
                     robotManager.startFocusFollow(0)
                 }
             }
             .background(Color.Black)
-            .fillMaxSize()){
+            .fillMaxSize()
+        ){
         ImageExample(faceType, interactionState, question, notUnderstood)
         if(false){//notUnderstood){
             FloatingActionButton(

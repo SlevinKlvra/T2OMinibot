@@ -94,7 +94,7 @@ class MqttViewModel @Inject constructor(
                 currentCount--
             }
             coutndownJob?.cancel()
-            robotMan.resumeNavigation(0)
+            robotMan.resumeNavigation()
             setCountdownFlagState(true)
         }
     }
@@ -174,6 +174,7 @@ class MqttViewModel @Inject constructor(
 
     private var robotConfigInstance = RobotConfig(idleWaitingTime = 10, meetingTimeThreshold = 10, returnDestination = "entrada", coordinateDeviation = 0.1, navigationTimeout = 1000000)
 
+    //NAVEGACIÓN ENTRE SCREENS
     private val _navigationState = MutableStateFlow(NavigationState.EyesScreen)
     val navigationState: StateFlow<NavigationState> = _navigationState.asStateFlow()
 
@@ -522,7 +523,6 @@ class MqttViewModel @Inject constructor(
         Log.d("DrivingState", "setDrivingState")
         robotMan.onNavigationStarted = { navigationStarted -> //navigationStarted: Boolean
             if(navigationStarted){
-
                 Log.d("DrivingState", navigationState.value.toString())
                 isDriving.value = true
                 isPaused.value = false
@@ -629,7 +629,7 @@ class MqttViewModel @Inject constructor(
 
     fun startPersonDetection(waitTimeInSeconds: Int) {
         //Log.d("startPersonDetection", "$waitTimeInSeconds")
-        //detectionJob?.cancel()
+        detectionJob?.cancel()
         detectionJob = viewModelScope.launch {
             val waitTimeInMillis = waitTimeInSeconds * 1000L
             var elapsedTime = 0L // Reinicia el temporizador
@@ -639,24 +639,25 @@ class MqttViewModel @Inject constructor(
 
                 delay(1000)
                 elapsedTime += 1000
-                //Log.d("startDetection", "CURRENT ELAPSED TIME: $elapsedTime is less than $waitTimeInMillis. current detection state: ${detectedPerson.isNullOrEmpty()}")
+                Log.d("startDetection", "CURRENT ELAPSED TIME: $elapsedTime is less than $waitTimeInMillis. current detection state: ${detectedPerson.isNullOrEmpty()}")
 
             }
 
             if(!detectedPerson.isNullOrEmpty()){
-                //Log.d("startDetection", "PERSONS LIST IS NOT NULL NEITHER EMPTY. RESTARTING TIME")
-                detectionJob?.cancel()
+                Log.d("startDetection", "PERSONS LIST IS NOT NULL NEITHER EMPTY. RESTARTING TIME")
                 elapsedTime = 0 // Reinicia el temporizador
-
+                detectionJob?.cancel()
                 //navigateToHomeScreen()
                 //detectionJob?.cancel()
             }
 
-            if (detectedPerson.isNullOrEmpty() && elapsedTime >= waitTimeInMillis) {
+            if (detectedPerson.isNullOrEmpty() && elapsedTime >= waitTimeInMillis && !navigationFinished.value) {
                 Log.d("startDetection", "ELAPSED TIME: $elapsedTime, detection state: ${detectedPerson.isNullOrEmpty()}, return to pos: ${returnDestination.value}")
                 //robotMan.unregisterPersonListener()
                 robotMan.returnToPosition(returnDestination.value!!)
                 navigateToEyesScreen()
+                elapsedTime = 0
+                detectionJob?.cancel()
                 //robotMan.goCharge()
             }
         }
@@ -829,7 +830,7 @@ class MqttViewModel @Inject constructor(
             }
 
             "robot/nav_cmds/resume_navigation" -> {
-                robotMan.resumeNavigation(0)
+                robotMan.resumeNavigation()
                 //isDriving.value = true
                 isPaused.value = false
             }

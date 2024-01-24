@@ -64,11 +64,14 @@ class MainActivity : ComponentActivity() {
                         Log.d("MainActivity after", "onNavigationComplete: ${mqttViewModel.isNavigationComplete.value}")
                     }
                     override fun onNavigationStarted() {
+                        Log.d("MainActivity prev", "onNavigationStart: ${mqttViewModel.isNavigationStart.value}")
                         mqttViewModel.onNavigationStarted()
+                        Log.d("MainActivity prev", "onNavigationStart: ${mqttViewModel.isNavigationStart.value}")
                     }
-
                     override fun onSpeakFinished() {
+                        Log.d("MainActivity prev", "onSpeakFinish: ${mqttViewModel.isSpeakFinish.value}")
                         mqttViewModel.onSpeakFinished()
+                        Log.d("MainActivity prev", "onSpeakFinish: ${mqttViewModel.isSpeakFinish.value}")
                     }
                 })
 
@@ -92,6 +95,7 @@ class MainActivity : ComponentActivity() {
                     override fun handleApiConnected() {
                         Log.d("SKILLAPI", "Skill api connected! Creating robot Manager")
                         robotMan = RobotManager(skillApi, applicationContext)
+                        robotMan.disableChargingInterface()
                         robotMan.registerCallback()
                     }
 

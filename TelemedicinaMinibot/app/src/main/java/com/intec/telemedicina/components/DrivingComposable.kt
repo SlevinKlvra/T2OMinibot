@@ -1,4 +1,4 @@
-package com.intec.telemedicina.screens
+package com.intec.telemedicina.components
 
 import android.util.Log
 import androidx.compose.foundation.background
@@ -17,42 +17,38 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
-import com.intec.telemedicina.components.TransparentButtonWithIcon
-import com.intec.telemedicina.navigation.AppScreens
+import com.intec.telemedicina.robotinterface.RobotManager
+import com.intec.telemedicina.screens.FuturisticGradientBackground
 import com.intec.telemedicina.viewmodels.MqttViewModel
 
-fun test1() {}
-
 @Composable
-@Preview(showBackground = true, widthDp = 1000, heightDp = 500)
-fun DrivingScreenPreview() {
-    val navController = NavController(LocalContext.current)
-    FuturisticGradientBackground {
-        // DrivingScreen(navController = navController)
-    }
-}
-
-@Composable
-fun DrivingScreen(
+fun DrivingComposable(
     navController: NavController,
-    mqttViewModel: MqttViewModel
+    mqttViewModel: MqttViewModel,
+    robotManager: RobotManager,
+    onClose: () -> Unit
 ) {
     Log.d("Current Screen", "DrivingScreen")
     val closeDrivingScreenFace by mqttViewModel.closeDrivingScreenFace.collectAsState()
     val tiempoRestantePausa by mqttViewModel.countdownState.collectAsState()
     val countdownFlag by mqttViewModel.countdownFlag.collectAsState()
 
+    val currentDestiny = remember { mutableStateOf("") }
+
     LaunchedEffect(key1 = true) {
+        Log.d("Launchedeffect driving", "Launchedeffect driving")
+        currentDestiny.value = robotManager.getLastPosition()
+        Log.d("Launchedeffect driving", "${currentDestiny.value}")
         mqttViewModel.startCountdown()
     }
 
@@ -124,7 +120,7 @@ fun DrivingScreen(
                         onClick = {
                             mqttViewModel.coutndownJob?.cancel()
                             mqttViewModel.robotMan.resumeNavigation()
-                            mqttViewModel.navigateToEyesScreen()
+                            onClose()
                         })
                     TransparentButtonWithIcon(
                         text = "Cancelar tarea",
@@ -132,11 +128,10 @@ fun DrivingScreen(
                         onClick = {
                             mqttViewModel.coutndownJob?.cancel()
                             mqttViewModel.robotMan.returnToPosition(mqttViewModel.returnDestination.value!!)
-                            mqttViewModel.navigateToEyesScreen()
+                            onClose()
                         })
                 }
             }
         }
     }
 }
-
