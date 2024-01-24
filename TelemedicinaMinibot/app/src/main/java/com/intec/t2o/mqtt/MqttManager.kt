@@ -165,7 +165,7 @@ class MqttManager(
         listaTopics.add(32, "robot/nav_cmds/driving_finished")
         listaTopics.add(33, "robot/voice_cmds/remove_question")
         listaTopics.add(34, "robot/open_homescreen")
-        listaTopics.add(35, "robot/nav_cmds/request_move")
+        listaTopics.add(35, "zigbee2mqtt/Cerradura/state_left")
         listaTopics.add(36, "zigbee2mqtt/Pulsador/action")
         return listaTopics
     }
@@ -207,8 +207,8 @@ class MqttManager(
             if (mqttAndroidClient.isConnected) {
                 Log.d("PUBLISH", "SENDING MESSAGE")
                 mqttAndroidClient.publish(topic, message)
-                //addToHistory("Message Published >$publishedMessage<")
                 if (!mqttAndroidClient.isConnected) {
+                    Log.d("PUBLISH", mqttAndroidClient.bufferedMessageCount.toString() + " messages in buffer.")
                     //addToHistory(mqttAndroidClient.bufferedMessageCount.toString() + " messages in buffer.")
                 }
             } else {

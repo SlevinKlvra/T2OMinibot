@@ -816,7 +816,21 @@ class MqttViewModel @Inject constructor(
             }
 
             "zigbee2mqtt/Pulsador/action" -> {
-                Log.d("ZIGBEE", message)
+                robotMan.startNavigation(
+                    0,
+                    robotConfigInstance.returnDestination,
+                    robotConfigInstance.coordinateDeviation,
+                    robotConfigInstance.navigationTimeout, navigationCompleteListener = object :
+                        RobotManager.NavigationCompleteListener {
+                            override fun onNavigationComplete() {
+                                // Acciones a realizar después de hablar
+                                publishMessage("zigbee2mqtt/Cerradura/left/set", "ON")
+                                publishMessage("zigbee2mqtt/Cerradura/right/set", "ON")
+                                addIncomingMessage("Opening door")
+                            }
+                    }
+                )
+                /*Log.d("ZIGBEE", message)
                 if (message == "single") {
                     if (RobotApi.getInstance().chargeStatus) {
                         robotMan.scheduleWithCoroutine()
@@ -837,7 +851,7 @@ class MqttViewModel @Inject constructor(
                                 }
                             })
                     }
-                }
+                }*/
             }
         }
     }

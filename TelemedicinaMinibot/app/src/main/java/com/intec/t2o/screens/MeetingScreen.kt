@@ -142,8 +142,6 @@ fun MeetingScreen(
                         }
                     }
                 )
-                delay(5000L)
-                messageIndex = 7
             }
 
             5 -> {
