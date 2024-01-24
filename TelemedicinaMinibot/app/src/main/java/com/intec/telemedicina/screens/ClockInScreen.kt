@@ -28,6 +28,7 @@ import com.intec.telemedicina.R
 import com.intec.telemedicina.components.GoBackButton
 import com.intec.telemedicina.components.NumericPad
 import com.intec.telemedicina.components.TransparentButtonWithIcon
+import com.intec.telemedicina.robotinterface.RobotManager
 import com.intec.telemedicina.viewmodels.MqttViewModel
 import com.intec.telemedicina.viewmodels.NumericPanelViewModel
 
@@ -49,7 +50,11 @@ fun ClockInScreen(
                 titleText = "Introduce tu código de empleado"
             )
         } else {
-            mqttViewModel.robotMan.speak("", false)
+            mqttViewModel.robotMan.speak("", false, object : RobotManager.SpeakCompleteListener {
+                override fun onSpeakComplete() {
+                    // Acciones a realizar después de hablar
+                }
+            })
 
             Column(
                 modifier = Modifier

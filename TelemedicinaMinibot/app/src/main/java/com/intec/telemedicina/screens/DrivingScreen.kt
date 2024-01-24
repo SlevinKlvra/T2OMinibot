@@ -20,27 +20,13 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.intec.telemedicina.components.TransparentButtonWithIcon
-import com.intec.telemedicina.navigation.AppScreens
 import com.intec.telemedicina.viewmodels.MqttViewModel
-
-fun test1() {}
-
-@Composable
-@Preview(showBackground = true, widthDp = 1000, heightDp = 500)
-fun DrivingScreenPreview() {
-    val navController = NavController(LocalContext.current)
-    FuturisticGradientBackground {
-        // DrivingScreen(navController = navController)
-    }
-}
 
 @Composable
 fun DrivingScreen(
@@ -56,15 +42,13 @@ fun DrivingScreen(
         mqttViewModel.startCountdown()
     }
 
-    if (countdownFlag){
+    if (countdownFlag) {
         mqttViewModel.navigateToEyesScreen()
         mqttViewModel.setCountdownFlagState(false)
     }
 
     if (closeDrivingScreenFace) {
         Log.d("CLOSEDRIVING", "Closing drivingscreenface")
-        //navController.popBackStack()
-        //mqttViewModel.deactivateCloseDrivingScreenFace()
     }
     FuturisticGradientBackground {
 

@@ -46,7 +46,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -82,7 +81,6 @@ fun MQTTScreen(navController: NavController, mqttViewModel: MqttViewModel) {
     val viewModel: MqttViewModel = mqttViewModel
 
     // Estados para manejar la entrada del usuario
-    val brokerIp by viewModel.brokerIp.observeAsState("")
 
     val connectionState by viewModel.connectionState
     val messages by viewModel.incomingMessages
@@ -120,16 +118,8 @@ fun MQTTScreen(navController: NavController, mqttViewModel: MqttViewModel) {
     var coordinateDeviation by remember { mutableStateOf(viewModel.getCoordinateDeviationDefaultValue()) }
     var navigationTimeout by remember { mutableStateOf(viewModel.getNavigationTimeoutDefaultValue()) }
 
-    /*if(openScreen && (navController.currentDestination?.route.toString() != "driving_face_screen")) {
-        Log.d("DRIVINGSCREEN", "Open the drivingscreen: ${navController.currentDestination!!.route}")
-        navController.navigate(AppScreens.DrivingFaceScreen.route)
-    }*/
-    /*else if(!openScreen && (navController.currentDestination?.route.toString() == "driving_face_screen")){
-        navController.popBackStack()
-    }*/
-
     val destinations: List<Pose> by mqttViewModel.posesList.collectAsState()
-    var expanded = remember { mutableStateOf(false) }
+    val expanded = remember { mutableStateOf(false) }
     val selectedItem = mqttViewModel.selectedItem.value
 
     LazyColumn(
@@ -377,7 +367,7 @@ fun MQTTScreen(navController: NavController, mqttViewModel: MqttViewModel) {
                         expanded = expanded.value,
                         onDismissRequest = { expanded.value = false },
                     ) {
-                        destinations.forEachIndexed { index, label ->
+                        destinations.forEachIndexed { _, label ->
                             DropdownMenuItem(
                                 text = { Text(label.name) },
                                 onClick = {
@@ -587,11 +577,6 @@ fun MQTTScreen(navController: NavController, mqttViewModel: MqttViewModel) {
     }
 }
 
-//val destinations : List<Pose> by mqttViewModel.posesList.collectAsState()
-//val posesList = MutableStateFlow(emptyList<Pose>())
-/*fun getListPoses(){
-        posesList.value = robotMan.getPoses()
-    }*/
 @Composable
 fun SwitchDemo(mqttViewModel: MqttViewModel) {
     val checkedState by mqttViewModel.adminState.collectAsState()
@@ -681,7 +666,6 @@ private fun downloadAndInstall(context: Context, apkUrl: String) {
             }
         }
     }
-
     // Registrar el BroadcastReceiver
     context.registerReceiver(onComplete, IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE))
 }
