@@ -60,7 +60,7 @@ class RobotManager @Inject constructor(private val skillApi: SkillApi, @Applicat
     var pausedLocation : String = ""
 
     var currentDestination = ""
-    var lastDestination = ""
+    var lastDestination = mutableStateOf("")
 
     private val _connectionState = mutableStateOf("Disconnected")
     val connectionState get()= _connectionState
@@ -278,11 +278,13 @@ class RobotManager @Inject constructor(private val skillApi: SkillApi, @Applicat
     }
 
     fun getLastPosition() : String {
-        return lastDestination
+        Log.d("getLastPosition", "Getting last position: ${lastDestination}")
+        return lastDestination.value
     }
 
     private fun setLastPosition(lastPosition: String) {
-        lastDestination = lastPosition
+        Log.d("setLastPosition", "Setting last position to $lastPosition")
+        lastDestination.value = lastPosition
     }
 
     data class RobotStatus(val destName : String, val status : String)
@@ -334,7 +336,7 @@ class RobotManager @Inject constructor(private val skillApi: SkillApi, @Applicat
 
                         when(data) {
                             "navigation_started" -> {
-                                speak("Estoy yendo a $destName",false)
+                                //speak("Estoy yendo a $destName",false)
                                 pausedLocation = destName
                                 Log.d("START NAVIGATION", "Asignado destino $destName a pausedLocation")
                                 status_ = "START"
@@ -342,21 +344,28 @@ class RobotManager @Inject constructor(private val skillApi: SkillApi, @Applicat
                                 val robotStatus = RobotStatus(destName, status_)
 
                                 val json = gson.toJson(robotStatus)
-                                updateCurrentDestination(destName)
                             }
                             "Avoid" -> {
                                 status_ = "AVOID"
                                 val robotStatus = RobotStatus(destName, status_)
 
                                 val json = gson.toJson(robotStatus)
-                                speak("No puedo pasar, ¿podrías dejarme paso?",false)
+                                speak("No puedo pasar, ¿podrías dejarme paso?",false, object : RobotManager.SpeakCompleteListener {
+                                    override fun onSpeakComplete() {
+                                        // Acciones a realizar después de hablar
+                                    }
+                                })
                             }
                             "Avoid end" -> {
                                 status_ = "END_AVOID"
                                 val robotStatus = RobotStatus(destName, status_)
 
                                 val json = gson.toJson(robotStatus)
-                                speak("Gracias por dejarme paso, vamos",false)
+                                speak("Gracias por dejarme paso, vamos",false, object : RobotManager.SpeakCompleteListener {
+                                    override fun onSpeakComplete() {
+                                        // Acciones a realizar después de hablar
+                                    }
+                                })
                             }
                         }
 
@@ -388,13 +397,11 @@ class RobotManager @Inject constructor(private val skillApi: SkillApi, @Applicat
     }
 
     fun resumeNavigation(){
-        getLastPosition()
-        if(lastDestination.isNotEmpty()){
-            Log.d("RESUME NAVIGATION","Continuing navigation: $lastDestination")
-            startNavigation(0, lastDestination, 0.1,1000000)
-        }
-        else{
-            Log.d("RESUME NAVIGATION","No last navigated location available")
+        if (!lastDestination.value.isNullOrEmpty()) {
+            Log.d("RESUME NAVIGATION", "Continuing navigation: ${lastDestination.value}")
+            startNavigation(0, lastDestination.value, 0.1, 1000000)
+        } else {
+            Log.d("RESUME NAVIGATION", "No last navigated location available")
         }
     }
 
@@ -425,12 +432,19 @@ class RobotManager @Inject constructor(private val skillApi: SkillApi, @Applicat
             startNavigation(0,positionToReturn,0.1,1000000)
         }
         else{
-            speak("Actualmente no existe un destino al que haya ido previamente",false)
+            speak("Actualmente no existe un destino al que haya ido previamente",false, object : RobotManager.SpeakCompleteListener {
+                override fun onSpeakComplete() {
+                    // Acciones a realizar después de hablar
+                }
+            })
         }
     }
 
+    interface SpeakCompleteListener {
+        fun onSpeakComplete()
+    }
 
-    fun speak(text : String, listen: Boolean){
+    fun speak(text : String, listen: Boolean, speakCompleteListener: SpeakCompleteListener){
         skillApi.playText(TTSEntity("sid-012345",text), object : TextListener() {
             override fun onStart() {
                 // Iniciar reproducción
@@ -450,10 +464,7 @@ class RobotManager @Inject constructor(private val skillApi: SkillApi, @Applicat
                 navigationCallback?.onSpeakFinished()
                 skillApi.setRecognizeMode(listen)
                 skillApi.setRecognizable(listen)
-                if(listen){
-                }
-                else{
-                }
+                speakCompleteListener.onSpeakComplete()
             }
         })
     }
@@ -546,18 +557,17 @@ class RobotManager @Inject constructor(private val skillApi: SkillApi, @Applicat
     }
 
     fun goCharge() {
-        speak("He esperado demasiado tiempo. Vuelvo a mi puesto.", false)
+        speak("Voy a recargar.",false, object : SpeakCompleteListener {
+            override fun onSpeakComplete() {
+                // Acciones a realizar después de hablar
+            }
+        })
         unregisterPersonListener()
         RobotApi.getInstance().goCharging(0)
     }
     
     fun wakeUp() {
         RobotApi.getInstance().stopCharge(0)
-    }
-
-    fun updateCurrentDestination(_currentDestination : String){
-        lastDestination = currentDestination
-        currentDestination = _currentDestination
     }
 
     fun scheduleWithCoroutine() = runBlocking {

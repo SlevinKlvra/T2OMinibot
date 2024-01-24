@@ -62,7 +62,11 @@ fun HomeScreen(
     val openEyesScreen by mqttViewModel.openEyesScreen.collectAsState()
 
     LaunchedEffect(key1 = true) {
-        robotManager.speak("Bienvenido a t, 2, o, media. ¿Cuál es el motivo de su visita?", true)
+        robotManager.speak("Bienvenido a t, 2, o, media. ¿Cuál es el motivo de su visita?", true, object : RobotManager.SpeakCompleteListener {
+            override fun onSpeakComplete() {
+                // Acciones a realizar después de hablar
+            }
+        } )
     }
 
     if (openEyesScreen) {

@@ -71,14 +71,22 @@ fun MeetingScreen(
         when (messageIndex) {
             0 -> {
                 Log.d("SECUENCIA", "$messageIndex: Hola, ${meetingInfo.visitante}")
-                robotManager.speak("Hola, ${meetingInfo.visitante}", false)
+                robotManager.speak("Hola, ${meetingInfo.visitante}", false, object : RobotManager.SpeakCompleteListener {
+                    override fun onSpeakComplete() {
+                        // Acciones a realizar después de hablar
+                    }
+                })
                 delay(3000L)
                 messageIndex = 1
             }
 
             1 -> {
                 Log.d("SECUENCIA", "$messageIndex: Estoy notificando a ${meetingInfo.anfitrion} de tu llegada")
-                robotManager.speak("Notificando a ${meetingInfo.anfitrion} de tu llegada", false)
+                robotManager.speak("Notificando a ${meetingInfo.anfitrion} de tu llegada", false, object : RobotManager.SpeakCompleteListener {
+                    override fun onSpeakComplete() {
+                        // Acciones a realizar después de hablar
+                    }
+                })
                 delay(5000L)
                 messageIndex = 2
             }
@@ -87,7 +95,12 @@ fun MeetingScreen(
                 Log.d("SECUENCIA", "$messageIndex: He notificado a ${meetingInfo.anfitrion} de tu llegada.")
                 robotManager.speak(
                     "He notificado a ${meetingInfo.anfitrion} de tu llegada. ",
-                    false
+                    false,
+                    object : RobotManager.SpeakCompleteListener {
+                        override fun onSpeakComplete() {
+                            // Acciones a realizar después de hablar
+                        }
+                    }
                 )
                 delay(8000L)
                 messageIndex = 3
@@ -107,7 +120,12 @@ fun MeetingScreen(
                 Log.d("SECUENCIA", "$messageIndex: Hemos llegado. Tome asiento y en breves momentos comenzará la reunión. Muchas gracias")
                 robotManager.speak(
                     "Hemos llegado. Tome asiento y en breves momentos comenzará la reunión. Muchas gracias",
-                    false
+                    false,
+                    object : RobotManager.SpeakCompleteListener {
+                        override fun onSpeakComplete() {
+                            // Acciones a realizar después de hablar
+                        }
+                    }
                 )
                 delay(5000L)
                 messageIndex = 7
@@ -118,7 +136,12 @@ fun MeetingScreen(
                 Log.d("SECUENCIA", "$messageIndex: Veo que ha llegado puntual. Acompáñeme a la sala que se le ha asignado.")
                 robotManager.speak(
                     "Veo que ha llegado puntual. Acompáñeme a la sala que se le ha asignado.",
-                    false
+                    false,
+                        object : RobotManager.SpeakCompleteListener {
+                        override fun onSpeakComplete() {
+                            // Acciones a realizar después de hablar
+                        }
+                    }
                 )
                 mqttViewModel.setDrivingState()
                 robotManager.startNavigation(
@@ -134,7 +157,12 @@ fun MeetingScreen(
                 Log.d("SECUENCIA", "$messageIndex: Todavía no es la hora establecida para la reunión. Por favor, tome asiento. En breves instantes vendrán a buscarle")
                 robotManager.speak(
                     "Todavía no es la hora establecida para la reunión. Por favor, tome asiento. En breves instantes vendrán a buscarle",
-                    false
+                    false,
+                    object : RobotManager.SpeakCompleteListener {
+                        override fun onSpeakComplete() {
+                            // Acciones a realizar después de hablar
+                        }
+                    }
                 )
                 delay(5000L)
                 messageIndex = 7

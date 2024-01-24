@@ -38,17 +38,12 @@ fun DrivingComposable(
     robotManager: RobotManager,
     onClose: () -> Unit
 ) {
-    Log.d("Current Screen", "DrivingScreen")
+    Log.d("Current Composable", "DrivingScreen")
     val closeDrivingScreenFace by mqttViewModel.closeDrivingScreenFace.collectAsState()
     val tiempoRestantePausa by mqttViewModel.countdownState.collectAsState()
     val countdownFlag by mqttViewModel.countdownFlag.collectAsState()
 
-    val currentDestiny = remember { mutableStateOf("") }
-
     LaunchedEffect(key1 = true) {
-        Log.d("Launchedeffect driving", "Launchedeffect driving")
-        currentDestiny.value = robotManager.getLastPosition()
-        Log.d("Launchedeffect driving", "${currentDestiny.value}")
         mqttViewModel.startCountdown()
     }
 
@@ -119,7 +114,7 @@ fun DrivingComposable(
                         icon = Icons.Outlined.PlayArrow,
                         onClick = {
                             mqttViewModel.coutndownJob?.cancel()
-                            mqttViewModel.robotMan.resumeNavigation()
+                            robotManager.resumeNavigation()
                             onClose()
                         })
                     TransparentButtonWithIcon(
@@ -127,7 +122,7 @@ fun DrivingComposable(
                         icon = Icons.Outlined.Clear,
                         onClick = {
                             mqttViewModel.coutndownJob?.cancel()
-                            mqttViewModel.robotMan.returnToPosition(mqttViewModel.returnDestination.value!!)
+                            robotManager.returnToPosition(mqttViewModel.returnDestination.value!!)
                             onClose()
                         })
                 }

@@ -544,10 +544,13 @@ class MqttViewModel @Inject constructor(
         } else if (containSiWord(speechResult)) {
             Log.d("speechResult", "Se ha detectado un si")
             //robotMan.stopFocusFollow()
-            robotMan.speak("Deacuerdo, por aquí por favor", false)
-            setDrivingState()
-            robotMan.startNavigation(0, "reunion", 0.1234, 0)
-        } else {
+            robotMan.speak("Deacuerdo, por aquí por favor", false, object : RobotManager.SpeakCompleteListener {
+                override fun onSpeakComplete() {
+                    // Acciones a realizar después de hablar
+                }
+            })
+        }
+        else {
             Log.d("speechResult", "No se ha detectado nada")
             // Lógica cuando no se detectan palabras clave
             repeatCommand()
@@ -601,7 +604,11 @@ class MqttViewModel @Inject constructor(
     }
 
     private fun repeatCommand() {
-        robotMan.speak("Por favor repita el comando", true)
+        robotMan.speak("Por favor repita el comando", true, object : RobotManager.SpeakCompleteListener {
+            override fun onSpeakComplete() {
+                // Acciones a realizar después de hablar
+            }
+        })
     }
 
     fun startPersonDetection(waitTimeInSeconds: Int) {

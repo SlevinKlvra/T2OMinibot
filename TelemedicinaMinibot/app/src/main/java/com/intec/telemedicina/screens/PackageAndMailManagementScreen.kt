@@ -100,48 +100,68 @@ fun PackageAndMailManagementScreen(
         when(messageIndex){
             1 -> {
                 Log.d("SECUENCIA","$messageIndex: ¿Dispone de código de entrega?")
-                robotManager.speak("¿Dispone de código de entrega?", false)
+                robotManager.speak("¿Dispone de código de entrega?", false, object : RobotManager.SpeakCompleteListener {
+                    override fun onSpeakComplete() {
+                        // Acciones a realizar después de hablar
+                    }
+                })
             }
             2 -> {
                 Log.d("SECUENCIA","$messageIndex: Por favor, introduzca el código que se le ha proporcionado")
-                robotManager.speak("Por favor, introduzca el código que se le ha proporcionado", false)
+                robotManager.speak("Por favor, introduzca el código que se le ha proporcionado", false, object : RobotManager.SpeakCompleteListener {
+                    override fun onSpeakComplete() {
+                        // Acciones a realizar después de hablar
+                    }
+                })
             }
             3 -> {
                 Log.d("SECUENCIA","$messageIndex: Acompáñeme a la sección de mensajería para depositar el paquete")
-                robotManager.speak("Acompáñeme a la sección de mensajería para depositar el paquete", false)
-                if(isSpeakingFinished.value!!){
-                    robotManager.startNavigation(1, "correo", mqttViewModel.coordinateDeviation.value!!.toDouble(), mqttViewModel.navigationTimeout.value!!.toLong())
-                }
-                messageIndex = 4
+                robotManager.speak("Acompáñeme a la sección de mensajería para depositar el paquete", false, object : RobotManager.SpeakCompleteListener {
+                    override fun onSpeakComplete() {
+                        // Acciones a realizar después de hablar
+                        robotManager.startNavigation(1, "correo", mqttViewModel.coordinateDeviation.value!!.toDouble(), mqttViewModel.navigationTimeout.value!!.toLong())
+                        messageIndex = 4
+                    }
+                })
             }
             4 -> {
                 Log.d("SECUENCIA","$messageIndex: VACIO")
             }
             5 -> {
                 Log.d("SECUENCIA","$messageIndex: Código introducido correctamente. Por favor, acompáñeme a la sección de mensajería")
-                robotManager.speak("Código introducido correctamente. Por favor, acompáñeme a la sección de mensajería", false)
+                robotManager.speak("Código introducido correctamente. Por favor, acompáñeme a la sección de mensajería", false, object : RobotManager.SpeakCompleteListener {
+                    override fun onSpeakComplete() {
+                        // Acciones a realizar después de hablar
+                    }
+                })
             }
             6 -> {
                 Log.d("SECUENCIA","$messageIndex: Notificando a ${meetingInfo.anfitrion} de que su entrega ha llegado. Espere por favor")
-                robotManager.speak("Notificando a ${meetingInfo.anfitrion} de que su entrega ha llegado. Espere por favor", false)
+                robotManager.speak("Notificando a ${meetingInfo.anfitrion} de que su entrega ha llegado. Espere por favor", false, object : RobotManager.SpeakCompleteListener {
+                    override fun onSpeakComplete() {
+                        // Acciones a realizar después de hablar
+                    }
+                })
                 delay(5000L)
                 if(isSpeakingFinished.value!!){
-                    robotManager.speak("Notificación enviada.", false)
+                    robotManager.speak("Notificación enviada.", false, object : RobotManager.SpeakCompleteListener {
+                        override fun onSpeakComplete() {
+                            // Acciones a realizar después de hablar
+                            messageIndex = 3
+                        }
+                    })
                 }
-                messageIndex = 3
             }
 
             7 -> {
                 Log.d("SECUENCIA","$messageIndex: Hemos llegado. Puede depositar el paquete aquí. Gracias.")
-                robotManager.speak("Hemos llegado. Puede depositar el paquete aquí. Gracias.", false)
+                robotManager.speak("Hemos llegado. Puede depositar el paquete aquí. Yo vuelvo a mi puesto. Muchas gracias.", false, object : RobotManager.SpeakCompleteListener {
+                    override fun onSpeakComplete() {
+                        // Acciones a realizar después de hablar
+                        robotManager.returnToPosition(mqttViewModel.returnDestination.value!!)
+                    }
+                })
                 delay(8000L)
-                messageIndex = 8
-            }
-
-            8 -> {
-                Log.d("SECUENCIA","$messageIndex: REGRESANDO")
-                robotManager.returnToPosition(mqttViewModel.returnDestination.value!!)
-                // Considera agregar un delay o manejar cuando se debe cambiar a messageIndex 6 si es necesario
             }
         }
     }

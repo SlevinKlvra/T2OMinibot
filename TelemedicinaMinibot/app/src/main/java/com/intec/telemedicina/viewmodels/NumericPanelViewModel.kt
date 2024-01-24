@@ -86,7 +86,11 @@ class NumericPanelViewModel(
         } else {
             triggerErrorAnimation()
             Log.e("Error", "La respuesta es no válida")
-            robotMan.speak("El código no es válido. Inténtelo de nuevo", false)
+            robotMan.speak("El código no es válido. Inténtelo de nuevo", false, object : RobotManager.SpeakCompleteListener {
+                override fun onSpeakComplete() {
+                    // Acciones a realizar después de hablar
+                }
+            })
             _isLoading.value = false
             false
         }
@@ -176,7 +180,11 @@ class NumericPanelViewModel(
                     withContext(Dispatchers.Main) {
                         triggerErrorAnimation()
                         Log.e("Error", "La respuesta es no válida")
-                        robotMan.speak("El código no es válido. Inténtelo de nuevo", false)
+                        robotMan.speak("El código no es válido. Inténtelo de nuevo", false, object : RobotManager.SpeakCompleteListener {
+                            override fun onSpeakComplete() {
+                                // Acciones a realizar después de hablar
+                            }
+                        })
                     }
                     return
                 }
@@ -196,11 +204,19 @@ class NumericPanelViewModel(
                             "El código es correcto: ${isCodeCorrect.value}"
                         )
                         Log.d("meetingInfo", "${collectedMeetingInfo.value}")
-                        robotMan.speak("Hola ${collectedMeetingInfo.value.visitante}", false)
+                        robotMan.speak("Hola ${collectedMeetingInfo.value.visitante}", false, object : RobotManager.SpeakCompleteListener {
+                            override fun onSpeakComplete() {
+                                // Acciones a realizar después de hablar
+                            }
+                        })
                     } else {
                         // Manejar el caso de que la lista esté vacía
                         triggerErrorAnimation()
-                        robotMan.speak("El código no es válido. Inténtelo de nuevo", false)
+                        robotMan.speak("El código no es válido. Inténtelo de nuevo", false, object : RobotManager.SpeakCompleteListener {
+                            override fun onSpeakComplete() {
+                                // Acciones a realizar después de hablar
+                            }
+                        })
                     }
                 }
             } else if (response.code == 401) {
@@ -215,7 +231,11 @@ class NumericPanelViewModel(
                     withContext(Dispatchers.Main) {
                         // Manejar otros errores
                         triggerErrorAnimation()
-                        robotMan.speak("El código no es válido. Inténtelo de nuevo", false)
+                        robotMan.speak("El código no es válido. Inténtelo de nuevo", false , object : RobotManager.SpeakCompleteListener {
+                            override fun onSpeakComplete() {
+                                // Acciones a realizar después de hablar
+                            }
+                        })
                         Log.e("Error", "Error en la solicitud: Código ${response.code}")
                     }
                     // Mostrar mensaje de error en la UI o realizar alguna acción
@@ -226,7 +246,11 @@ class NumericPanelViewModel(
                     // Manejar otros errores
                     triggerErrorAnimation()
                     Log.e("Error", "Error en la solicitud: Código ${response.code}")
-                    robotMan.speak("El código no es válido. Inténtelo de nuevo", false)
+                    robotMan.speak("El código no es válido. Inténtelo de nuevo", false, object : RobotManager.SpeakCompleteListener {
+                        override fun onSpeakComplete() {
+                            // Acciones a realizar después de hablar
+                        }
+                    })
                 }
                 // Mostrar mensaje de error en la UI o realizar alguna acción
             }
@@ -236,7 +260,11 @@ class NumericPanelViewModel(
                 // Manejar el caso en que la respuesta es null
                 triggerErrorAnimation()
                 Log.e("Error", "La respuesta es null")
-                robotMan.speak("El código no es válido. Inténtelo de nuevo", false)
+                robotMan.speak("El código no es válido. Inténtelo de nuevo", false, object : RobotManager.SpeakCompleteListener {
+                    override fun onSpeakComplete() {
+                        // Acciones a realizar después de hablar
+                    }
+                })
             }
             // Mostrar mensaje de error en la UI o realizar alguna acción
         }
