@@ -353,7 +353,11 @@ fun showToast(context: Context, message: String) {
 fun NameStep(name: String, onNameChange: (String) -> Unit, robotManager: RobotManager) {
     val keyboardController = LocalSoftwareKeyboardController.current
 
-    robotManager.speak("Dime tu nombre por favor", true)
+    robotManager.speak("Dime tu nombre por favor", true, object : RobotManager.SpeakCompleteListener {
+        override fun onSpeakComplete() {
+            // Acciones a realizar después de hablar
+        }
+    })
 
     Column(
         modifier = Modifier
