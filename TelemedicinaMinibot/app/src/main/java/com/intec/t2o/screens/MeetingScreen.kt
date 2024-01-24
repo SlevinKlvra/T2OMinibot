@@ -91,7 +91,7 @@ fun MeetingScreen(
                     "$messageIndex: Estoy notificando a ${meetingInfo.anfitrion} de tu llegada"
                 )
                 robotManager.speak(
-                    "Notificando a ${meetingInfo.anfitrion} de tu llegada",
+                    "Estoy notificando a ${meetingInfo.anfitrion} de tu llegada",
                     false,
                     object : RobotManager.SpeakCompleteListener {
                         override fun onSpeakComplete() {
@@ -206,8 +206,8 @@ fun MeetingScreen(
     FuturisticGradientBackground {
         Box(
             modifier = Modifier
-                .fillMaxSize()
-                .height(65.dp), contentAlignment = Alignment.Center
+                .fillMaxSize(),
+            contentAlignment = Alignment.Center
         ) {
             when (messageIndex) {
                 0 -> {
@@ -293,14 +293,14 @@ fun MeetingScreen(
 
                 4 -> {
                     Log.d("SECUENCIA T", "$messageIndex: Yendo a ${meetingInfo.puntomapa}")
-                    Text(
+                    /*Text(
                         color = Color.White,
                         fontSize = 25.sp,
                         fontWeight = FontWeight.SemiBold,
                         textAlign = TextAlign.Center,
                         maxLines = 2,
                         text = "Hemos llegado a ${meetingInfo.puntomapa}. Tome asiento y en breves momentos comenzará la reunión. Muchas gracias"
-                    )
+                    )*/
                 }
 
                 5 -> {
@@ -308,7 +308,7 @@ fun MeetingScreen(
                         "SECUENCIA T",
                         "$messageIndex: Veo que ha llegado puntual. Acompáñeme a la sala que se le ha asignado."
                     )
-                    Text(
+                    /*Text(
                         color = Color.White,
                         fontSize = 25.sp,
                         fontWeight = FontWeight.SemiBold,
@@ -324,7 +324,7 @@ fun MeetingScreen(
                         textAlign = TextAlign.Center,
                         maxLines = 2,
                         text = "Yendo a ${meetingInfo.puntomapa}"
-                    )
+                    )*/
                 }
 
                 6 -> {
@@ -332,14 +332,14 @@ fun MeetingScreen(
                         "SECUENCIA T",
                         "$messageIndex: Todavía no es la hora establecida para la reunión. Por favor, espere en la sala de espera. En breves instantes vendrán a buscarle. Gracias"
                     )
-                    Text(
+                    /*Text(
                         color = Color.White,
                         fontSize = 25.sp,
                         fontWeight = FontWeight.SemiBold,
                         textAlign = TextAlign.Center,
                         maxLines = 2,
                         text = "Todavía no es la hora establecida para la reunión. Por favor, espere en la sala de espera. En breves instantes vendrán a buscarle. Gracias"
-                    )
+                    )*/
                 }
 
                 7 -> {
@@ -347,19 +347,19 @@ fun MeetingScreen(
                         "SECUENCIA T",
                         "$messageIndex: Regresando a ${mqttViewModel.returnDestination.value}"
                     )
-                    Text(
+                    /*Text(
                         color = Color.White,
                         fontSize = 25.sp,
                         fontWeight = FontWeight.SemiBold,
                         textAlign = TextAlign.Center,
                         maxLines = 2,
                         text = "Regresando a ${mqttViewModel.returnDestination.value}"
-                    )
+                    )*/
                 }
             }
         }
 
-        if (messageIndex == 3 || messageIndex == 6) {
+        if (messageIndex == 5 || messageIndex == 6) {
             PressableEyes(
                 modifier = Modifier.fillMaxSize(),
                 onClick = {

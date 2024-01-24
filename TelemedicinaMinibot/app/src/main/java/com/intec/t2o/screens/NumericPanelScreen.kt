@@ -34,19 +34,8 @@ fun NumericPanelScreen(
 
     LaunchedEffect(shouldCheckCode.value) {
         if (shouldCheckCode.value) {
-            robotManager.speak("Comprobando", false, object : RobotManager.SpeakCompleteListener {
-                override fun onSpeakComplete() {
-                    // Acciones a realizar después de hablar
-                    numericPanelViewModel.checkForTaskExecution()
-                    shouldCheckCode.value = false
-                }
-            })
-        } else {
-            robotManager.speak("Código incorrecto. Por favor, asegúrese de introducir el código correctamente o contacte con un miembro del staff.", false, object : RobotManager.SpeakCompleteListener {
-                override fun onSpeakComplete() {
-                    // Acciones a realizar después de hablar
-                }
-            })
+            numericPanelViewModel.checkForTaskExecution()
+            shouldCheckCode.value = false
         }
     }
 
@@ -56,6 +45,12 @@ fun NumericPanelScreen(
                 override fun onSpeakComplete() {
                     // Acciones a realizar después de hablar
                     navController.navigate(AppScreens.MeetingScreen.route)
+                }
+            })
+        }else {
+            robotManager.speak("Código incorrecto. Introduzca su código de nuevo o contacte con un miembro del staff.", false, object : RobotManager.SpeakCompleteListener {
+                override fun onSpeakComplete() {
+                    // Acciones a realizar después de hablar
                 }
             })
         }

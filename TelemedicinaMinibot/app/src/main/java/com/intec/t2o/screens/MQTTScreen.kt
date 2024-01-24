@@ -687,7 +687,7 @@ private fun installApk(context: Context, filePath: String) {
         // Obtener el URI del archivo utilizando FileProvider
         val contentUri = FileProvider.getUriForFile(
             context,
-            "com.intec.telemedicina.fileprovider",
+            "com.intec.t2o.fileprovider",
             apkFile
         )
         Log.d("InstallApk", "Content URI: $contentUri")

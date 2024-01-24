@@ -51,7 +51,7 @@ class NumericPanelViewModel(
     val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()
 
     // Función para activar la animación de error
-    private fun triggerErrorAnimation() {
+    fun triggerErrorAnimation() {
         showErrorAnimation.value = true
         // Restablecer el estado después de un tiempo para permitir que la animación se ejecute
         viewModelScope.launch {

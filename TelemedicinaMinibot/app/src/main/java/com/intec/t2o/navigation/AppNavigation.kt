@@ -51,6 +51,7 @@ fun AppNavigation(
                 robotManager = robotManager
             )
         }
+
         composable(AppScreens.NumericPanelScreen.route) {
             NumericPanelScreen(
                 navController = navController,
