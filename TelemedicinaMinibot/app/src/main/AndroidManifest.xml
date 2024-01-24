@@ -61,7 +61,6 @@
         </intent-filter>
         <intent-filter>
             <action android:name="action.orionstar.default.app" />
-
             <category android:name="android.intent.category.DEFAULT" />
         </intent-filter>
     </activity>

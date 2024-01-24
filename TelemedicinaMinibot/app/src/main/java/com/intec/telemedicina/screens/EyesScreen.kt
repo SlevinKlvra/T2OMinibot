@@ -124,10 +124,7 @@ fun ImageExample(
             when (faceType) {
                 Face.NEUTRAL -> {
                     Image(
-                        painter = rememberAsyncImagePainter(
-                            R.drawable.white_neutral,
-                            imageEmotionsLoader
-                        ),
+                        painter = rememberAsyncImagePainter(R.drawable.white_neutral,imageEmotionsLoader),
                         contentDescription = null,
                         modifier = Modifier
                             .size(380.dp)
