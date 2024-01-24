@@ -25,6 +25,6 @@ fun LoadingSpinner() {
                 .size(120.dp),
             strokeWidth = 3.dp,
             color = Color.White
-        ) // Muestra el indicador de carga
+        )
     }
 }
