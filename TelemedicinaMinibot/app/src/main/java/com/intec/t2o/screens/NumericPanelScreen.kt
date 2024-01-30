@@ -36,7 +36,7 @@ fun NumericPanelScreen(
 
     LaunchedEffect(isCodeCorrect) {
         if (isCodeCorrect) {
-            navController.navigate(AppScreens.MeetingScreen.route)
+            mqttViewModel.navigateToMeetingScreen()
         }
     }
 
