@@ -137,11 +137,11 @@ class MqttViewModel @Inject constructor(
 
     private val mqttManager: MqttManager
     private var mqttConfigInstance = MQTTConfig(
-        SERVER_URI = "tcp://192.168.2.243:1883",
-        client_id = "Robot",
+        SERVER_URI = "",
+        client_id = "",
         qos = 0,
-        user = "intecfull",
-        password = "intecfullpassword"
+        user = "",
+        password = ""
     )
 
     private var apiConfigInstance =
@@ -357,7 +357,6 @@ class MqttViewModel @Inject constructor(
                 user = user,
                 password = password
             )
-
             mqttManager.actualizarConfiguracion(mqttConfigInstance)  // Suponiendo que tienes un método para actualizar la configuración
         }
     }
@@ -594,6 +593,7 @@ class MqttViewModel @Inject constructor(
     }
 
     fun navigateToEyesScreen() {
+        Log.d("EYES SCREEN", "Navigating to EyesScreen")
         detectionJob?.cancel()
         _navigationState.value = NavigationState.EyesScreen
     }
@@ -622,26 +622,25 @@ class MqttViewModel @Inject constructor(
 
                 delay(1000)
                 elapsedTime += 1000
-                Log.d(
+                /*Log.d(
                     "startDetection",
                     "CURRENT ELAPSED TIME: $elapsedTime is less than $waitTimeInMillis. current detection state: ${detectedPerson.isNullOrEmpty()}"
-                )
+                )*/
 
             }
 
             if (!detectedPerson.isNullOrEmpty()) {
-                Log.d("startDetection", "PERSONS LIST IS NOT NULL NEITHER EMPTY. RESTARTING TIME")
+                //Log.d("startDetection", "PERSONS LIST IS NOT NULL NEITHER EMPTY. RESTARTING TIME")
                 elapsedTime = 0 // Reinicia el temporizador
                 detectionJob?.cancel()
             }
 
             if (detectedPerson.isNullOrEmpty() && elapsedTime >= waitTimeInMillis && !navigationFinished.value) {
-                Log.d(
+                /*Log.d(
                     "startDetection",
                     "ELAPSED TIME: $elapsedTime, detection state: ${detectedPerson.isNullOrEmpty()}, return to pos: ${returnDestination.value}"
-                )
+                )*/
                 returnToPosition(returnDestination.value!!)
-                navigateToEyesScreen()
                 detectionJob?.cancel()
             }
         }
@@ -719,10 +718,10 @@ class MqttViewModel @Inject constructor(
     }
 
     fun connect() {
-        Log.d("MQTTViewModel", "Connecting to broker: ${mqttConfigInstance.SERVER_URI}")
+        /*Log.d("MQTTViewModel", "Connecting to broker: ${mqttConfigInstance.SERVER_URI}")
         Log.d("MQTTViewModel", "Client id: ${mqttConfigInstance.client_id}")
         Log.d("MQTTViewModel", "User: ${mqttConfigInstance.user}")
-        Log.d("MQTTViewModel", "Pwd: ${mqttConfigInstance.password}")
+        Log.d("MQTTViewModel", "Pwd: ${mqttConfigInstance.password}")*/
         addIncomingMessage("Connecting to broker: ${mqttConfigInstance.SERVER_URI}")
         mqttManager.connect()
         initiatedStatus.value = true
@@ -818,7 +817,7 @@ class MqttViewModel @Inject constructor(
             "zigbee2mqtt/Pulsador/action" -> {
                 robotMan.startNavigation(
                     0,
-                    robotConfigInstance.returnDestination,
+                    "entrada",
                     robotConfigInstance.coordinateDeviation,
                     robotConfigInstance.navigationTimeout, navigationCompleteListener = object :
                         RobotManager.NavigationCompleteListener {
@@ -887,6 +886,8 @@ class MqttViewModel @Inject constructor(
 
     fun returnToPosition(positionToReturn: String) {
         //TODO: Save last known coordinates when starting a navigation
+        Log.d("RETURN TO POSITION", "Returning to position: $positionToReturn")
+        //navigateToEyesScreen()
         if(positionToReturn != ""){
             robotMan.startNavigation(0,positionToReturn,coordinateDeviation.value!!.toDouble(),navigationTimeout.value!!.toLong(), navigationCompleteListener = object :
                 RobotManager.NavigationCompleteListener {

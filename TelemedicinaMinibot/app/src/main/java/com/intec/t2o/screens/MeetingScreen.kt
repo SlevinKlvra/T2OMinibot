@@ -4,6 +4,7 @@ import android.annotation.SuppressLint
 import android.os.Build
 import android.util.Log
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -38,8 +39,6 @@ import com.intec.t2o.components.PressableEyes
 import com.intec.t2o.robotinterface.RobotManager
 import com.intec.t2o.viewmodels.MqttViewModel
 import com.intec.t2o.viewmodels.NumericPanelViewModel
-import kotlinx.coroutines.delay
-
 @SuppressLint("StateFlowValueCalledInComposition")
 @Composable
 fun MeetingScreen(
@@ -50,27 +49,70 @@ fun MeetingScreen(
 ) {
     Log.d("Current Screen", "MeetingScreen")
 
+    var isWorking by remember { mutableStateOf(false) }
+
     val meetingInfo = numericPanelViewModel.collectedMeetingInfo.value
 
     var messageIndex by remember { mutableStateOf(0) }
 
-    val isNavigationComplete = mqttViewModel.isNavigationComplete.observeAsState()
+    var currentPage by remember { mutableStateOf(0) }
+
+    // Controla la finalización de la secuencia
+    LaunchedEffect(messageIndex) {
+        Log.d("SECUENCIA LaunchedEffect ", "messageIndex: $messageIndex")
+
+    }
 
     val imageEmotionsLoader = ImageLoader.Builder(LocalContext.current)
         .components {
             if (Build.VERSION.SDK_INT >= 28) {
                 add(ImageDecoderDecoder.Factory())
             } else {
+
                 add(GifDecoder.Factory())
             }
         }
         .build()
 
-
     var showDrivingComposable by remember { mutableStateOf(false) }
 
+    mqttViewModel.setReturnDestinationDefaultValue()
+
+    LaunchedEffect(messageIndex){
+        when(messageIndex) {
+            0 -> {
+                Log.d("SECUENCIA", "$messageIndex: Hola, ${meetingInfo.visitante}")
+                robotManager.speak(
+                    "Hola, ${meetingInfo.visitante}",
+                    false,
+                    object : RobotManager.SpeakCompleteListener {
+                        override fun onSpeakComplete() {
+                            isWorking = true
+                            // Acciones a realizar después de hablar
+                            messageIndex = 1
+                            currentPage = 1
+                        }
+                    }
+                )
+            }
+            1 -> {
+              Log.d("SECUENCIA", "RETURNING")
+              mqttViewModel.returnToPosition(mqttViewModel.returnDestination.value!!)
+            }
+        }
+    }
+
+    FuturisticGradientBackground {
+        when(messageIndex){
+            0 -> {
+                Log.d("SECUENCIA T", "$messageIndex: Hola, ${meetingInfo.visitante}")
+                Text(text = "Hola, ${meetingInfo.visitante}")
+            }
+        }
+    }
+
     // Cambiar el mensaje después de un retraso
-    LaunchedEffect(messageIndex) {
+    /*LaunchedEffect(messageIndex) {
         when (messageIndex) {
             0 -> {
                 Log.d("SECUENCIA", "$messageIndex: Hola, ${meetingInfo.visitante}")
@@ -81,6 +123,7 @@ fun MeetingScreen(
                         override fun onSpeakComplete() {
                             // Acciones a realizar después de hablar
                             messageIndex = 1
+                            currentPage = 1
                         }
                     })
             }
@@ -97,6 +140,7 @@ fun MeetingScreen(
                         override fun onSpeakComplete() {
                             // Acciones a realizar después de hablar
                             messageIndex = 2
+                            currentPage = 2
                         }
                     })
             }
@@ -107,15 +151,17 @@ fun MeetingScreen(
                     "$messageIndex: He notificado a ${meetingInfo.anfitrion} de tu llegada."
                 )
                 robotManager.speak(
-                    "He notificado a ${meetingInfo.anfitrion} de tu llegada. ",
+                    "He notificado a ${meetingInfo.anfitrion} de tu llegada.",
                     false,
                     object : RobotManager.SpeakCompleteListener {
                         override fun onSpeakComplete() {
                             // Acciones a realizar después de hablar
                             if (numericPanelViewModel.isMeetingTimeWithinThreshold()) {
                                 messageIndex = 5
+                                currentPage = 5
                             } else {
                                 messageIndex = 6
+                                currentPage = 6
                             }
                         }
                     }
@@ -124,7 +170,6 @@ fun MeetingScreen(
 
             3 -> {
                 Log.d("SECUENCIA", "$messageIndex: TRUE: A 5, FALSE A 6")
-
                 // Nada aquí. La navegación se inicia cuando isNavigationComplete cambia
             }
 
@@ -139,6 +184,7 @@ fun MeetingScreen(
                     object : RobotManager.SpeakCompleteListener {
                         override fun onSpeakComplete() {
                             // Acciones a realizar después de hablar
+                            mqttViewModel.returnToPosition(mqttViewModel.returnDestination.value!!)
                         }
                     }
                 )
@@ -151,7 +197,7 @@ fun MeetingScreen(
                     "$messageIndex: Veo que ha llegado puntual. Acompáñeme a la sala que se le ha asignado."
                 )
                 robotManager.speak(
-                    "Veo que ha llegado puntual. Acompáñeme a la sala que se le ha asignado.",
+                    "Acompáñeme a la sala que se le ha asignado",
                     false,
                     object : RobotManager.SpeakCompleteListener {
                         override fun onSpeakComplete() {
@@ -166,20 +212,18 @@ fun MeetingScreen(
                                     override fun onNavigationComplete() {
                                         // Acciones a realizar después de hablar
                                         robotManager.speak(
-                                            "Hemos llegado. Tome asiento y en breves momentos comenzará la reunión. Yo vuelvo a mi puesto. Muchas gracias",
+                                            "Hemos llegado. Tome asiento y su reunión comenzará en breves momentos.",
                                             false,
                                             object : RobotManager.SpeakCompleteListener {
                                                 override fun onSpeakComplete() {
                                                     // Acciones a realizar después de hablar
                                                     mqttViewModel.returnToPosition(mqttViewModel.returnDestination.value!!)
                                                 }
-                                            }
-                                        )
+                                            })
                                     }
                                 })
                         }
-                    }
-                )
+                    })
             }
 
             6 -> {
@@ -191,12 +235,15 @@ fun MeetingScreen(
                     "Todavía no es la hora establecida para la reunión. Por favor, tome asiento. En breves instantes vendrán a buscarle, muchas gracias.",
                     false,
                     object : RobotManager.SpeakCompleteListener {
-                        override fun onSpeakComplete() {
+                        override fun onSpeakComplete(){
                             // Acciones a realizar después de hablar
-                            mqttViewModel.returnToPosition(mqttViewModel.returnDestination.value!!)
+                            messageIndex = 7
                         }
                     }
                 )
+            }
+            7 -> {
+                mqttViewModel.returnToPosition(mqttViewModel.returnDestination.value!!)
             }
         }
     }
@@ -207,12 +254,12 @@ fun MeetingScreen(
                 .fillMaxSize(),
             contentAlignment = Alignment.Center
         ) {
-            when (messageIndex) {
+            when (currentPage) {
                 0 -> {
                     Log.d("SECUENCIA T", "$messageIndex: Hola, ${meetingInfo.visitante}")
                     Text(
                         color = Color.White,
-                        fontSize = 65.sp,
+                        fontSize = 45.sp,
                         fontWeight = FontWeight.SemiBold,
                         textAlign = TextAlign.Center,
                         maxLines = 2,
@@ -261,7 +308,13 @@ fun MeetingScreen(
                         "$messageIndex: He notificado a ${meetingInfo.anfitrion} de tu llegada"
                     )
                     Box {
-                        Column {
+                        Column(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .padding(16.dp),
+                            verticalArrangement = Arrangement.Center,
+                            horizontalAlignment = Alignment.CenterHorizontally
+                        ) {
                             Text(
                                 color = Color.White,
                                 fontSize = 25.sp,
@@ -282,98 +335,35 @@ fun MeetingScreen(
                             Spacer(modifier = Modifier.height(5.dp))
                         }
                     }
-
                 }
-
-                3 -> {
-
-                }
-
-                4 -> {
-                    Log.d("SECUENCIA T", "$messageIndex: Yendo a ${meetingInfo.puntomapa}")
-                    /*Text(
-                        color = Color.White,
-                        fontSize = 25.sp,
-                        fontWeight = FontWeight.SemiBold,
-                        textAlign = TextAlign.Center,
-                        maxLines = 2,
-                        text = "Hemos llegado a ${meetingInfo.puntomapa}. Tome asiento y en breves momentos comenzará la reunión. Muchas gracias"
-                    )*/
-                }
-
-                5 -> {
-                    Log.d(
-                        "SECUENCIA T",
-                        "$messageIndex: Veo que ha llegado puntual. Acompáñeme a la sala que se le ha asignado."
-                    )
-                    /*Text(
-                        color = Color.White,
-                        fontSize = 25.sp,
-                        fontWeight = FontWeight.SemiBold,
-                        textAlign = TextAlign.Center,
-                        maxLines = 2,
-                        text = "Veo que ha llegado puntual. Acompáñeme a la sala que se le ha asignado."
-                    )
-                    Spacer(modifier = Modifier.height(10.dp))
-                    Text(
-                        color = Color.White,
-                        fontSize = 20.sp,
-                        fontWeight = FontWeight.SemiBold,
-                        textAlign = TextAlign.Center,
-                        maxLines = 2,
-                        text = "Yendo a ${meetingInfo.puntomapa}"
-                    )*/
-                }
-
-                6 -> {
-                    Log.d(
-                        "SECUENCIA T",
-                        "$messageIndex: Todavía no es la hora establecida para la reunión. Por favor, espere en la sala de espera. En breves instantes vendrán a buscarle. Gracias"
-                    )
-                    /*Text(
-                        color = Color.White,
-                        fontSize = 25.sp,
-                        fontWeight = FontWeight.SemiBold,
-                        textAlign = TextAlign.Center,
-                        maxLines = 2,
-                        text = "Todavía no es la hora establecida para la reunión. Por favor, espere en la sala de espera. En breves instantes vendrán a buscarle. Gracias"
-                    )*/
-                }
-
-                7 -> {
-                    Log.d(
-                        "SECUENCIA T",
-                        "$messageIndex: Regresando a ${mqttViewModel.returnDestination.value}"
-                    )
-                    /*Text(
-                        color = Color.White,
-                        fontSize = 25.sp,
-                        fontWeight = FontWeight.SemiBold,
-                        textAlign = TextAlign.Center,
-                        maxLines = 2,
-                        text = "Regresando a ${mqttViewModel.returnDestination.value}"
-                    )*/
+                6-> {
+                    Log.d("SECUENCIA T","$messageIndex: REINICIANDO SECUENCIA")
                 }
             }
         }
+    }*/
 
-        if (messageIndex == 5 || messageIndex == 6) {
-            PressableEyes(
-                modifier = Modifier.fillMaxSize(),
-                onClick = {
-                    robotManager.stopNavigation()
-                    showDrivingComposable = true
-                }
-            )
-        }
+    Log.d("SECUENCIA DRIVING", "CURRENT PAGE: $currentPage, MESSAGE INDEX: $messageIndex, IS WORKING: $isWorking")
+    if (isWorking && messageIndex == 1){
+        Log.d("SECUENCIA DRIVING", "$messageIndex: PressableEyes")
+        PressableEyes(
+            modifier = Modifier.fillMaxSize(),
+            onClick = {
+                robotManager.stopNavigation()
+                showDrivingComposable = true
+            }
+        )
+    }
 
-        if (showDrivingComposable) {
-            DrivingComposable(
-                navController = navController,
-                mqttViewModel = mqttViewModel,
-                robotManager = robotManager,
-                onClose = { showDrivingComposable = false }
-            )
-        }
+    if (showDrivingComposable) {
+        Log.d("SECUENCIA DRIVING", "$messageIndex: DrivingComposable")
+        DrivingComposable(
+            navController = navController,
+            mqttViewModel = mqttViewModel,
+            robotManager = robotManager,
+            onClose = {
+                showDrivingComposable = false
+            }
+        )
     }
 }

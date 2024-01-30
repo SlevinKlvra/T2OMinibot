@@ -37,6 +37,11 @@ class NumericPanelViewModel(
     var robotMan: RobotManager
 ) : AndroidViewModel(application) {
 
+    data class EmailData(
+        val idvisita: String?,
+        val visitante: String?
+    )
+
     var collectedMeetingInfo =
         mutableStateOf(MeetingResponse(0, "", "", "", "", "", "", "", "", ""))
 
@@ -170,7 +175,7 @@ class NumericPanelViewModel(
 
         // Log the complete URL
         Log.d("makeApiCall Request", "URL: $request")
-
+        resetDigits()
         return client.newCall(request).execute()
     }
 
@@ -195,7 +200,8 @@ class NumericPanelViewModel(
                             false,
                             object : RobotManager.SpeakCompleteListener {
                                 override fun onSpeakComplete() {
-                                    // Acciones a realizar después de hablar
+                                    resetDigits()
+                                    _isCodeCorrect.value = false
                                 }
                             })
                     }
@@ -216,15 +222,14 @@ class NumericPanelViewModel(
                             "CheckForApiExecution",
                             "El código es correcto: ${isCodeCorrect.value}"
                         )
+                        val emailData = EmailData(
+                            idvisita = collectedMeetingInfo.value.id.toString(),
+                            visitante = collectedMeetingInfo.value.visitante
+                        )
+                        sendMeetingEmail(emailData)
                         Log.d("meetingInfo", "${collectedMeetingInfo.value}")
-                        robotMan.speak(
-                            "Hola ${collectedMeetingInfo.value.visitante}",
-                            false,
-                            object : RobotManager.SpeakCompleteListener {
-                                override fun onSpeakComplete() {
-                                    // Acciones a realizar después de hablar
-                                }
-                            })
+                        resetDigits()
+                        _isCodeCorrect.value = false
                     } else {
                         // Manejar el caso de que la lista esté vacía
                         triggerErrorAnimation()
@@ -233,7 +238,8 @@ class NumericPanelViewModel(
                             false,
                             object : RobotManager.SpeakCompleteListener {
                                 override fun onSpeakComplete() {
-                                    // Acciones a realizar después de hablar
+                                    resetDigits()
+                                    _isCodeCorrect.value = false
                                 }
                             })
                     }
@@ -255,12 +261,12 @@ class NumericPanelViewModel(
                             false,
                             object : RobotManager.SpeakCompleteListener {
                                 override fun onSpeakComplete() {
-                                    // Acciones a realizar después de hablar
+                                    resetDigits()
+                                    _isCodeCorrect.value = false
                                 }
                             })
                         Log.e("Error", "Error en la solicitud: Código ${response.code}")
                     }
-                    // Mostrar mensaje de error en la UI o realizar alguna acción
                 }
             } else {
                 // Manejar otros errores de respuesta
@@ -273,7 +279,8 @@ class NumericPanelViewModel(
                         false,
                         object : RobotManager.SpeakCompleteListener {
                             override fun onSpeakComplete() {
-                                // Acciones a realizar después de hablar
+                                resetDigits()
+                                _isCodeCorrect.value = false
                             }
                         })
                 }
@@ -290,7 +297,8 @@ class NumericPanelViewModel(
                     false,
                     object : RobotManager.SpeakCompleteListener {
                         override fun onSpeakComplete() {
-                            // Acciones a realizar después de hablar
+                            resetDigits()
+                            _isCodeCorrect.value = false
                         }
                     })
             }
@@ -333,6 +341,61 @@ class NumericPanelViewModel(
             buffer.readUtf8()
         } catch (e: IOException) {
             "did not work"
+        }
+    }
+
+    private suspend fun sendMeetingEmail(emailData: EmailData): Boolean? {
+        return try {
+            withContext(Dispatchers.IO) {
+                val client = OkHttpClient()
+                _isLoading.value = true
+
+                if (currentToken.isEmpty()) {
+                    Log.d("checkForTaskExecution", "currentToken is empty")
+                    currentToken = refreshToken() ?: ""
+                }
+
+                // Crear un objeto JSON con los datos del usuario
+                val json = JSONObject().apply {
+                    put("visitante", emailData.visitante)
+                    put("idvisita", emailData.idvisita)
+                    // Agregar más campos según sea necesario
+                }
+
+                // Crear el cuerpo de la solicitud como JSON
+                val requestBody: RequestBody =
+                    json.toString().toRequestBody("application/json".toMediaType())
+
+                // Crear la solicitud con el encabezado y el cuerpo JSON
+                val request = Request.Builder()
+                    .url("https://t2o.intecrobots.com/api/contactosvisitas/notificaremailllegadas")
+                    .post(requestBody)
+                    .addHeader(
+                        "Authorization",
+                        "Bearer $currentToken"
+                    )  // Agregar el encabezado de autorización
+                    .build()
+                Log.d("tokennnn", currentToken)
+                Log.d("cuerpo", bodyToString(request))
+
+                // Realizar la solicitud y procesar la respuesta
+                client.newCall(request).execute().use { response ->
+                    Log.d("Response", response.toString())
+                    Log.d("ResponseBody", response.body?.string() ?: "No response body")
+                    if (response.code == 400) {
+                        val newToken = refreshToken()
+                        if (newToken != null) {
+                            Log.d("TAG MAIN", "Token refrescado: $newToken")
+                            currentToken = newToken
+                        }
+                    }
+                    _isLoading.value = false
+                    return@withContext response.isSuccessful
+                }
+            }
+        } catch (e: Exception) {
+            Log.e("Error", "Error al enviar solicitud: $e")
+            return null
         }
     }
 

@@ -52,7 +52,6 @@ import com.intec.t2o.components.TransparentButtonWithIcon
 import com.intec.t2o.robotinterface.RobotManager
 import com.intec.t2o.viewmodels.MqttViewModel
 import com.intec.t2o.viewmodels.NumericPanelViewModel
-import kotlinx.coroutines.delay
 
 @Composable
 fun PackageAndMailManagementScreen(
@@ -105,6 +104,7 @@ fun PackageAndMailManagementScreen(
                     }
                 })
             }
+
             3 -> {
                 Log.d("SECUENCIA","$messageIndex: Acompáñeme a la sección de mensajería para depositar el paquete")
                 robotManager.speak("Acompáñeme a la sección de mensajería para depositar el paquete", false, object : RobotManager.SpeakCompleteListener {
@@ -122,7 +122,6 @@ fun PackageAndMailManagementScreen(
                                 })
                             }
                         })
-                        //messageIndex = 4
                     }
                 })
             }
@@ -134,6 +133,7 @@ fun PackageAndMailManagementScreen(
                 robotManager.speak("Código introducido correctamente. Por favor, acompáñeme a la sección de mensajería", false, object : RobotManager.SpeakCompleteListener {
                     override fun onSpeakComplete() {
                         // Acciones a realizar después de hablar
+                        messageIndex = 3
                     }
                 })
             }
@@ -167,7 +167,7 @@ fun PackageAndMailManagementScreen(
 
     LaunchedEffect(isCodeCorrect) {
         if (isCodeCorrect) {
-            currentPage = 5
+            messageIndex = 5
         }
     }
 
@@ -175,12 +175,6 @@ fun PackageAndMailManagementScreen(
 
     FuturisticGradientBackground {
         if(!(currentPage == 2 && !hasCode)){
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(2.dp),
-            ) {
-                Row() {
                     if (currentPage != totalPages) {
                         GoBackButton(onClick = {
                             if (currentPage > 1) {
@@ -194,12 +188,11 @@ fun PackageAndMailManagementScreen(
                             }
                         })
                     }
-                }
                 when (currentPage) {
                     1 -> {
 
                         Log.d("SECUENCIA T","$messageIndex: ¿Dispone de código de entrega?")
-                        Row() {
+                        Row(modifier = Modifier.padding(top = 50.dp)) {
                             ButtonsStep(
                                 icon1 = Icons.Outlined.Check,
                                 icon2 = Icons.Outlined.Clear,
@@ -265,7 +258,9 @@ fun PackageAndMailManagementScreen(
                 }
             }
         }
-        if (currentPage == 2 && !hasCode) {
+        Log.d("SECUENCIA DRIVING", "CURRENT PAGE: $currentPage, HAS CODE: $hasCode, MESSAGE INDEX: $messageIndex")
+        if ((currentPage == 2 && !hasCode) || messageIndex == 3) {
+            Log.d("SECUENCIA DRIVING", "PRESSABLE EYES")
             PressableEyes(
                 modifier = Modifier.fillMaxSize(),
                 onClick = {
@@ -283,7 +278,7 @@ fun PackageAndMailManagementScreen(
             )
         }
     }
-}
+
 
 
 @Composable
