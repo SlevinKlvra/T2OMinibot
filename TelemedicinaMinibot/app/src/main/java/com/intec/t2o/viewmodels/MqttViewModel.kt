@@ -592,8 +592,13 @@ class MqttViewModel @Inject constructor(
         _navigationState.value = NavigationState.PackageAndMailManagementScreen
     }
 
+    fun navigateToMeetingScreen() {
+        detectionJob?.cancel()
+        _navigationState.value = NavigationState.MeetingScreen
+    }
+
     fun navigateToEyesScreen() {
-        Log.d("EYES SCREEN", "Navigating to EyesScreen")
+        Log.d("EYES SCREEN", navigationState.toString())
         detectionJob?.cancel()
         _navigationState.value = NavigationState.EyesScreen
     }

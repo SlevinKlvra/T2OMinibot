@@ -16,7 +16,6 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -39,6 +38,7 @@ import com.intec.t2o.components.PressableEyes
 import com.intec.t2o.robotinterface.RobotManager
 import com.intec.t2o.viewmodels.MqttViewModel
 import com.intec.t2o.viewmodels.NumericPanelViewModel
+
 @SuppressLint("StateFlowValueCalledInComposition")
 @Composable
 fun MeetingScreen(
@@ -78,41 +78,8 @@ fun MeetingScreen(
 
     mqttViewModel.setReturnDestinationDefaultValue()
 
-    LaunchedEffect(messageIndex){
-        when(messageIndex) {
-            0 -> {
-                Log.d("SECUENCIA", "$messageIndex: Hola, ${meetingInfo.visitante}")
-                robotManager.speak(
-                    "Hola, ${meetingInfo.visitante}",
-                    false,
-                    object : RobotManager.SpeakCompleteListener {
-                        override fun onSpeakComplete() {
-                            isWorking = true
-                            // Acciones a realizar después de hablar
-                            messageIndex = 1
-                            currentPage = 1
-                        }
-                    }
-                )
-            }
-            1 -> {
-              Log.d("SECUENCIA", "RETURNING")
-              mqttViewModel.returnToPosition(mqttViewModel.returnDestination.value!!)
-            }
-        }
-    }
-
-    FuturisticGradientBackground {
-        when(messageIndex){
-            0 -> {
-                Log.d("SECUENCIA T", "$messageIndex: Hola, ${meetingInfo.visitante}")
-                Text(text = "Hola, ${meetingInfo.visitante}")
-            }
-        }
-    }
-
     // Cambiar el mensaje después de un retraso
-    /*LaunchedEffect(messageIndex) {
+    LaunchedEffect(messageIndex) {
         when (messageIndex) {
             0 -> {
                 Log.d("SECUENCIA", "$messageIndex: Hola, ${meetingInfo.visitante}")
@@ -235,13 +202,14 @@ fun MeetingScreen(
                     "Todavía no es la hora establecida para la reunión. Por favor, tome asiento. En breves instantes vendrán a buscarle, muchas gracias.",
                     false,
                     object : RobotManager.SpeakCompleteListener {
-                        override fun onSpeakComplete(){
+                        override fun onSpeakComplete() {
                             // Acciones a realizar después de hablar
                             messageIndex = 7
                         }
                     }
                 )
             }
+
             7 -> {
                 mqttViewModel.returnToPosition(mqttViewModel.returnDestination.value!!)
             }
@@ -336,15 +304,19 @@ fun MeetingScreen(
                         }
                     }
                 }
-                6-> {
-                    Log.d("SECUENCIA T","$messageIndex: REINICIANDO SECUENCIA")
+
+                6 -> {
+                    Log.d("SECUENCIA T", "$messageIndex: REINICIANDO SECUENCIA")
                 }
             }
         }
-    }*/
+    }
 
-    Log.d("SECUENCIA DRIVING", "CURRENT PAGE: $currentPage, MESSAGE INDEX: $messageIndex, IS WORKING: $isWorking")
-    if (isWorking && messageIndex == 1){
+    Log.d(
+        "SECUENCIA DRIVING",
+        "CURRENT PAGE: $currentPage, MESSAGE INDEX: $messageIndex, IS WORKING: $isWorking"
+    )
+    if (messageIndex == 5 || messageIndex == 6) {
         Log.d("SECUENCIA DRIVING", "$messageIndex: PressableEyes")
         PressableEyes(
             modifier = Modifier.fillMaxSize(),
