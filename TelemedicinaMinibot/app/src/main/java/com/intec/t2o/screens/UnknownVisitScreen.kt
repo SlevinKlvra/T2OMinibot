@@ -87,21 +87,15 @@ fun UnknownVisitScreen(
     var currentPage by remember { mutableStateOf(1) }
     val totalPages = 7
 
-    val text by mqttViewModel.capturedText.collectAsState()
-
-    val isListening by mqttViewModel.isListening.observeAsState(true)
-
-    LaunchedEffect(isListening) {
-        Log.d("isListening true", "launchedEffect")
-        mqttViewModel.robotMan.questionPrueba()
-        mqttViewModel.listenToSpeechResult()
-        if (text != "") {
-            Log.d("UnknownVisitScreen", "Escuchando... $text")
-            mqttViewModel.stopListening()
-        }
-    }
-
     var isSendingData by remember { mutableStateOf(false) }
+
+    LaunchedEffect(true){
+        robotManager.speak("Por favor, rellene los campos para concertar una visita", false, object: RobotManager.SpeakCompleteListener{
+            override fun onSpeakComplete() {
+                // Acciones a realizar después de hablar
+            }
+        })
+    }
 
     LaunchedEffect(isSendingData) {
         if (isSendingData) {
@@ -233,6 +227,16 @@ fun UnknownVisitScreen(
                     7 -> {
                         if (isLoading) LoadingSpinner()
                         else {
+                            robotManager.speak(
+                                "Proceso completado. En breves se pondrán en contacto con usted para concertar una visita. Muchas gracias.",
+                                false,
+                                object: RobotManager.SpeakCompleteListener{
+                                override fun onSpeakComplete() {
+                                    // Acciones a realizar después de hablar
+                                    }
+                                }
+                            )
+                        }
                             LastStep(mqttViewModel)
                         }
                     }
@@ -240,7 +244,7 @@ fun UnknownVisitScreen(
             }
         }
     }
-}
+
 
 fun validateFields(context: Context, userData: UserData): Boolean {
     // Check if all fields are filled

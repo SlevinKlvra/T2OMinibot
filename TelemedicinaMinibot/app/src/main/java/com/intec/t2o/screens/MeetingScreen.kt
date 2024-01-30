@@ -146,7 +146,7 @@ fun MeetingScreen(
                     "$messageIndex: Hemos llegado. Tome asiento y en breves momentos comenzará la reunión. Muchas gracias"
                 )
                 robotManager.speak(
-                    "Hemos llegado. Tome asiento y en breves momentos comenzará la reunión. Muchas gracias",
+                    "Hemos llegado. Tome asiento y en breves momentos comenzará la reunión. Muchas gracias. Vuelvo a mi puesto.",
                     false,
                     object : RobotManager.SpeakCompleteListener {
                         override fun onSpeakComplete() {

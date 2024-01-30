@@ -23,7 +23,15 @@ fun NumericPanelScreen(
     robotManager: RobotManager
 ) {
     Log.d("Current Screen", "NumericPanelScreen")
-    
+
+    LaunchedEffect(true){
+        robotManager.speak("Por favor, introduce el código que se te ha proporcionado", false, object: RobotManager.SpeakCompleteListener{
+            override fun onSpeakComplete() {
+                // Acciones a realizar después de hablar
+            }
+        })
+    }
+
     val shouldCheckCode = remember { mutableStateOf(false) }
     val isCodeCorrect by numericPanelViewModel.isCodeCorrect.collectAsState()
 

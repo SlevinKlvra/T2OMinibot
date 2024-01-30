@@ -63,7 +63,7 @@ fun HomeScreen(
 
     LaunchedEffect(key1 = true) {
         robotManager.speak(
-            "Bienvenido a t, 2, o, media. ¿Cuál es el motivo de su visita?",
+            "Bienvenido a t, 2, o. ¿Cuál es el motivo de su visita?",
             true,
             object : RobotManager.SpeakCompleteListener {
                 override fun onSpeakComplete() {
@@ -155,7 +155,7 @@ fun LazyRowUbicaciones(
                             // Acciones a realizar después de hablar
                         }
                     })
-                navController.navigate(AppScreens.EyesScreen.route)
+                mqttViewModel.navigateToEyesScreen()
             })
         }
     }
