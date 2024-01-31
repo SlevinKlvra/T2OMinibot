@@ -52,7 +52,6 @@ fun DrivingComposable(
 
     if (closeDrivingScreenFace) {
         Log.d("CLOSEDRIVING", "Closing drivingscreenface")
-        //navController.popBackStack()
         //mqttViewModel.deactivateCloseDrivingScreenFace()
     }
     FuturisticGradientBackground {

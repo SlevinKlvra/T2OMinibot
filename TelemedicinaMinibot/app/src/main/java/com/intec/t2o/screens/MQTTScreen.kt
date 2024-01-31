@@ -562,6 +562,11 @@ fun MQTTScreen(navController: NavController, mqttViewModel: MqttViewModel) {
 
             Spacer(modifier = Modifier.height(16.dp))
             Text("Descargar e instalar actualizaciones:")
+            Text(
+                "(Si la primera vez pide permisos y la descarga no se inicia, pulse el botón de nuevo)",
+                modifier = Modifier.size(5.dp)
+            )
+            Spacer(modifier = Modifier.height(16.dp))
             DownloadInstallButton()
             Spacer(modifier = Modifier.height(16.dp))
         }

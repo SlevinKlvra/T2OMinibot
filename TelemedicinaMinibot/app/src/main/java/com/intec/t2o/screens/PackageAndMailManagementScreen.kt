@@ -66,12 +66,14 @@ fun PackageAndMailManagementScreen(
 
     var hasCode by remember { mutableStateOf(false) }
 
-    var currentPage by remember { mutableStateOf(1) }
+    // Usar estados del ViewModel
+    val messageIndex by mqttViewModel.messageIndexState
+    val currentPage by mqttViewModel.currentPageState
+
     val totalPages = 3
 
     var showDrivingComposable by remember { mutableStateOf(false) }
 
-    var messageIndex by remember { mutableStateOf(1) }
 
     val meetingInfo = numericPanelViewModel.collectedMeetingInfo.value
 
@@ -164,7 +166,7 @@ fun PackageAndMailManagementScreen(
                     object : RobotManager.SpeakCompleteListener {
                         override fun onSpeakComplete() {
                             // Acciones a realizar después de hablar
-                            messageIndex = 3
+                            mqttViewModel.setMessageIndex(3)
                         }
                     })
             }
@@ -186,7 +188,8 @@ fun PackageAndMailManagementScreen(
                                 object : RobotManager.SpeakCompleteListener {
                                     override fun onSpeakComplete() {
                                         // Acciones a realizar después de hablar
-                                        messageIndex = 3
+                                        mqttViewModel.setMessageIndex(3)
+
                                     }
                                 })
                         }
@@ -208,8 +211,13 @@ fun PackageAndMailManagementScreen(
 
     LaunchedEffect(isCodeCorrect) {
         if (isCodeCorrect) {
-            messageIndex = 5
+            mqttViewModel.setMessageIndex(5)
         }
+    }
+
+    LaunchedEffect(true) {
+        mqttViewModel.setMessageIndex(1)
+        mqttViewModel.setCurrentPage(1)
     }
 
     mqttViewModel.setReturnDestinationDefaultValue()
@@ -219,7 +227,7 @@ fun PackageAndMailManagementScreen(
             if (currentPage != totalPages) {
                 GoBackButton(onClick = {
                     if (currentPage > 1) {
-                        currentPage--
+                        mqttViewModel.setCurrentPage(currentPage - 1)
                     } else {
                         Log.d(
                             "return",
@@ -238,8 +246,14 @@ fun PackageAndMailManagementScreen(
                             icon1 = Icons.Outlined.Check,
                             icon2 = Icons.Outlined.Clear,
                             text = "¿Dispone de código de entrega?",
-                            onButton1Click = { currentPage = 2; hasCode = true; messageIndex = 2 },
-                            onButton2Click = { currentPage = 2; hasCode = false; messageIndex = 3 })
+                            onButton1Click = {
+                                mqttViewModel.setCurrentPage(2); hasCode =
+                                true; mqttViewModel.setMessageIndex(2)
+                            },
+                            onButton2Click = {
+                                mqttViewModel.setCurrentPage(2); hasCode =
+                                false; mqttViewModel.setMessageIndex(3)
+                            })
                     }
                 }
 

@@ -283,7 +283,7 @@ fun MeetingScreen(
                                 maxLines = 2,
                                 text = "He notificado a ${meetingInfo.anfitrion} de tu llegada"
                             )
-                            Spacer(modifier = Modifier.height(5.dp))
+                            Spacer(modifier = Modifier.height(15.dp))
                             Text(
                                 text = "Reunión programada a las ${meetingInfo.start_time}",
                                 color = Color.White,
