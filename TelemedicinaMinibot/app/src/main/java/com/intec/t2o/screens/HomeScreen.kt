@@ -81,12 +81,10 @@ fun HomeScreen(
 
 
             Column(modifier = Modifier.fillMaxSize()) {
-                Cabecera(navController = navController, mqttViewModel = mqttViewModel)
+                Cabecera(mqttViewModel = mqttViewModel)
                 if (!adminMode) Spacer(modifier = Modifier.size(30.dp))
                 Botones(
                     mqttViewModel = mqttViewModel,
-                    robotManager = robotManager,
-                    navController = navController
                 )
                 if (adminMode) {
                     LazyRowUbicaciones(
@@ -123,7 +121,7 @@ fun HomeScreen(
 
 
 @Composable
-fun Cabecera(navController: NavController, mqttViewModel: MqttViewModel) {
+fun Cabecera(mqttViewModel: MqttViewModel) {
     // Una columna con un espacio fijo entre sus elementos
     Column(modifier = Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
         // El Row que contiene el título
@@ -191,8 +189,6 @@ fun LazyRowUbicaciones(
 @Composable
 fun Botones(
     mqttViewModel: MqttViewModel,
-    robotManager: RobotManager,
-    navController: NavController
 ) {
 
     // Una lista de iconos para los botones

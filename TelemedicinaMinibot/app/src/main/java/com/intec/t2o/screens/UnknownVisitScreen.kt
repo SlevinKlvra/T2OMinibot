@@ -18,7 +18,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -89,12 +88,15 @@ fun UnknownVisitScreen(
 
     var isSendingData by remember { mutableStateOf(false) }
 
-    LaunchedEffect(true){
-        robotManager.speak("Por favor, rellene los campos para concertar una visita", false, object: RobotManager.SpeakCompleteListener{
-            override fun onSpeakComplete() {
-                // Acciones a realizar después de hablar
-            }
-        })
+    LaunchedEffect(true) {
+        robotManager.speak(
+            "Por favor, rellene los campos para concertar una visita",
+            false,
+            object : RobotManager.SpeakCompleteListener {
+                override fun onSpeakComplete() {
+                    // Acciones a realizar después de hablar
+                }
+            })
     }
 
     LaunchedEffect(isSendingData) {
@@ -230,20 +232,20 @@ fun UnknownVisitScreen(
                             robotManager.speak(
                                 "Proceso completado. En breves se pondrán en contacto con usted para concertar una visita. Muchas gracias.",
                                 false,
-                                object: RobotManager.SpeakCompleteListener{
-                                override fun onSpeakComplete() {
-                                    // Acciones a realizar después de hablar
+                                object : RobotManager.SpeakCompleteListener {
+                                    override fun onSpeakComplete() {
+                                        // Acciones a realizar después de hablar
                                     }
                                 }
                             )
                         }
-                            LastStep(mqttViewModel)
-                        }
+                        LastStep(mqttViewModel)
                     }
                 }
             }
         }
     }
+}
 
 
 fun validateFields(context: Context, userData: UserData): Boolean {
@@ -257,7 +259,7 @@ fun validateFields(context: Context, userData: UserData): Boolean {
     }
 
     // Check if the email address is valid
-    val emailRegex = Regex("^[A-Za-z](.*)([@]{1})(.{1,})(\\.)(.{1,})")
+    val emailRegex = Regex("^[A-Za-z](.*)(@)(.+)(\\.)(.+)")
     if (!userData.email.matches(emailRegex)) {
         showToast(context, "Ingrese una dirección de correo electrónico válida")
         return false

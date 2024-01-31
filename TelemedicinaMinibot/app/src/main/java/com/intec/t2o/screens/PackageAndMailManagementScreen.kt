@@ -25,7 +25,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -86,70 +85,112 @@ fun PackageAndMailManagementScreen(
         }
         .build()
 
-    LaunchedEffect(messageIndex){
-        when(messageIndex){
+    LaunchedEffect(messageIndex) {
+        when (messageIndex) {
             1 -> {
-                Log.d("SECUENCIA","$messageIndex: ¿Dispone de código de entrega?")
-                robotManager.speak("¿Dispone de código de entrega?", false, object : RobotManager.SpeakCompleteListener {
-                    override fun onSpeakComplete() {
-                        // Acciones a realizar después de hablar
-                    }
-                })
+                Log.d("SECUENCIA", "$messageIndex: ¿Dispone de código de entrega?")
+                robotManager.speak(
+                    "¿Dispone de código de entrega?",
+                    false,
+                    object : RobotManager.SpeakCompleteListener {
+                        override fun onSpeakComplete() {
+                            // Acciones a realizar después de hablar
+                        }
+                    })
             }
+
             2 -> {
-                Log.d("SECUENCIA","$messageIndex: Por favor, introduzca el código que se le ha proporcionado")
-                robotManager.speak("Por favor, introduzca el código que se le ha proporcionado", false, object : RobotManager.SpeakCompleteListener {
-                    override fun onSpeakComplete() {
-                        // Acciones a realizar después de hablar
-                    }
-                })
+                Log.d(
+                    "SECUENCIA",
+                    "$messageIndex: Por favor, introduzca el código que se le ha proporcionado"
+                )
+                robotManager.speak(
+                    "Por favor, introduzca el código que se le ha proporcionado",
+                    false,
+                    object : RobotManager.SpeakCompleteListener {
+                        override fun onSpeakComplete() {
+                            // Acciones a realizar después de hablar
+                        }
+                    })
             }
 
             3 -> {
-                Log.d("SECUENCIA","$messageIndex: Acompáñeme a la sección de mensajería para depositar el paquete")
-                robotManager.speak("Acompáñeme a la sección de mensajería para depositar el paquete", false, object : RobotManager.SpeakCompleteListener {
-                    override fun onSpeakComplete() {
-                        // Acciones a realizar después de hablar
-                        robotManager.startNavigation(1, "correo", mqttViewModel.coordinateDeviation.value!!.toDouble(), mqttViewModel.navigationTimeout.value!!.toLong(), navigationCompleteListener = object :
-                            RobotManager.NavigationCompleteListener {
-                            override fun onNavigationComplete() {
-                                // Acciones a realizar después de hablar
-                                robotManager.speak("Hemos llegado. Puede depositar el paquete aquí. Yo vuelvo a mi puesto. Muchas gracias.", false, object : RobotManager.SpeakCompleteListener {
-                                    override fun onSpeakComplete() {
+                Log.d(
+                    "SECUENCIA",
+                    "$messageIndex: Acompáñeme a la sección de mensajería para depositar el paquete"
+                )
+                robotManager.speak(
+                    "Acompáñeme a la sección de mensajería para depositar el paquete",
+                    false,
+                    object : RobotManager.SpeakCompleteListener {
+                        override fun onSpeakComplete() {
+                            // Acciones a realizar después de hablar
+                            robotManager.startNavigation(
+                                1,
+                                "correo",
+                                mqttViewModel.coordinateDeviation.value!!.toDouble(),
+                                mqttViewModel.navigationTimeout.value!!.toLong(),
+                                navigationCompleteListener = object :
+                                    RobotManager.NavigationCompleteListener {
+                                    override fun onNavigationComplete() {
                                         // Acciones a realizar después de hablar
-                                        mqttViewModel.returnToPosition(mqttViewModel.returnDestination.value!!)
+                                        robotManager.speak(
+                                            "Hemos llegado. Puede depositar el paquete aquí. Yo vuelvo a mi puesto. Muchas gracias.",
+                                            false,
+                                            object : RobotManager.SpeakCompleteListener {
+                                                override fun onSpeakComplete() {
+                                                    // Acciones a realizar después de hablar
+                                                    mqttViewModel.returnToPosition(mqttViewModel.returnDestination.value!!)
+                                                }
+                                            })
                                     }
                                 })
-                            }
-                        })
-                    }
-                })
+                        }
+                    })
             }
+
             4 -> {
-                Log.d("SECUENCIA","$messageIndex: VACIO")
+                Log.d("SECUENCIA", "$messageIndex: VACIO")
             }
+
             5 -> {
-                Log.d("SECUENCIA","$messageIndex: Código introducido correctamente. Por favor, acompáñeme a la sección de mensajería")
-                robotManager.speak("Código introducido correctamente. Por favor, acompáñeme a la sección de mensajería", false, object : RobotManager.SpeakCompleteListener {
-                    override fun onSpeakComplete() {
-                        // Acciones a realizar después de hablar
-                        messageIndex = 3
-                    }
-                })
+                Log.d(
+                    "SECUENCIA",
+                    "$messageIndex: Código introducido correctamente. Por favor, acompáñeme a la sección de mensajería"
+                )
+                robotManager.speak(
+                    "Código introducido correctamente. Por favor, acompáñeme a la sección de mensajería",
+                    false,
+                    object : RobotManager.SpeakCompleteListener {
+                        override fun onSpeakComplete() {
+                            // Acciones a realizar después de hablar
+                            messageIndex = 3
+                        }
+                    })
             }
+
             6 -> {
-                Log.d("SECUENCIA","$messageIndex: Notificando a ${meetingInfo.anfitrion} de que su entrega ha llegado. Espere por favor")
-                robotManager.speak("Notificando a ${meetingInfo.anfitrion} de que su entrega ha llegado. Espere por favor", false, object : RobotManager.SpeakCompleteListener {
-                    override fun onSpeakComplete() {
-                        //TODO: Realizar notificación
-                        robotManager.speak("Notificación enviada.", false, object : RobotManager.SpeakCompleteListener {
-                            override fun onSpeakComplete() {
-                                // Acciones a realizar después de hablar
-                                messageIndex = 3
-                            }
-                        })
-                    }
-                })
+                Log.d(
+                    "SECUENCIA",
+                    "$messageIndex: Notificando a ${meetingInfo.anfitrion} de que su entrega ha llegado. Espere por favor"
+                )
+                robotManager.speak(
+                    "Notificando a ${meetingInfo.anfitrion} de que su entrega ha llegado. Espere por favor",
+                    false,
+                    object : RobotManager.SpeakCompleteListener {
+                        override fun onSpeakComplete() {
+                            //TODO: Realizar notificación
+                            robotManager.speak(
+                                "Notificación enviada.",
+                                false,
+                                object : RobotManager.SpeakCompleteListener {
+                                    override fun onSpeakComplete() {
+                                        // Acciones a realizar después de hablar
+                                        messageIndex = 3
+                                    }
+                                })
+                        }
+                    })
             }
         }
     }
@@ -174,111 +215,128 @@ fun PackageAndMailManagementScreen(
     mqttViewModel.setReturnDestinationDefaultValue()
 
     FuturisticGradientBackground {
-        if(!(currentPage == 2 && !hasCode)){
-                    if (currentPage != totalPages) {
-                        GoBackButton(onClick = {
-                            if (currentPage > 1) {
-                                currentPage--
-                            } else {
-                                Log.d(
-                                    "return",
-                                    "to home screen and to default return pos: ${mqttViewModel.returnDestination.value}"
-                                )
-                                mqttViewModel.returnToPosition(mqttViewModel.returnDestination.value!!)
-                            }
-                        })
+        if (!(currentPage == 2 && !hasCode)) {
+            if (currentPage != totalPages) {
+                GoBackButton(onClick = {
+                    if (currentPage > 1) {
+                        currentPage--
+                    } else {
+                        Log.d(
+                            "return",
+                            "to home screen and to default return pos: ${mqttViewModel.returnDestination.value}"
+                        )
+                        mqttViewModel.returnToPosition(mqttViewModel.returnDestination.value!!)
                     }
-                when (currentPage) {
-                    1 -> {
+                })
+            }
+            when (currentPage) {
+                1 -> {
 
-                        Log.d("SECUENCIA T","$messageIndex: ¿Dispone de código de entrega?")
-                        Row(modifier = Modifier.padding(top = 50.dp)) {
-                            ButtonsStep(
-                                icon1 = Icons.Outlined.Check,
-                                icon2 = Icons.Outlined.Clear,
-                                text = "¿Dispone de código de entrega?",
-                                onButton1Click = { currentPage = 2; hasCode = true; messageIndex = 2 },
-                                onButton2Click = { currentPage = 2; hasCode = false; messageIndex = 3 })
-                        }
+                    Log.d("SECUENCIA T", "$messageIndex: ¿Dispone de código de entrega?")
+                    Row(modifier = Modifier.padding(top = 50.dp)) {
+                        ButtonsStep(
+                            icon1 = Icons.Outlined.Check,
+                            icon2 = Icons.Outlined.Clear,
+                            text = "¿Dispone de código de entrega?",
+                            onButton1Click = { currentPage = 2; hasCode = true; messageIndex = 2 },
+                            onButton2Click = { currentPage = 2; hasCode = false; messageIndex = 3 })
                     }
+                }
 
-                    2 -> {
-                        Log.d("SECUENCIA T","$messageIndex: Por favor, introduzca el código que se le ha proporcionado")
-                        if (hasCode){
-                            NumericPad(
-                                numericPanelViewModel = numericPanelViewModel,
-                                onClick = { shouldCheckCode.value = true },
-                                titleText = "Por favor, introduce el código de entrega"
+                2 -> {
+                    Log.d(
+                        "SECUENCIA T",
+                        "$messageIndex: Por favor, introduzca el código que se le ha proporcionado"
+                    )
+                    if (hasCode) {
+                        NumericPad(
+                            numericPanelViewModel = numericPanelViewModel,
+                            onClick = { shouldCheckCode.value = true },
+                            titleText = "Por favor, introduce el código de entrega"
+                        )
+                    }
+                }
+
+                3 -> {
+                    Log.d(
+                        "SECUENCIA T",
+                        "$currentPage: Acompáñeme a la sección de mensajería para depositar el paquete"
+                    )
+                }
+
+                4 -> {
+                    Log.d("SECUECIA T", "$currentPage: VACIO")
+                }
+
+                5 -> {
+                    Log.d(
+                        "SECUENCIA T",
+                        "$currentPage: Código introducido correctamente. Por favor, acompáñeme a la sección de mensajería"
+                    )
+                    Row(modifier = Modifier.fillMaxSize()) {
+                        NotificationStep()
+                    }
+                }
+
+                6 -> {
+                    Log.d(
+                        "SECUENCIA T",
+                        "$currentPage: Código introducido correctamente. Por favor, acompáñeme a la sección de mensajería"
+                    )
+                    Box {
+                        Column(
+                            modifier = Modifier.padding(16.dp),
+                            horizontalAlignment = Alignment.CenterHorizontally
+                        ) {
+                            Text(
+                                color = Color.White,
+                                fontSize = 25.sp,
+                                fontWeight = FontWeight.SemiBold,
+                                textAlign = TextAlign.Center,
+                                maxLines = 2,
+                                text = "Estoy notificando a ${meetingInfo.anfitrion} de tu llegada"
                             )
-                        }
-                    }
-
-                    3 -> {
-                        Log.d("SECUENCIA T","$currentPage: Acompáñeme a la sección de mensajería para depositar el paquete")
-                    }
-                    4 -> {
-                        Log.d("SECUECIA T","$currentPage: VACIO")
-                    }
-                    5 -> {
-                        Log.d("SECUENCIA T","$currentPage: Código introducido correctamente. Por favor, acompáñeme a la sección de mensajería")
-                        Row(modifier = Modifier.fillMaxSize()) {
-                            NotificationStep(navController = navController)
-                        }
-                    }
-                    6 -> {
-                        Log.d("SECUENCIA T","$currentPage: Código introducido correctamente. Por favor, acompáñeme a la sección de mensajería")
-                        Box {
-                            Column(
-                                modifier = Modifier.padding(16.dp),
-                                horizontalAlignment = Alignment.CenterHorizontally
-                            ) {
-                                Text(
-                                    color = Color.White,
-                                    fontSize = 25.sp,
-                                    fontWeight = FontWeight.SemiBold,
-                                    textAlign = TextAlign.Center,
-                                    maxLines = 2,
-                                    text = "Estoy notificando a ${meetingInfo.anfitrion} de tu llegada"
-                                )
-                                Spacer(modifier = Modifier.height(8.dp))
-                                Image(
-                                    painter = rememberAsyncImagePainter(
-                                        R.drawable.emailsend,
-                                        imageEmotionsLoader
-                                    ),
-                                    contentDescription = null,
-                                    modifier = Modifier
-                                        .padding(bottom = 1.dp) // Adjust the padding as needed
-                                        .width(100.dp)
-                                        .height(100.dp)
-                                )
-                            }
+                            Spacer(modifier = Modifier.height(8.dp))
+                            Image(
+                                painter = rememberAsyncImagePainter(
+                                    R.drawable.emailsend,
+                                    imageEmotionsLoader
+                                ),
+                                contentDescription = null,
+                                modifier = Modifier
+                                    .padding(bottom = 1.dp) // Adjust the padding as needed
+                                    .width(100.dp)
+                                    .height(100.dp)
+                            )
                         }
                     }
                 }
             }
         }
-        Log.d("SECUENCIA DRIVING", "CURRENT PAGE: $currentPage, HAS CODE: $hasCode, MESSAGE INDEX: $messageIndex")
-        if ((currentPage == 2 && !hasCode) || messageIndex == 3) {
-            Log.d("SECUENCIA DRIVING", "PRESSABLE EYES")
-            PressableEyes(
-                modifier = Modifier.fillMaxSize(),
-                onClick = {
-                    robotManager.stopNavigation()
-                    showDrivingComposable = true
-                }
-            )
-        }
-        if (showDrivingComposable) {
-            DrivingComposable(
-                navController = navController,
-                mqttViewModel = mqttViewModel,
-                robotManager = robotManager,
-                onClose = { showDrivingComposable = false }
-            )
-        }
     }
-
+    Log.d(
+        "SECUENCIA DRIVING",
+        "CURRENT PAGE: $currentPage, HAS CODE: $hasCode, MESSAGE INDEX: $messageIndex"
+    )
+    if ((currentPage == 2 && !hasCode) || messageIndex == 3) {
+        Log.d("SECUENCIA DRIVING", "PRESSABLE EYES")
+        PressableEyes(
+            modifier = Modifier.fillMaxSize(),
+            onClick = {
+                robotManager.stopNavigation()
+                showDrivingComposable = true
+            }
+        )
+    }
+    if (showDrivingComposable) {
+        DrivingComposable(
+            navController = navController,
+            mqttViewModel = mqttViewModel,
+            robotManager = robotManager,
+            onClose = { showDrivingComposable = false }
+        )
+    }
+}
 
 
 @Composable
@@ -320,7 +378,7 @@ fun ButtonsStep(
 }
 
 @Composable
-fun NotificationStep(navController: NavController) {
+fun NotificationStep() {
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -328,43 +386,6 @@ fun NotificationStep(navController: NavController) {
     ) {
         Text(
             text = "Código introducido correctamente",
-            color = Color.White,
-            textAlign = TextAlign.Center,
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(bottom = 8.dp),
-            style = MaterialTheme.typography.headlineLarge
-        )
-
-        Text(
-            text = "Por favor, acompáñeme a la sección de mensajería.",
-            color = Color.White,
-            textAlign = TextAlign.Center,
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(bottom = 24.dp),
-            style = MaterialTheme.typography.bodyMedium
-        )
-        Icon(
-            imageVector = Icons.Filled.MailOutline,
-            contentDescription = null,
-            tint = Color.White,
-            modifier = Modifier
-                .size(100.dp)
-                .align(Alignment.CenterHorizontally)
-        )
-    }
-}
-
-@Composable
-fun NoCodeStep(robotManager: RobotManager, mqttViewModel: MqttViewModel) {
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(8.dp)
-    ) {
-        Text(
-            text = "Sin código",
             color = Color.White,
             textAlign = TextAlign.Center,
             modifier = Modifier

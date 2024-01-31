@@ -70,7 +70,7 @@ import java.io.File
 //- Stop navigation
 //- ...
 
-private const val REQUEST_MANAGE_EXTERNAL_STORAGE_PERMISSION = 123 // Use any unique integer value
+private const val REQUEST_MANAGE_EXTERNAL_STORAGE_PERMISSION = 123
 
 @RequiresApi(Build.VERSION_CODES.R)
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalComposeUiApi::class)
@@ -628,6 +628,7 @@ fun DownloadInstallButton() {
 }
 
 
+@SuppressLint("UnspecifiedRegisterReceiverFlag")
 private fun downloadAndInstall(context: Context, apkUrl: String) {
     val downloadManager = context.getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
 

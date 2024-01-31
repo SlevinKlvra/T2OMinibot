@@ -49,13 +49,13 @@ fun MeetingScreen(
 ) {
     Log.d("Current Screen", "MeetingScreen")
 
-    var isWorking by remember { mutableStateOf(false) }
+    val isWorking by remember { mutableStateOf(false) }
 
     val meetingInfo = numericPanelViewModel.collectedMeetingInfo.value
 
     // Usar estados del ViewModel
-    var messageIndex by mqttViewModel.messageIndexState
-    var currentPage by mqttViewModel.currentPageState
+    val messageIndex by mqttViewModel.messageIndexState
+    val currentPage by mqttViewModel.currentPageState
 
     val imageEmotionsLoader = ImageLoader.Builder(LocalContext.current)
         .components {
@@ -76,7 +76,7 @@ fun MeetingScreen(
     LaunchedEffect(messageIndex) {
         when (messageIndex) {
             0 -> {
-                Log.d("SECUENCIA", "$messageIndex: Hola, ${meetingInfo.visitante}")
+                Log.d("SECUENCIA", "0: Hola, ${meetingInfo.visitante}")
                 robotManager.speak(
                     "Hola, ${meetingInfo.visitante}",
                     false,

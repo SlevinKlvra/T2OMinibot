@@ -10,7 +10,6 @@ import androidx.compose.runtime.remember
 import androidx.navigation.NavController
 import com.intec.t2o.components.GoBackButton
 import com.intec.t2o.components.NumericPad
-import com.intec.t2o.navigation.AppScreens
 import com.intec.t2o.robotinterface.RobotManager
 import com.intec.t2o.viewmodels.MqttViewModel
 import com.intec.t2o.viewmodels.NumericPanelViewModel
@@ -24,12 +23,15 @@ fun NumericPanelScreen(
 ) {
     Log.d("Current Screen", "NumericPanelScreen")
 
-    LaunchedEffect(true){
-        robotManager.speak("Por favor, introduce el código que se te ha proporcionado", false, object: RobotManager.SpeakCompleteListener{
-            override fun onSpeakComplete() {
-                // Acciones a realizar después de hablar
-            }
-        })
+    LaunchedEffect(true) {
+        robotManager.speak(
+            "Por favor, introduce el código que se te ha proporcionado",
+            false,
+            object : RobotManager.SpeakCompleteListener {
+                override fun onSpeakComplete() {
+                    // Acciones a realizar después de hablar
+                }
+            })
     }
 
     val shouldCheckCode = remember { mutableStateOf(false) }
