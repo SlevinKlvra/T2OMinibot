@@ -29,6 +29,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -41,9 +44,10 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.ainirobot.coreservice.client.actionbean.Pose
 import com.intec.t2o.R
+import com.intec.t2o.components.DrivingComposable
 import com.intec.t2o.components.NavigationButton
+import com.intec.t2o.components.PressableEyes
 import com.intec.t2o.components.TransparentButtonWithIconAndText
-import com.intec.t2o.navigation.AppScreens
 import com.intec.t2o.robotinterface.RobotManager
 import com.intec.t2o.viewmodels.MqttViewModel
 
@@ -55,11 +59,10 @@ fun HomeScreen(
 ) {
 
     Log.d("Current Screen", "HomeScreen")
-    val mqttViewModel: MqttViewModel = mqttViewModel
 
+
+    var showDrivingComposable by remember { mutableStateOf(false) }
     val adminMode by mqttViewModel.adminState.collectAsState(initial = false)
-
-    val openEyesScreen by mqttViewModel.openEyesScreen.collectAsState()
 
     LaunchedEffect(key1 = true) {
         robotManager.speak(
@@ -72,28 +75,52 @@ fun HomeScreen(
             })
     }
 
-    if (openEyesScreen) {
-        Log.d("HomeScreen openEyes", "true")
-        //navController.navigate(AppScreens.EyesScreen.route)
-        mqttViewModel.navigateToEyesScreen()
-    }
-
     FuturisticGradientBackground {
 
-        Column(modifier = Modifier.fillMaxSize()) {
-            Cabecera(navController = navController, mqttViewModel = mqttViewModel)
-            if (!adminMode) Spacer(modifier = Modifier.size(30.dp))
-            Botones(mqttViewModel = mqttViewModel)
-            if (adminMode) {
-                LazyRowUbicaciones(
+        if (!mqttViewModel.isNavigating.value) {
+
+
+            Column(modifier = Modifier.fillMaxSize()) {
+                Cabecera(navController = navController, mqttViewModel = mqttViewModel)
+                if (!adminMode) Spacer(modifier = Modifier.size(30.dp))
+                Botones(
                     mqttViewModel = mqttViewModel,
-                    modifier = Modifier,
+                    robotManager = robotManager,
                     navController = navController
                 )
+                if (adminMode) {
+                    LazyRowUbicaciones(
+                        mqttViewModel = mqttViewModel,
+                        modifier = Modifier,
+                    )
+                }
             }
+        } else {
+            Log.d("SECUENCIA DRIVING", "PressableEyes")
+            PressableEyes(
+                modifier = Modifier.fillMaxSize(),
+                onClick = {
+                    mqttViewModel.isNavigating.value = false
+                    robotManager.stopNavigation()
+                    showDrivingComposable = true
+                }
+            )
+        }
+
+        if (showDrivingComposable) {
+            Log.d("SECUENCIA DRIVING", "DrivingComposable")
+            DrivingComposable(
+                navController = navController,
+                mqttViewModel = mqttViewModel,
+                robotManager = robotManager,
+                onClose = {
+                    showDrivingComposable = false
+                }
+            )
         }
     }
 }
+
 
 @Composable
 fun Cabecera(navController: NavController, mqttViewModel: MqttViewModel) {
@@ -124,7 +151,6 @@ fun Cabecera(navController: NavController, mqttViewModel: MqttViewModel) {
 fun LazyRowUbicaciones(
     mqttViewModel: MqttViewModel,
     modifier: Modifier = Modifier,
-    navController: NavController
 ) {
 
     mqttViewModel.getListPoses()
@@ -144,6 +170,7 @@ fun LazyRowUbicaciones(
             Log.d("DESTINATIONS", item.name)
             // Un botón con el onClick y el estilo que quieras
             NavigationButton(item.name, onClick = {
+                mqttViewModel.isNavigating.value = true
                 mqttViewModel.robotMan.startNavigation(
                     0,
                     item.name,
@@ -152,7 +179,7 @@ fun LazyRowUbicaciones(
                     navigationCompleteListener = object :
                         RobotManager.NavigationCompleteListener {
                         override fun onNavigationComplete() {
-                            // Acciones a realizar después de hablar
+                            mqttViewModel.isNavigating.value = false
                         }
                     })
                 mqttViewModel.navigateToEyesScreen()
@@ -162,7 +189,11 @@ fun LazyRowUbicaciones(
 }
 
 @Composable
-fun Botones(mqttViewModel: MqttViewModel) {
+fun Botones(
+    mqttViewModel: MqttViewModel,
+    robotManager: RobotManager,
+    navController: NavController
+) {
 
     // Una lista de iconos para los botones
     val iconos = listOf(Icons.Default.Person, Icons.Default.Place, Icons.Default.MailOutline)
