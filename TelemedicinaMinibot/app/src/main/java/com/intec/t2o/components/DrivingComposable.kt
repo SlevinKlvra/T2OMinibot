@@ -112,6 +112,7 @@ fun DrivingComposable(
                         icon = Icons.Outlined.PlayArrow,
                         onClick = {
                             mqttViewModel.coutndownJob?.cancel()
+                            mqttViewModel.isNavigating.value = true
                             robotManager.resumeNavigation()
                             onClose()
                         })
@@ -120,6 +121,7 @@ fun DrivingComposable(
                         icon = Icons.Outlined.Clear,
                         onClick = {
                             mqttViewModel.coutndownJob?.cancel()
+                            mqttViewModel.isNavigating.value = true
                             mqttViewModel.returnToPosition(mqttViewModel.returnDestination.value!!)
                             onClose()
                         })

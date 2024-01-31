@@ -41,8 +41,10 @@ class MqttViewModel @Inject constructor(
 
     //COUNTDOWN DEL ESTADO DE PAUSA
     //TO DO: AÑADIR A SETPREFERENCES LA VARIABLE PARA PODER EDITARLA
-    private val _countdownState = MutableStateFlow(5)
+    private val _countdownState = MutableStateFlow(10)
     val countdownState: StateFlow<Int> = _countdownState
+
+    val isNavigating = mutableStateOf(false)
 
     val countdownFlag = MutableStateFlow(false)
 
@@ -543,13 +545,15 @@ class MqttViewModel @Inject constructor(
         } else if (containSiWord(speechResult)) {
             Log.d("speechResult", "Se ha detectado un si")
             //robotMan.stopFocusFollow()
-            robotMan.speak("Deacuerdo, por aquí por favor", false, object : RobotManager.SpeakCompleteListener {
-                override fun onSpeakComplete() {
-                    // Acciones a realizar después de hablar
-                }
-            })
-        }
-        else {
+            robotMan.speak(
+                "Deacuerdo, por aquí por favor",
+                false,
+                object : RobotManager.SpeakCompleteListener {
+                    override fun onSpeakComplete() {
+                        // Acciones a realizar después de hablar
+                    }
+                })
+        } else {
             Log.d("speechResult", "No se ha detectado nada")
             // Lógica cuando no se detectan palabras clave
             repeatCommand()
@@ -609,11 +613,14 @@ class MqttViewModel @Inject constructor(
     }
 
     private fun repeatCommand() {
-        robotMan.speak("Por favor repita el comando", true, object : RobotManager.SpeakCompleteListener {
-            override fun onSpeakComplete() {
-                // Acciones a realizar después de hablar
-            }
-        })
+        robotMan.speak(
+            "Por favor repita el comando",
+            true,
+            object : RobotManager.SpeakCompleteListener {
+                override fun onSpeakComplete() {
+                    // Acciones a realizar después de hablar
+                }
+            })
     }
 
     fun startPersonDetection(waitTimeInSeconds: Int) {
@@ -785,12 +792,17 @@ class MqttViewModel @Inject constructor(
                 Log.d("UPDATE SAFE DISTANCE", "Update the safe distance")
 
                 setDrivingState()
-                robotMan.startNavigation(0, message, 0.1234, 0, navigationCompleteListener = object :
-                    RobotManager.NavigationCompleteListener {
-                    override fun onNavigationComplete() {
-                        // Acciones a realizar después de hablar
-                    }
-                })
+                robotMan.startNavigation(
+                    0,
+                    message,
+                    0.1234,
+                    0,
+                    navigationCompleteListener = object :
+                        RobotManager.NavigationCompleteListener {
+                        override fun onNavigationComplete() {
+                            // Acciones a realizar después de hablar
+                        }
+                    })
             }
 
             "robot/nav_cmds/go_charger" -> RobotApi.getInstance().goCharging(0)
@@ -826,12 +838,12 @@ class MqttViewModel @Inject constructor(
                     robotConfigInstance.coordinateDeviation,
                     robotConfigInstance.navigationTimeout, navigationCompleteListener = object :
                         RobotManager.NavigationCompleteListener {
-                            override fun onNavigationComplete() {
-                                // Acciones a realizar después de hablar
-                                publishMessage("zigbee2mqtt/Cerradura/left/set", "ON")
-                                publishMessage("zigbee2mqtt/Cerradura/right/set", "ON")
-                                addIncomingMessage("Opening door")
-                            }
+                        override fun onNavigationComplete() {
+                            // Acciones a realizar después de hablar
+                            publishMessage("zigbee2mqtt/Cerradura/left/set", "ON")
+                            publishMessage("zigbee2mqtt/Cerradura/right/set", "ON")
+                            addIncomingMessage("Opening door")
+                        }
                     }
                 )
                 /*Log.d("ZIGBEE", message)
@@ -893,20 +905,28 @@ class MqttViewModel @Inject constructor(
         //TODO: Save last known coordinates when starting a navigation
         Log.d("RETURN TO POSITION", "Returning to position: $positionToReturn")
         //navigateToEyesScreen()
-        if(positionToReturn != ""){
-            robotMan.startNavigation(0,positionToReturn,coordinateDeviation.value!!.toDouble(),navigationTimeout.value!!.toLong(), navigationCompleteListener = object :
-                RobotManager.NavigationCompleteListener {
-                override fun onNavigationComplete() {
-                    navigateToEyesScreen()
-                }
-            })
-        }
-        else{
-            robotMan.speak("Actualmente no existe un destino al que haya ido previamente",false, object : RobotManager.SpeakCompleteListener {
-                override fun onSpeakComplete() {
-                    // Acciones a realizar después de hablar
-                }
-            })
+        if (positionToReturn != "") {
+            robotMan.startNavigation(
+                0,
+                positionToReturn,
+                coordinateDeviation.value!!.toDouble(),
+                navigationTimeout.value!!.toLong(),
+                navigationCompleteListener = object :
+                    RobotManager.NavigationCompleteListener {
+                    override fun onNavigationComplete() {
+                        isNavigating.value = false
+                        navigateToEyesScreen()
+                    }
+                })
+        } else {
+            robotMan.speak(
+                "Actualmente no existe un destino al que haya ido previamente",
+                false,
+                object : RobotManager.SpeakCompleteListener {
+                    override fun onSpeakComplete() {
+                        // Acciones a realizar después de hablar
+                    }
+                })
         }
     }
 }
