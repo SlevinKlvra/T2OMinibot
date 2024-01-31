@@ -56,6 +56,9 @@ fun NumericPanelScreen(
             onClick = { shouldCheckCode.value = true },
             titleText = "Por favor, introduce el código que se te ha proporcionado"
         )
-        GoBackButton(onClick = { mqttViewModel.returnToPosition(mqttViewModel.returnDestination.value!!) })
+        GoBackButton(onClick = {
+            mqttViewModel.setReturningHome(true)
+            mqttViewModel.returnToPosition(mqttViewModel.returnDestination.value!!)
+        })
     }
 }
