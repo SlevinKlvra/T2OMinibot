@@ -51,6 +51,8 @@ fun MeetingScreen(
 
     var isWorking by remember { mutableStateOf(false) }
 
+    var recompositionTrigger by remember { mutableStateOf(false) }
+
     val meetingInfo = numericPanelViewModel.collectedMeetingInfo.value
 
     // Usar estados del ViewModel
@@ -73,7 +75,7 @@ fun MeetingScreen(
     mqttViewModel.setReturnDestinationDefaultValue()
 
     // Cambiar el mensaje después de un retraso
-    LaunchedEffect(messageIndex) {
+    LaunchedEffect(messageIndex, recompositionTrigger) {
         when (messageIndex) {
             0 -> {
                 Log.d("SECUENCIA", "$messageIndex: Hola, ${meetingInfo.visitante}")
@@ -323,6 +325,7 @@ fun MeetingScreen(
             mqttViewModel = mqttViewModel,
             robotManager = robotManager,
             onClose = {
+                recompositionTrigger = !recompositionTrigger
                 showDrivingComposable = false
             }
         )
