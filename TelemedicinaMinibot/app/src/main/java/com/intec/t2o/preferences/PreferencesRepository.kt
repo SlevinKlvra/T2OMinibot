@@ -37,7 +37,7 @@ class PreferencesRepository @Inject constructor(private val sharedPreferences: S
     fun getApiPassword(): String = sharedPreferences.getString("api_password", "sec000611") ?: "sec000611"
     fun setApiPassword(passwordApi: String) = sharedPreferences.edit().putString("api_password", passwordApi).apply()
 
-    fun getReturnDestination(): String = sharedPreferences.getString("return_destination", "amazon") ?: "amazon"
+    fun getReturnDestination(): String = sharedPreferences.getString("return_destination", "entrada") ?: "entrada"
     fun setReturnDestination(returnDestination: String) = sharedPreferences.edit().putString("return_destination", returnDestination).apply()
 
     fun getCoordinateDeviation(): Float = sharedPreferences.getFloat("coordinate_deviation", 0.1f) ?: 0.1f

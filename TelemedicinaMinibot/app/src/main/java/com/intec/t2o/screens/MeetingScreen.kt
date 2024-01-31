@@ -53,15 +53,9 @@ fun MeetingScreen(
 
     val meetingInfo = numericPanelViewModel.collectedMeetingInfo.value
 
-    var messageIndex by remember { mutableStateOf(0) }
-
-    var currentPage by remember { mutableStateOf(0) }
-
-    // Controla la finalización de la secuencia
-    LaunchedEffect(messageIndex) {
-        Log.d("SECUENCIA LaunchedEffect ", "messageIndex: $messageIndex")
-
-    }
+    // Usar estados del ViewModel
+    var messageIndex by mqttViewModel.messageIndexState
+    var currentPage by mqttViewModel.currentPageState
 
     val imageEmotionsLoader = ImageLoader.Builder(LocalContext.current)
         .components {
@@ -89,8 +83,8 @@ fun MeetingScreen(
                     object : RobotManager.SpeakCompleteListener {
                         override fun onSpeakComplete() {
                             // Acciones a realizar después de hablar
-                            messageIndex = 1
-                            currentPage = 1
+                            mqttViewModel.setMessageIndex(1)
+                            mqttViewModel.setCurrentPage(1)
                         }
                     })
             }
@@ -106,8 +100,8 @@ fun MeetingScreen(
                     object : RobotManager.SpeakCompleteListener {
                         override fun onSpeakComplete() {
                             // Acciones a realizar después de hablar
-                            messageIndex = 2
-                            currentPage = 2
+                            mqttViewModel.setMessageIndex(2)
+                            mqttViewModel.setCurrentPage(2)
                         }
                     })
             }
@@ -124,11 +118,11 @@ fun MeetingScreen(
                         override fun onSpeakComplete() {
                             // Acciones a realizar después de hablar
                             if (numericPanelViewModel.isMeetingTimeWithinThreshold()) {
-                                messageIndex = 5
-                                currentPage = 5
+                                mqttViewModel.setMessageIndex(5)
+                                mqttViewModel.setCurrentPage(5)
                             } else {
-                                messageIndex = 6
-                                currentPage = 6
+                                mqttViewModel.setMessageIndex(6)
+                                mqttViewModel.setCurrentPage(6)
                             }
                         }
                     }
@@ -151,6 +145,7 @@ fun MeetingScreen(
                     object : RobotManager.SpeakCompleteListener {
                         override fun onSpeakComplete() {
                             // Acciones a realizar después de hablar
+                            mqttViewModel.setReturningHome(true)
                             mqttViewModel.returnToPosition(mqttViewModel.returnDestination.value!!)
                         }
                     }
@@ -164,7 +159,7 @@ fun MeetingScreen(
                     "$messageIndex: Veo que ha llegado puntual. Acompáñeme a la sala que se le ha asignado."
                 )
                 robotManager.speak(
-                    "Acompáñeme a la sala que se le ha asignado",
+                    "La reunión está a punto de comenzar. Acompáñeme a la sala que se le ha asignado.",
                     false,
                     object : RobotManager.SpeakCompleteListener {
                         override fun onSpeakComplete() {
@@ -179,10 +174,11 @@ fun MeetingScreen(
                                     override fun onNavigationComplete() {
                                         // Acciones a realizar después de hablar
                                         robotManager.speak(
-                                            "Hemos llegado. Tome asiento y su reunión comenzará en breves momentos.",
+                                            "Hemos llegado. Tome asiento y su reunión comenzará en breves momentos. Vuelvo a mi puesto. Muchas gracias.",
                                             false,
                                             object : RobotManager.SpeakCompleteListener {
                                                 override fun onSpeakComplete() {
+                                                    mqttViewModel.setReturningHome(true)
                                                     // Acciones a realizar después de hablar
                                                     mqttViewModel.returnToPosition(mqttViewModel.returnDestination.value!!)
                                                 }
@@ -204,14 +200,10 @@ fun MeetingScreen(
                     object : RobotManager.SpeakCompleteListener {
                         override fun onSpeakComplete() {
                             // Acciones a realizar después de hablar
-                            messageIndex = 7
+                            mqttViewModel.returnToPosition(mqttViewModel.returnDestination.value!!)
                         }
                     }
                 )
-            }
-
-            7 -> {
-                mqttViewModel.returnToPosition(mqttViewModel.returnDestination.value!!)
             }
         }
     }
@@ -304,10 +296,6 @@ fun MeetingScreen(
                         }
                     }
                 }
-
-                6 -> {
-                    Log.d("SECUENCIA T", "$messageIndex: REINICIANDO SECUENCIA")
-                }
             }
         }
     }
@@ -316,6 +304,7 @@ fun MeetingScreen(
         "SECUENCIA DRIVING",
         "CURRENT PAGE: $currentPage, MESSAGE INDEX: $messageIndex, IS WORKING: $isWorking"
     )
+
     if (messageIndex == 5 || messageIndex == 6) {
         Log.d("SECUENCIA DRIVING", "$messageIndex: PressableEyes")
         PressableEyes(

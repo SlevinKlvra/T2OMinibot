@@ -53,7 +53,7 @@ class RobotManager @Inject constructor(
 
     var pausedLocation: String = ""
 
-    var lastDestination = mutableStateOf("")
+    val lastDestination = mutableStateOf("")
 
     var navigation: Boolean = false
 
@@ -184,7 +184,7 @@ class RobotManager @Inject constructor(
     }
 
     fun callback_speech_to_speech(speechResult: String) {
-        Log.d("STT", speechResult)
+        //Log.d("STT", speechResult)
         onSpeechResultReceived?.invoke(speechResult)
     }
 
@@ -239,8 +239,8 @@ class RobotManager @Inject constructor(
                             safedistance
                         )
                         val place = Place(x, y, theta, name)
-                        Log.d("POSE", pose.toString())
-                        Log.d("PLACE", place.toString())
+                        //Log.d("POSE", pose.toString())
+                        //Log.d("PLACE", place.toString())
 
                         newPlaces.add(place)
                         newDestinations.add(name)
@@ -249,7 +249,7 @@ class RobotManager @Inject constructor(
                     posesList.addAll(newPoses)
                     placesList.addAll(newPlaces)
                     _destinationsList.value = placesList.map { it.name }
-                    Log.d("MAP", "CURRENT LOCATIONS ARE $placesList")
+                    //Log.d("MAP", "CURRENT LOCATIONS ARE $placesList")
                     savePosesSharedPreferences.saveDataList(posesList)
 
                 } catch (e: JSONException) {
@@ -297,101 +297,119 @@ class RobotManager @Inject constructor(
 
         stopFocusFollow()
         callbackNavigationStarted(true)
-        RobotApi.getInstance().goPosition(
-            0,
-            RobotApi.getInstance().getSpecialPose(destName).toJson(),
-            object : CommandListener() {
-                override fun onError(errorCode: Int, errorString: String?, extraData: String?) {
-                    super.onError(errorCode, errorString, extraData)
-                    var status_ = ""
-                    status_ = "ERROR"
-                    val gson = Gson()
+        val specialPose = RobotApi.getInstance().getSpecialPose(destName)
+        if(specialPose != null) {
+            Log.d("START NAVIGATION", "Pose found for $destName")
 
-                    val robotStatus = RobotStatus(destName, status_)
+            RobotApi.getInstance().goPosition(
+                0,
+                specialPose.toJson(),
+                object : CommandListener() {
+                    override fun onError(errorCode: Int, errorString: String?, extraData: String?) {
+                        super.onError(errorCode, errorString, extraData)
+                        var status_ = ""
+                        status_ = "ERROR"
+                        val gson = Gson()
 
-                    val json = gson.toJson(robotStatus)
-                }
+                        val robotStatus = RobotStatus(destName, status_)
 
-                override fun onStatusUpdate(status: Int, data: String?, extraData: String?) {
-                    super.onStatusUpdate(status, data, extraData)
-
-                    var status_: String
-                    var gson = Gson()
-                    Log.d("INFO UPDATE", extraData.toString())
-                    when (status) {
-                        Definition.STATUS_INFO_UPDATE -> {
-
-                            when (data) {
-                                "navigation_started" -> {
-                                    //speak("Estoy yendo a $destName",false)
-                                    pausedLocation = destName
-                                    Log.d(
-                                        "START NAVIGATION",
-                                        "Asignado destino $destName a pausedLocation"
-                                    )
-                                    status_ = "START"
-                                    navigationCallback?.onNavigationStarted()
-                                    val robotStatus = RobotStatus(destName, status_)
-
-                                    val json = gson.toJson(robotStatus)
-                                }
-
-                                "Avoid" -> {
-                                    status_ = "AVOID"
-                                    val robotStatus = RobotStatus(destName, status_)
-
-                                    val json = gson.toJson(robotStatus)
-                                    speak(
-                                        "No puedo pasar, ¿podrías dejarme paso?",
-                                        false,
-                                        object : SpeakCompleteListener {
-                                            override fun onSpeakComplete() {
-                                                // Acciones a realizar después de hablar
-                                            }
-                                        })
-                                }
-
-                                "Avoid end" -> {
-                                    status_ = "END_AVOID"
-                                    val robotStatus = RobotStatus(destName, status_)
-
-                                    val json = gson.toJson(robotStatus)
-                                    speak(
-                                        "Gracias por dejarme paso, vamos",
-                                        false,
-                                        object : RobotManager.SpeakCompleteListener {
-                                            override fun onSpeakComplete() {
-                                                // Acciones a realizar después de hablar
-                                            }
-                                        })
-                                }
-                            }
-
-                        }
-                    }
-                }
-
-            override fun onResult(result: Int, message: String?, extraData: String?) {
-                super.onResult(result, message, extraData)
-                if(message.toBoolean()){
-                    var status_ : String = ""
-                    status_ = "END"
-                    var gson = Gson()
-                    val robotStatus = RobotStatus(destName, status_)
-                    Log.d("ROBOT STATUS NUEVO", robotStatus.toString())
-
-                    if(robotStatus.status == "END"){
-                        navigationCompleteListener.onNavigationComplete()
-                        callbackNavigationStarted(false)
-                        startFocusFollow(0)
-                        registerPersonListener()
-                        Log.d("ROBOT STATUS END", robotStatus.toString())
-                        navigationCallback?.onNavigationCompleted()
-                    }
                         val json = gson.toJson(robotStatus)
                     }
+
+                    override fun onStatusUpdate(status: Int, data: String?, extraData: String?) {
+                        super.onStatusUpdate(status, data, extraData)
+
+                        var status_: String
+                        var gson = Gson()
+                        //Log.d("INFO UPDATE", extraData.toString())
+                        when (status) {
+                            Definition.STATUS_INFO_UPDATE -> {
+
+                                when (data) {
+                                    "navigation_started" -> {
+                                        //speak("Estoy yendo a $destName",false)
+                                        pausedLocation = destName
+                                        Log.d(
+                                            "START NAVIGATION",
+                                            "Asignado destino $destName a pausedLocation"
+                                        )
+                                        setLastPosition(destName)
+                                        status_ = "START"
+                                        navigationCallback?.onNavigationStarted()
+                                        val robotStatus = RobotStatus(destName, status_)
+
+                                        val json = gson.toJson(robotStatus)
+                                    }
+
+                                    "Avoid" -> {
+                                        status_ = "AVOID"
+                                        val robotStatus = RobotStatus(destName, status_)
+
+                                        val json = gson.toJson(robotStatus)
+                                        speak(
+                                            "No puedo pasar, ¿podrías dejarme paso?",
+                                            false,
+                                            object : SpeakCompleteListener {
+                                                override fun onSpeakComplete() {
+                                                    // Acciones a realizar después de hablar
+                                                }
+                                            })
+                                    }
+
+                                    "Avoid end" -> {
+                                        status_ = "END_AVOID"
+                                        val robotStatus = RobotStatus(destName, status_)
+
+                                        val json = gson.toJson(robotStatus)
+                                        speak(
+                                            "Gracias por dejarme paso, vamos",
+                                            false,
+                                            object : RobotManager.SpeakCompleteListener {
+                                                override fun onSpeakComplete() {
+                                                    // Acciones a realizar después de hablar
+                                                }
+                                            })
+                                    }
+                                }
+
+                            }
+                        }
+                    }
+
+                    override fun onResult(result: Int, message: String?, extraData: String?) {
+                        super.onResult(result, message, extraData)
+                        if(message.toBoolean()){
+                            var status_ : String = ""
+                            status_ = "END"
+                            var gson = Gson()
+                            val robotStatus = RobotStatus(destName, status_)
+                            //Log.d("ROBOT STATUS NUEVO", robotStatus.toString())
+
+                            if(robotStatus.status == "END"){
+                                navigationCompleteListener.onNavigationComplete()
+                                callbackNavigationStarted(false)
+                                startFocusFollow(0)
+                                registerPersonListener()
+                                Log.d("ROBOT STATUS END", robotStatus.toString())
+                                navigationCallback?.onNavigationCompleted()
+                            }
+                            val json = gson.toJson(robotStatus)
+                        }
+                    }
+                })
+        } else {
+            Log.d("START NAVIGATION", "Pose not found for $destName")
+            speak(
+                "No puedo encontrar un destino llamado $destName. Por favor, contacta con un miembro del staff.",
+                false,
+                object : SpeakCompleteListener {
+                    override fun onSpeakComplete() {
+                        // Acciones a realizar después de hablar, si es necesario.
+                    }
                 }
-            })
+            )
+        }
+
     }
 
     fun resumeNavigation() {
@@ -400,11 +418,7 @@ class RobotManager @Inject constructor(
             startNavigation(0, lastDestination.value, 0.1, 1000000, navigationCompleteListener = object : NavigationCompleteListener {
                 override fun onNavigationComplete() {
                     // Acciones a realizar después de hablar
-                    speak("Continuando navegación",false, object : SpeakCompleteListener {
-                        override fun onSpeakComplete() {
-                            // Acciones a realizar después de hablar
-                        }
-                    })
+
                 }
             })
         } else {
