@@ -46,6 +46,26 @@ class MqttViewModel @Inject constructor(
 
     val countdownFlag = MutableStateFlow(false)
 
+    // Estados del estado de la secuencia meetingScreen
+    val messageIndexState = mutableStateOf(0)
+    val currentPageState = mutableStateOf(0)
+
+    // Métodos para actualizar estos estados
+    fun setMessageIndex(index: Int) {
+        messageIndexState.value = index
+    }
+
+    fun setCurrentPage(page: Int) {
+        currentPageState.value = page
+    }
+
+    //Método para saber si está regresando
+    val isReturningHome = mutableStateOf(false)
+
+    fun setReturningHome(returning: Boolean) {
+        isReturningHome.value = returning
+    }
+
     //VARIABLES PARA LA ESCUCHA ACTIVA DE UNKNOWN VISITS
     private val _capturedText = MutableStateFlow("")
     val capturedText: StateFlow<String> = _capturedText
@@ -892,12 +912,16 @@ class MqttViewModel @Inject constructor(
     fun returnToPosition(positionToReturn: String) {
         //TODO: Save last known coordinates when starting a navigation
         Log.d("RETURN TO POSITION", "Returning to position: $positionToReturn")
-        //navigateToEyesScreen()
         if(positionToReturn != ""){
             robotMan.startNavigation(0,positionToReturn,coordinateDeviation.value!!.toDouble(),navigationTimeout.value!!.toLong(), navigationCompleteListener = object :
                 RobotManager.NavigationCompleteListener {
                 override fun onNavigationComplete() {
-                    navigateToEyesScreen()
+                    if(isReturningHome.value){
+                        navigateToEyesScreen()
+                        setMessageIndex(0)
+                        setCurrentPage(0)
+                        setReturningHome(false)
+                    }
                 }
             })
         }
