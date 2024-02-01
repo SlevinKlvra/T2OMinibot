@@ -70,7 +70,7 @@ import java.io.File
 //- Stop navigation
 //- ...
 
-private const val REQUEST_MANAGE_EXTERNAL_STORAGE_PERMISSION = 123 // Use any unique integer value
+private const val REQUEST_MANAGE_EXTERNAL_STORAGE_PERMISSION = 123
 
 @RequiresApi(Build.VERSION_CODES.R)
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalComposeUiApi::class)
@@ -562,6 +562,11 @@ fun MQTTScreen(navController: NavController, mqttViewModel: MqttViewModel) {
 
             Spacer(modifier = Modifier.height(16.dp))
             Text("Descargar e instalar actualizaciones:")
+            Text(
+                "(Si la primera vez pide permisos y la descarga no se inicia, pulse el botón de nuevo)",
+                modifier = Modifier.size(5.dp)
+            )
+            Spacer(modifier = Modifier.height(16.dp))
             DownloadInstallButton()
             Spacer(modifier = Modifier.height(16.dp))
         }
@@ -628,6 +633,7 @@ fun DownloadInstallButton() {
 }
 
 
+@SuppressLint("UnspecifiedRegisterReceiverFlag")
 private fun downloadAndInstall(context: Context, apkUrl: String) {
     val downloadManager = context.getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
 

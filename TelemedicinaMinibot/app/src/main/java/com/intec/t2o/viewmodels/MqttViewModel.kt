@@ -74,12 +74,6 @@ class MqttViewModel @Inject constructor(
     private val _isListening = MutableLiveData<Boolean>()
     val isListening: LiveData<Boolean> = _isListening
 
-    //MEETING SECUENCE
-    fun stopListening() {
-        // Detener el reconocimiento de voz
-        _isListening.value = false
-    }
-
     fun setCountdownFlagState(newState: Boolean) {
         countdownFlag.value = newState
         Log.d("ADMIN STATE", adminState.value.toString())
@@ -130,10 +124,7 @@ class MqttViewModel @Inject constructor(
 
     val closeDrivingScreenFace = MutableStateFlow(false)
 
-    val openEyesScreen = MutableStateFlow(false)
-
-    var initiatedStatus = mutableStateOf(false)
-        private set
+    private var initiatedStatus = mutableStateOf(false)
 
     private val mqttCallback = MqttManagerCallback(_connectionState, {
         val updatedMessages = _incomingMessages.value.toMutableList()
@@ -142,16 +133,16 @@ class MqttViewModel @Inject constructor(
     }, this)
 
     // LiveData para cada configuración
-    val brokerIp: MutableLiveData<String> = MutableLiveData()
-    val brokerPort: MutableLiveData<String> = MutableLiveData()
-    val brokerUser: MutableLiveData<String> = MutableLiveData()
-    val brokerPassword: MutableLiveData<String> = MutableLiveData()
-    val brokerQoS: MutableLiveData<String> = MutableLiveData()
-    val brokerClient: MutableLiveData<String> = MutableLiveData()
-    val idleWaitingTime: MutableLiveData<Int> = MutableLiveData()
-    val meetingTimeThreshold: MutableLiveData<Int> = MutableLiveData()
-    val apiUser: MutableLiveData<String> = MutableLiveData()
-    val apiPassword: MutableLiveData<String> = MutableLiveData()
+    private val brokerIp: MutableLiveData<String> = MutableLiveData()
+    private val brokerPort: MutableLiveData<String> = MutableLiveData()
+    private val brokerUser: MutableLiveData<String> = MutableLiveData()
+    private val brokerPassword: MutableLiveData<String> = MutableLiveData()
+    private val brokerQoS: MutableLiveData<String> = MutableLiveData()
+    private val brokerClient: MutableLiveData<String> = MutableLiveData()
+    private val idleWaitingTime: MutableLiveData<Int> = MutableLiveData()
+    private val meetingTimeThreshold: MutableLiveData<Int> = MutableLiveData()
+    private val apiUser: MutableLiveData<String> = MutableLiveData()
+    private val apiPassword: MutableLiveData<String> = MutableLiveData()
     var returnDestination: MutableLiveData<String> = MutableLiveData()
     val coordinateDeviation: MutableLiveData<Float> = MutableLiveData()
     val navigationTimeout: MutableLiveData<Long> = MutableLiveData()
@@ -181,7 +172,7 @@ class MqttViewModel @Inject constructor(
     val navigationState: StateFlow<NavigationState> = _navigationState.asStateFlow()
 
     private val _navigationFinished = MutableStateFlow(false)
-    val navigationFinished: StateFlow<Boolean> = _navigationFinished.asStateFlow()
+    private val navigationFinished: StateFlow<Boolean> = _navigationFinished.asStateFlow()
 
     // Variable de control
     private var hasHandledPersonDetection = false
@@ -191,67 +182,67 @@ class MqttViewModel @Inject constructor(
     }
 
     // Observador para cambios en brokerIp
-    private val brokerIpObserver = Observer<String> { nuevaIp ->
+    private val brokerIpObserver = Observer<String> { _ ->
         actualizarConfiguracionMQTT()
     }
 
     // Observador para cambios en brokerPort
-    private val brokerPortObserver = Observer<String> { nuevoPuerto ->
+    private val brokerPortObserver = Observer<String> { _ ->
         actualizarConfiguracionMQTT()
     }
 
     // Observador para cambios en brokerUser
-    private val brokerUserMqttObserver = Observer<String> { nuevoUser ->
+    private val brokerUserMqttObserver = Observer<String> { _ ->
         actualizarConfiguracionMQTT()
     }
 
     // Observador para cambios en brokerPassword
-    private val brokerPasswordMqttObserver = Observer<String> { nuevoPassword ->
+    private val brokerPasswordMqttObserver = Observer<String> { _ ->
         actualizarConfiguracionMQTT()
     }
 
     // Observador para cambios en brokerQoS
-    private val brokerQoSMqttObserver = Observer<String> { nuevoQoS ->
+    private val brokerQoSMqttObserver = Observer<String> { _ ->
         actualizarConfiguracionMQTT()
     }
 
     // Observador para cambios en brokerClient
-    private val brokerClientMqttObserver = Observer<String> { nuevoClient ->
+    private val brokerClientMqttObserver = Observer<String> { _ ->
         actualizarConfiguracionMQTT()
     }
 
     //CAMBIOS API
     // Observador para cambios en API User
-    private val apiUserObserver = Observer<String> { nuevoApiUser ->
+    private val apiUserObserver = Observer<String> { _ ->
         actualizarConfiguracionAPI()
     }
 
     // Observador para cambios en API Password
-    private val apiPasswordObserver = Observer<String> { nuevoApiPassword ->
+    private val apiPasswordObserver = Observer<String> { _ ->
         actualizarConfiguracionAPI()
     }
 
     //CAMBIOS ROBOT
     // Observador para cambios en waiting Idle Time
-    private val waitingIdleTimeObserver = Observer<Int> { nuevoWaitingIdleTime ->
+    private val waitingIdleTimeObserver = Observer<Int> { _ ->
         actualizarConfiguracionRobot()
     }
 
     // Observador para cambios en Meeting time
-    private val meetingTimeThresholdObserver = Observer<Int> { nuevomeetingTimeThreshold ->
+    private val meetingTimeThresholdObserver = Observer<Int> { _ ->
         actualizarConfiguracionRobot()
     }
 
     // Observador para cambios en API Password
-    private val returnDestinationObserver = Observer<String> { nuevoreturnDestination ->
+    private val returnDestinationObserver = Observer<String> { _ ->
         actualizarConfiguracionRobot()
     }
 
-    private val coordinateNavigationObserver = Observer<Float> { nuevoCoordinateDeviation ->
+    private val coordinateNavigationObserver = Observer<Float> { _ ->
         actualizarConfiguracionRobot()
     }
 
-    private val navigationTimeoutObserver = Observer<Long> { nuevoNavigationTimeout ->
+    private val navigationTimeoutObserver = Observer<Long> { _ ->
         actualizarConfiguracionRobot()
     }
 
@@ -406,8 +397,8 @@ class MqttViewModel @Inject constructor(
         }
     }
 
-    fun actualizarConfiguracionRobot() {
-        idleWaitingTime.value.let { idleWaitingTime ->
+    private fun actualizarConfiguracionRobot() {
+        idleWaitingTime.value.let {
             //Obtener campos Robot
             val idleWaitingTime = preferencesRepository.getIdleWaitingTime()
             val meetingTimeThreshold = preferencesRepository.getMeetingTimeThreshold()
@@ -426,8 +417,8 @@ class MqttViewModel @Inject constructor(
         }
     }
 
-    fun actualizarConfiguracionAPI() {
-        apiUser.value.let { apiUser ->
+    private fun actualizarConfiguracionAPI() {
+        apiUser.value.let {
             // Obtener campos API
             val apiUser = preferencesRepository.getApiUsuario()
             val apiPassword = preferencesRepository.getApiPassword()
@@ -527,7 +518,7 @@ class MqttViewModel @Inject constructor(
         navigationTimeout.removeObserver(navigationTimeoutObserver)
     }
 
-    fun listenToSpeechResult() {
+    private fun listenToSpeechResult() {
         robotMan.onSpeechResultReceived = { speechResult ->
             if (speechResult.isNotEmpty()) {
                 Log.d("listenToSpeechResult", "speechResult: $speechResult")
@@ -538,25 +529,25 @@ class MqttViewModel @Inject constructor(
         }
     }
 
-    val isNavigationComplete = MutableLiveData<Boolean>(false)
+    private val isNavigationComplete = MutableLiveData(false)
 
     fun onNavigationCompleted() {
         isNavigationComplete.value = true
     }
 
-    val isSpeakFinish = MutableLiveData<Boolean>(false)
+    private val isSpeakFinish = MutableLiveData(false)
 
     fun onSpeakFinished() {
         isSpeakFinish.value = true
     }
 
-    val isNavigationStart = MutableLiveData<Boolean>(false)
+    private val isNavigationStart = MutableLiveData(false)
 
     fun onNavigationStarted() {
         isNavigationStart.value = true
     }
 
-    fun setDrivingState() {
+    private fun setDrivingState() {
         Log.d("DrivingState", "setDrivingState")
         robotMan.onNavigationStarted = { navigationStarted -> //navigationStarted: Boolean
             if (navigationStarted) {
@@ -567,7 +558,7 @@ class MqttViewModel @Inject constructor(
         }
     }
 
-    fun onResultUnknownVisitor(text: String) {
+    private fun onResultUnknownVisitor(text: String) {
         // Actualizar el texto cuando se recibe un resultado
         Log.d("onResultUnknownVisitor", "text: $text")
         _capturedText.value = text
@@ -666,7 +657,7 @@ class MqttViewModel @Inject constructor(
             })
     }
 
-    fun startPersonDetection(waitTimeInSeconds: Int) {
+    private fun startPersonDetection(waitTimeInSeconds: Int) {
         detectionJob?.cancel()
         detectionJob = viewModelScope.launch {
             val waitTimeInMillis = waitTimeInSeconds * 1000L
@@ -768,7 +759,7 @@ class MqttViewModel @Inject constructor(
     // Añadir un mensaje a la lista de mensajes recibidos
     private fun addIncomingMessage(message: String) {
         Log.d("MqttViewModel", "Nuevo mensaje recibido: $message")
-        val currentMessages = _incomingMessages.value ?: emptyList()
+        val currentMessages = _incomingMessages.value
         _incomingMessages.value = currentMessages + message
     }
 
@@ -810,7 +801,7 @@ class MqttViewModel @Inject constructor(
     }
 
     fun subscribeToAllTopics(topics: MutableList<String>) {
-        Log.d("MQTTViewModel", "Subscribing to all topics")
+        Log.d("MQTTViewModel", "Subscribing to all topics, $topics")
         addIncomingMessage("Subscribing to all topics")
         //mqttManager.subscribeToAllTopics(topics)
     }
