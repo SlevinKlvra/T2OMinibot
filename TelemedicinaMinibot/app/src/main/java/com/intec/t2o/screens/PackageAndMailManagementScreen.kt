@@ -117,6 +117,7 @@ fun PackageAndMailManagementScreen(
                                 robotManager.speak("Hemos llegado. Puede depositar el paquete aquí. Yo vuelvo a mi puesto. Muchas gracias.", false, object : RobotManager.SpeakCompleteListener {
                                     override fun onSpeakComplete() {
                                         // Acciones a realizar después de hablar
+                                        mqttViewModel.setReturningHome(true)
                                         mqttViewModel.returnToPosition(mqttViewModel.returnDestination.value!!)
                                     }
                                 })
@@ -184,6 +185,7 @@ fun PackageAndMailManagementScreen(
                                     "return",
                                     "to home screen and to default return pos: ${mqttViewModel.returnDestination.value}"
                                 )
+                                mqttViewModel.setReturningHome(true)
                                 mqttViewModel.returnToPosition(mqttViewModel.returnDestination.value!!)
                             }
                         })

@@ -202,6 +202,7 @@ fun MeetingScreen(
                     object : RobotManager.SpeakCompleteListener {
                         override fun onSpeakComplete() {
                             // Acciones a realizar después de hablar
+                            mqttViewModel.setReturningHome(true)
                             mqttViewModel.returnToPosition(mqttViewModel.returnDestination.value!!)
                         }
                     }
