@@ -306,7 +306,9 @@ class MqttViewModel @Inject constructor(
         mqttManager = MqttManager(getApplication(), mqttCallback, mqttConfigInstance, application)
 
         getListPoses()
+        resetAndRestartDetection()
 
+        // Inicializar los valores de las configuraciones
         Log.d("Init MqttViewModel", "MqttManager created: $mqttManager")
         brokerIp.value = preferencesRepository.getBrokerIp()
         brokerPort.value = preferencesRepository.getBrokerPort()
@@ -339,17 +341,39 @@ class MqttViewModel @Inject constructor(
         //actualizarConfiguracionMQTT()
         //TODO Inicializar los LiveData para cada configuración
 
+        configurePersonDetection()
+    }
+
+    private fun configurePersonDetection() {
         robotMan.onPersonDetected = { personList ->
-            if (!personList.isNullOrEmpty() && !hasHandledPersonDetection) {
-                hasHandledPersonDetection = true
-                detectionJob?.cancel()
-                navigateToHomeScreen()
-                robotMan.questionPrueba()
-                listenToSpeechResult()
-            } else {
+            if (personList != null && !hasHandledPersonDetection) {
+                handlePersonDetection(personList)
+            }else{
                 startPersonDetection(robotConfigInstance.idleWaitingTime)
             }
         }
+    }
+
+    private fun handlePersonDetection(personList: List<Any>) { // Asumiendo un tipo genérico Any por ahora
+        if (personList.isNotEmpty() && !hasHandledPersonDetection) {
+            hasHandledPersonDetection = true
+            detectionJob?.cancel()
+            navigateToHomeScreen()
+            robotMan.questionPrueba()
+            listenToSpeechResult()
+            // Reinicia la detección después de un delay para dar tiempo a completar las acciones
+            /*viewModelScope.launch {
+                delay(5000) // Espera 5 segundos antes de reiniciar la detección
+                resetAndRestartDetection()
+            }*/
+        } else {
+            startPersonDetection(robotConfigInstance.idleWaitingTime)
+        }
+    }
+
+    private fun resetAndRestartDetection() {
+        hasHandledPersonDetection = false
+        startPersonDetection(robotConfigInstance.idleWaitingTime)
     }
 
     private fun actualizarConfiguracionMQTT() {
@@ -929,6 +953,7 @@ class MqttViewModel @Inject constructor(
                             setMessageIndex(0)
                             setCurrentPage(0)
                             setReturningHome(false)
+                            resetAndRestartDetection()
                         }
                     }
                 })
