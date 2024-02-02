@@ -34,7 +34,8 @@ fun DrivingComposable(
     navController: NavController,
     mqttViewModel: MqttViewModel,
     robotManager: RobotManager,
-    onClose: () -> Unit
+    onCancel: () -> Unit,
+    onContinue: () -> Unit
 ) {
     Log.d("Current Composable", "DrivingScreen")
     val closeDrivingScreenFace by mqttViewModel.closeDrivingScreenFace.collectAsState()
@@ -112,8 +113,11 @@ fun DrivingComposable(
                         onClick = {
                             mqttViewModel.coutndownJob?.cancel()
                             mqttViewModel.isNavigating.value = true
-                            robotManager.resumeNavigation()
-                            onClose()
+                            robotManager.resumeNavigation(onNavigationComplete = {
+                                mqttViewModel.isNavigating.value = false
+                                mqttViewModel.navigateToEyesScreen()
+                            })
+                            onContinue()
                         })
                     TransparentButtonWithIcon(
                         text = "Cancelar tarea",
@@ -122,7 +126,7 @@ fun DrivingComposable(
                             mqttViewModel.coutndownJob?.cancel()
                             mqttViewModel.isNavigating.value = true
                             mqttViewModel.returnToPosition(mqttViewModel.returnDestination.value!!)
-                            onClose()
+                            onCancel()
                         })
                 }
             }

@@ -89,7 +89,7 @@ class MqttViewModel @Inject constructor(
                 currentCount--
             }
             coutndownJob?.cancel()
-            robotMan.resumeNavigation()
+            robotMan.resumeNavigation(onNavigationComplete = { navigateToEyesScreen() })
             setCountdownFlagState(true)
         }
     }
@@ -348,7 +348,7 @@ class MqttViewModel @Inject constructor(
         robotMan.onPersonDetected = { personList ->
             if (personList != null && !hasHandledPersonDetection) {
                 handlePersonDetection(personList)
-            }else{
+            } else {
                 startPersonDetection(robotConfigInstance.idleWaitingTime)
             }
         }
@@ -849,7 +849,7 @@ class MqttViewModel @Inject constructor(
             }
 
             "robot/nav_cmds/resume_navigation" -> {
-                robotMan.resumeNavigation()
+                robotMan.resumeNavigation(onNavigationComplete = {})
                 isPaused.value = false
             }
 
@@ -880,28 +880,6 @@ class MqttViewModel @Inject constructor(
                         }
                     }
                 )
-                /*Log.d("ZIGBEE", message)
-                if (message == "single") {
-                    if (RobotApi.getInstance().chargeStatus) {
-                        robotMan.scheduleWithCoroutine()
-                    } else {
-                        Log.d("ZIGBEE MQTT", "selected position: ${selectedItem.toString()}")
-                        Log.d(
-                            "robot params",
-                            "${robotConfigInstance.returnDestination},${robotConfigInstance.coordinateDeviation},${robotConfigInstance.navigationTimeout}"
-                        )
-                        robotMan.startNavigation(
-                            0,
-                            robotConfigInstance.returnDestination,
-                            robotConfigInstance.coordinateDeviation,
-                            robotConfigInstance.navigationTimeout, navigationCompleteListener = object :
-                                RobotManager.NavigationCompleteListener {
-                                override fun onNavigationComplete() {
-                                    // Acciones a realizar después de hablar
-                                }
-                            })
-                    }
-                }*/
             }
         }
     }

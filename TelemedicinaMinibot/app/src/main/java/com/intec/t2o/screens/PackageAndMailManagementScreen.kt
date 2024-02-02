@@ -349,7 +349,13 @@ fun PackageAndMailManagementScreen(
             navController = navController,
             mqttViewModel = mqttViewModel,
             robotManager = robotManager,
-            onClose = { showDrivingComposable = false }
+            onCancel = {
+                mqttViewModel.setReturningHome(true)
+                showDrivingComposable = false
+            },
+            onContinue = {
+                showDrivingComposable = false
+            }
         )
     }
 }

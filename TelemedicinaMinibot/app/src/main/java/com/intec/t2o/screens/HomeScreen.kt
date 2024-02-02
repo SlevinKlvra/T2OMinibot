@@ -111,7 +111,11 @@ fun HomeScreen(
                 navController = navController,
                 mqttViewModel = mqttViewModel,
                 robotManager = robotManager,
-                onClose = {
+                onCancel = {
+                    mqttViewModel.setReturningHome(true)
+                    showDrivingComposable = false
+                },
+                onContinue = {
                     showDrivingComposable = false
                 }
             )
@@ -178,9 +182,9 @@ fun LazyRowUbicaciones(
                         RobotManager.NavigationCompleteListener {
                         override fun onNavigationComplete() {
                             mqttViewModel.isNavigating.value = false
+                            mqttViewModel.navigateToEyesScreen()
                         }
                     })
-                mqttViewModel.navigateToEyesScreen()
             })
         }
     }
