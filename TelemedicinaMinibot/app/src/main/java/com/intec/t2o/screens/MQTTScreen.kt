@@ -197,11 +197,6 @@ fun MQTTScreen(navController: NavController, mqttViewModel: MqttViewModel) {
                 }) {
                     Text("Disconnect")
                 }
-                Button(onClick = {
-
-                }) {
-                    Text("Disconnect")
-                }
             }
             Spacer(modifier = Modifier.height(8.dp))
             Text(fontWeight = FontWeight.Bold, text = "MQTT Connection params")
@@ -569,8 +564,11 @@ fun MQTTScreen(navController: NavController, mqttViewModel: MqttViewModel) {
             Spacer(modifier = Modifier.height(16.dp))
             DownloadInstallButton()
             Spacer(modifier = Modifier.height(16.dp))
+            Text(
+                "V 1.0",
+            )
+            Spacer(modifier = Modifier.height(16.dp))
         }
-
 
         items(messages) { message ->
             Text(

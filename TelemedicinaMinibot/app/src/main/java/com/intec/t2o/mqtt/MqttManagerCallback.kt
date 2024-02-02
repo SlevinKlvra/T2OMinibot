@@ -30,6 +30,7 @@ class MqttManagerCallback(
 
     override fun connectionLost(cause: Throwable?) {
         connectionState.value = "Connection Lost"
+        listener.onMessageReceived("Connection Lost", cause?.message ?: "Unknown")
     }
 
     override fun deliveryComplete(token: IMqttDeliveryToken?) {

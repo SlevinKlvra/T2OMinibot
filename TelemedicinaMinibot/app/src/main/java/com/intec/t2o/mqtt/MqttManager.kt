@@ -165,8 +165,9 @@ class MqttManager(
         listaTopics.add(32, "robot/nav_cmds/driving_finished")
         listaTopics.add(33, "robot/voice_cmds/remove_question")
         listaTopics.add(34, "robot/open_homescreen")
-        listaTopics.add(35, "zigbee2mqtt/Cerradura/state_left")
-        listaTopics.add(36, "zigbee2mqtt/Pulsador/action")
+        listaTopics.add(35,"zigbee2mqtt/Cerradura/right/set")
+        listaTopics.add(36, "zigbee2mqtt/Cerradura/left/set")
+        listaTopics.add(37, "zigbee2mqtt/Pulsador/action")
         return listaTopics
     }
 
