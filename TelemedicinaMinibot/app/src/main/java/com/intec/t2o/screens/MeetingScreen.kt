@@ -334,7 +334,12 @@ fun MeetingScreen(
             navController = navController,
             mqttViewModel = mqttViewModel,
             robotManager = robotManager,
-            onClose = {
+            onCancel = {
+                mqttViewModel.setReturningHome(true)
+                recompositionTrigger = !recompositionTrigger
+                showDrivingComposable = false
+            },
+            onContinue = {
                 recompositionTrigger = !recompositionTrigger
                 showDrivingComposable = false
             }

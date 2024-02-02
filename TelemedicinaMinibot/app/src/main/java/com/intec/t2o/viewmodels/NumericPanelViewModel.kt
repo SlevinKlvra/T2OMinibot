@@ -33,13 +33,11 @@ import java.time.LocalTime
 
 
 class NumericPanelViewModel(
-    application: Application,
-    var robotMan: RobotManager
+    application: Application, var robotMan: RobotManager
 ) : AndroidViewModel(application) {
 
     data class EmailData(
-        val idvisita: String?,
-        val visitante: String?
+        val idvisita: String?, val visitante: String?
     )
 
     var collectedMeetingInfo =
@@ -91,8 +89,7 @@ class NumericPanelViewModel(
         } else {
             triggerErrorAnimation()
             Log.e("Error", "La respuesta es no válida")
-            robotMan.speak(
-                "El código no es válido. Inténtelo de nuevo",
+            robotMan.speak("El código no es válido. Inténtelo de nuevo",
                 false,
                 object : RobotManager.SpeakCompleteListener {
                     override fun onSpeakComplete() {
@@ -115,8 +112,7 @@ class NumericPanelViewModel(
         } else {
             triggerErrorAnimation()
             Log.e("Error", "La respuesta es no válida")
-            robotMan.speak(
-                "El código no es válido. Inténtelo de nuevo",
+            robotMan.speak("El código no es válido. Inténtelo de nuevo",
                 false,
                 object : RobotManager.SpeakCompleteListener {
                     override fun onSpeakComplete() {
@@ -169,9 +165,7 @@ class NumericPanelViewModel(
         val client = OkHttpClient()
         val request = Request.Builder()
             .url("https://t2o.intecrobots.com/api/visitas/consultacodigototal?codigo=${enteredCode.value}")
-            .addHeader("Authorization", "Bearer $token")
-            .get()
-            .build()
+            .addHeader("Authorization", "Bearer $token").get().build()
 
         // Log the complete URL
         Log.d("makeApiCall Request", "URL: $request")
@@ -195,8 +189,7 @@ class NumericPanelViewModel(
                     withContext(Dispatchers.Main) {
                         triggerErrorAnimation()
                         Log.e("Error", "La respuesta es no válida")
-                        robotMan.speak(
-                            "El código no es válido. Inténtelo de nuevo",
+                        robotMan.speak("El código no es válido. Inténtelo de nuevo",
                             false,
                             object : RobotManager.SpeakCompleteListener {
                                 override fun onSpeakComplete() {
@@ -219,8 +212,7 @@ class NumericPanelViewModel(
                         collectedMeetingInfo.value = meetingInfo
                         _isCodeCorrect.value = true
                         Log.d(
-                            "CheckForApiExecution",
-                            "El código es correcto: ${isCodeCorrect.value}"
+                            "CheckForApiExecution", "El código es correcto: ${isCodeCorrect.value}"
                         )
                         val emailData = EmailData(
                             idvisita = collectedMeetingInfo.value.id.toString(),
@@ -233,8 +225,7 @@ class NumericPanelViewModel(
                     } else {
                         // Manejar el caso de que la lista esté vacía
                         triggerErrorAnimation()
-                        robotMan.speak(
-                            "El código no es válido. Inténtelo de nuevo",
+                        robotMan.speak("El código no es válido. Inténtelo de nuevo",
                             false,
                             object : RobotManager.SpeakCompleteListener {
                                 override fun onSpeakComplete() {
@@ -256,8 +247,7 @@ class NumericPanelViewModel(
                     withContext(Dispatchers.Main) {
                         // Manejar otros errores
                         triggerErrorAnimation()
-                        robotMan.speak(
-                            "El código no es válido. Inténtelo de nuevo",
+                        robotMan.speak("El código no es válido. Inténtelo de nuevo",
                             false,
                             object : RobotManager.SpeakCompleteListener {
                                 override fun onSpeakComplete() {
@@ -274,8 +264,7 @@ class NumericPanelViewModel(
                     // Manejar otros errores
                     triggerErrorAnimation()
                     Log.e("Error", "Error en la solicitud: Código ${response.code}")
-                    robotMan.speak(
-                        "El código no es válido. Inténtelo de nuevo",
+                    robotMan.speak("El código no es válido. Inténtelo de nuevo",
                         false,
                         object : RobotManager.SpeakCompleteListener {
                             override fun onSpeakComplete() {
@@ -292,8 +281,7 @@ class NumericPanelViewModel(
                 // Manejar el caso en que la respuesta es null
                 triggerErrorAnimation()
                 Log.e("Error", "La respuesta es null")
-                robotMan.speak(
-                    "El código no es válido. Inténtelo de nuevo",
+                robotMan.speak("El código no es válido. Inténtelo de nuevo",
                     false,
                     object : RobotManager.SpeakCompleteListener {
                         override fun onSpeakComplete() {
@@ -311,14 +299,11 @@ class NumericPanelViewModel(
         return try {
 
             val client = OkHttpClient()
-            val formBody = FormBody.Builder()
-                .add("username", "sergio.escudero@intecrobots.com")
-                .add("password", "sec000611")
-                .build()
-            val request = Request.Builder()
-                .url("https://t2o.intecrobots.com/api/auth/login")
-                .post(formBody)
-                .build()
+            val formBody = FormBody.Builder().add("username", "sergio.escudero@intecrobots.com")
+                .add("password", "sec000611").build()
+            val request =
+                Request.Builder().url("https://t2o.intecrobots.com/api/auth/login").post(formBody)
+                    .build()
             Log.d("Request", "URL: ${request.url}, Body: $formBody")
             client.newCall(request).execute().use { response ->
                 if (response.isSuccessful) {
@@ -369,10 +354,8 @@ class NumericPanelViewModel(
                 // Crear la solicitud con el encabezado y el cuerpo JSON
                 val request = Request.Builder()
                     .url("https://t2o.intecrobots.com/api/contactosvisitas/notificaremailllegadas")
-                    .post(requestBody)
-                    .addHeader(
-                        "Authorization",
-                        "Bearer $currentToken"
+                    .post(requestBody).addHeader(
+                        "Authorization", "Bearer $currentToken"
                     )  // Agregar el encabezado de autorización
                     .build()
                 Log.d("tokennnn", currentToken)
@@ -425,12 +408,9 @@ class NumericPanelViewModel(
                     json.toString().toRequestBody("application/json".toMediaType())
 
                 // Crear la solicitud con el encabezado y el cuerpo JSON
-                val request = Request.Builder()
-                    .url("https://t2o.intecrobots.com/api/novisitas/add")
-                    .post(requestBody)
-                    .addHeader(
-                        "Authorization",
-                        "Bearer $currentToken"
+                val request = Request.Builder().url("https://t2o.intecrobots.com/api/novisitas/add")
+                    .post(requestBody).addHeader(
+                        "Authorization", "Bearer $currentToken"
                     )  // Agregar el encabezado de autorización
                     .build()
                 Log.d("tokennnn", currentToken)
@@ -472,8 +452,7 @@ class NumericPanelViewModel(
         val threshold = Duration.ofMinutes(thresholdMinutes)
 
         Log.d(
-            "MeetingTime",
-            "${
+            "MeetingTime", "${
                 !currentTime.isBefore(meetingTime.minus(threshold)) && !currentTime.isAfter(
                     meetingTime.plus(threshold)
                 )

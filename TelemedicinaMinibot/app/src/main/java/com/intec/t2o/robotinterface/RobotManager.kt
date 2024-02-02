@@ -1,6 +1,5 @@
 package com.intec.t2o.robotinterface
 
-import android.annotation.SuppressLint
 import android.content.Context
 import android.util.Log
 import androidx.compose.runtime.mutableStateOf
@@ -291,14 +290,14 @@ class RobotManager @Inject constructor(
         coordinateDeviation: Double,
         time: Long,
         navigationCompleteListener: NavigationCompleteListener
-    ){
+    ) {
         Log.d("START NAVIGATION", "Comenzando navegación a $destName")
         setLastPosition(destName)
 
         stopFocusFollow()
         callbackNavigationStarted(true)
         val specialPose = RobotApi.getInstance().getSpecialPose(destName)
-        if(specialPose != null) {
+        if (specialPose != null) {
             Log.d("START NAVIGATION", "Pose found for $destName")
 
             RobotApi.getInstance().goPosition(
@@ -362,7 +361,7 @@ class RobotManager @Inject constructor(
 
                                         val json = gson.toJson(robotStatus)
                                         speak(
-                                            "Gracias por dejarme paso, vamos",
+                                            "Gracias por dejarme paso",
                                             false,
                                             object : RobotManager.SpeakCompleteListener {
                                                 override fun onSpeakComplete() {
@@ -378,14 +377,14 @@ class RobotManager @Inject constructor(
 
                     override fun onResult(result: Int, message: String?, extraData: String?) {
                         super.onResult(result, message, extraData)
-                        if(message.toBoolean()){
-                            var status_ : String = ""
+                        if (message.toBoolean()) {
+                            var status_: String = ""
                             status_ = "END"
                             var gson = Gson()
                             val robotStatus = RobotStatus(destName, status_)
                             //Log.d("ROBOT STATUS NUEVO", robotStatus.toString())
 
-                            if(robotStatus.status == "END"){
+                            if (robotStatus.status == "END") {
                                 navigationCompleteListener.onNavigationComplete()
                                 callbackNavigationStarted(false)
                                 startFocusFollow(0)
@@ -412,15 +411,20 @@ class RobotManager @Inject constructor(
 
     }
 
-    fun resumeNavigation() {
+    fun resumeNavigation(onNavigationComplete: () -> Unit) {
         if (!lastDestination.value.isNullOrEmpty()) {
             Log.d("RESUME NAVIGATION", "Continuing navigation: ${lastDestination.value}")
-            startNavigation(0, lastDestination.value, 0.1, 1000000, navigationCompleteListener = object : NavigationCompleteListener {
-                override fun onNavigationComplete() {
-                    // Acciones a realizar después de hablar
+            startNavigation(
+                0,
+                lastDestination.value,
+                0.1,
+                1000000,
+                navigationCompleteListener = object : NavigationCompleteListener {
+                    override fun onNavigationComplete() {
+                        onNavigationComplete()
 
-                }
-            })
+                    }
+                })
         } else {
             Log.d("RESUME NAVIGATION", "No last navigated location available")
         }
@@ -444,12 +448,13 @@ class RobotManager @Inject constructor(
     interface NavigationCompleteListener {
         fun onNavigationComplete()
     }
+
     interface NavigationRequestListener {
         fun navigateToEyesScreen()
     }
 
-    fun speak(text : String, listen: Boolean, speakCompleteListener: SpeakCompleteListener){
-        skillApi.playText(TTSEntity("sid-012345",text), object : TextListener() {
+    fun speak(text: String, listen: Boolean, speakCompleteListener: SpeakCompleteListener) {
+        skillApi.playText(TTSEntity("sid-012345", text), object : TextListener() {
             override fun onStart() {
                 // Iniciar reproducción
             }
@@ -558,11 +563,16 @@ class RobotManager @Inject constructor(
     fun scheduleWithCoroutine() = runBlocking {
         launch {
             delay(6000L)
-            startNavigation(0,"entrada",0.1234,0, navigationCompleteListener = object : NavigationCompleteListener {
-                override fun onNavigationComplete() {
-                    // Acciones a realizar después de hablar
-                }
-            })
+            startNavigation(
+                0,
+                "entrada",
+                0.1234,
+                0,
+                navigationCompleteListener = object : NavigationCompleteListener {
+                    override fun onNavigationComplete() {
+                        // Acciones a realizar después de hablar
+                    }
+                })
         }
     }
 }
