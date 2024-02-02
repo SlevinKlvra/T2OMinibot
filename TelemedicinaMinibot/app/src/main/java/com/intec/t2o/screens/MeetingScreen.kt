@@ -166,27 +166,8 @@ fun MeetingScreen(
                     object : RobotManager.SpeakCompleteListener {
                         override fun onSpeakComplete() {
                             // Acciones a realizar después de hablar
-                            robotManager.startNavigation(
-                                1,
-                                meetingInfo.puntomapa,
-                                mqttViewModel.coordinateDeviation.value!!.toDouble(),
-                                mqttViewModel.navigationTimeout.value!!.toLong(),
-                                navigationCompleteListener = object :
-                                    RobotManager.NavigationCompleteListener {
-                                    override fun onNavigationComplete() {
-                                        // Acciones a realizar después de hablar
-                                        robotManager.speak(
-                                            "Hemos llegado. Tome asiento y su reunión comenzará en breves momentos. Vuelvo a mi puesto. Muchas gracias.",
-                                            false,
-                                            object : RobotManager.SpeakCompleteListener {
-                                                override fun onSpeakComplete() {
-                                                    mqttViewModel.setReturningHome(true)
-                                                    // Acciones a realizar después de hablar
-                                                    mqttViewModel.returnToPosition(mqttViewModel.returnDestination.value!!)
-                                                }
-                                            })
-                                    }
-                                })
+                            mqttViewModel.setMessageIndex(7)
+                            mqttViewModel.setCurrentPage(6)
                         }
                     })
             }
@@ -207,6 +188,34 @@ fun MeetingScreen(
                         }
                     }
                 )
+            }
+
+            7 -> {
+                robotManager.startNavigation(
+                    1,
+                    meetingInfo.puntomapa,
+                    mqttViewModel.coordinateDeviation.value!!.toDouble(),
+                    mqttViewModel.navigationTimeout.value!!.toLong(),
+                    navigationCompleteListener = object :
+                        RobotManager.NavigationCompleteListener {
+                        override fun onNavigationComplete() {
+                            // Acciones a realizar después de hablar
+                            robotManager.speak(
+                                "Hemos llegado. Tome asiento y su reunión comenzará en breves momentos. Vuelvo a mi puesto. Muchas gracias.",
+                                false,
+                                object : RobotManager.SpeakCompleteListener {
+                                    override fun onSpeakComplete() {
+                                        mqttViewModel.setMessageIndex(8)
+                                        mqttViewModel.setCurrentPage(6)
+                                    }
+                                })
+                        }
+                    })
+            }
+            8 -> {
+                mqttViewModel.setReturningHome(true)
+                // Acciones a realizar después de hablar
+                mqttViewModel.returnToPosition(mqttViewModel.returnDestination.value!!)
             }
         }
     }
@@ -308,7 +317,7 @@ fun MeetingScreen(
         "CURRENT PAGE: $currentPage, MESSAGE INDEX: $messageIndex, IS WORKING: $isWorking"
     )
 
-    if (messageIndex == 5 || messageIndex == 6) {
+    if (messageIndex == 5 || messageIndex == 6 || messageIndex == 7 || messageIndex == 8) {
         Log.d("SECUENCIA DRIVING", "$messageIndex: PressableEyes")
         PressableEyes(
             modifier = Modifier.fillMaxSize(),

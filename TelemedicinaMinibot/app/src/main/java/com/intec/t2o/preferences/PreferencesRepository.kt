@@ -6,7 +6,7 @@ import javax.inject.Inject
 class PreferencesRepository @Inject constructor(private val sharedPreferences: SharedPreferences) {
 
     // Ya existentes
-    fun getBrokerIp(): String = sharedPreferences.getString("broker_ip", "10.14.0.152") ?: "10.14.0.152"
+    fun getBrokerIp(): String = sharedPreferences.getString("broker_ip", "192.168.80.48") ?: "192.168.80.48"
     fun setBrokerIp(ip: String) = sharedPreferences.edit().putString("broker_ip", ip).apply()
 
     // Agregar nuevos

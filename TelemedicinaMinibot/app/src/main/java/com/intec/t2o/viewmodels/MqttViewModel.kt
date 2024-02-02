@@ -769,6 +769,10 @@ class MqttViewModel @Inject constructor(
         Log.d("MQTTViewModel", "User: ${mqttConfigInstance.user}")
         Log.d("MQTTViewModel", "Pwd: ${mqttConfigInstance.password}")*/
         addIncomingMessage("Connecting to broker: ${mqttConfigInstance.SERVER_URI}")
+        addIncomingMessage("User: ${mqttConfigInstance.user}")
+        addIncomingMessage("Password: ${mqttConfigInstance.password}")
+        addIncomingMessage("Client id: ${mqttConfigInstance.client_id}")
+        addIncomingMessage("QoS: ${mqttConfigInstance.qos}")
         mqttManager.connect()
         initiatedStatus.value = true
         //subscribeToAllTopics(resumeTopics())
