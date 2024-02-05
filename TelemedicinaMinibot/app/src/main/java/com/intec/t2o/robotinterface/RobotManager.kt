@@ -412,7 +412,7 @@ class RobotManager @Inject constructor(
     }
 
     fun resumeNavigation(onNavigationComplete: () -> Unit) {
-        if (!lastDestination.value.isNullOrEmpty()) {
+        if (lastDestination.value.isNotEmpty()) {
             Log.d("RESUME NAVIGATION", "Continuing navigation: ${lastDestination.value}")
             startNavigation(
                 0,
