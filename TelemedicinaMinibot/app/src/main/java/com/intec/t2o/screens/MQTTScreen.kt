@@ -565,7 +565,7 @@ fun MQTTScreen(navController: NavController, mqttViewModel: MqttViewModel) {
             DownloadInstallButton()
             Spacer(modifier = Modifier.height(16.dp))
             Text(
-                "V 1.0.1.1",
+                "V 1.0.1",
             )
             Spacer(modifier = Modifier.height(16.dp))
         }
