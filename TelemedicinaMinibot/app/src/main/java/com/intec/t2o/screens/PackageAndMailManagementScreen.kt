@@ -196,6 +196,22 @@ fun PackageAndMailManagementScreen(
                         }
                     })
             }
+            7 -> {
+                Log.d(
+                    "SECUENCIA",
+                    "$messageIndex: acasa"
+                )
+                robotManager.speak(
+                    "Hemos llegado. Puede depositar el paquete aquí. Yo vuelvo a mi puesto. Muchas gracias.",
+                    false,
+                    object : RobotManager.SpeakCompleteListener {
+                        override fun onSpeakComplete() {
+                            // Acciones a realizar después de hablar
+                            mqttViewModel.setReturningHome(true)
+                            mqttViewModel.returnToPosition(mqttViewModel.returnDestination.value!!)
+                        }
+                    })
+            }
         }
     }
 
@@ -354,6 +370,17 @@ fun PackageAndMailManagementScreen(
                 showDrivingComposable = false
             },
             onContinue = {
+                robotManager.resumeNavigation(onNavigationComplete = {
+                    mqttViewModel.isNavigating.value = false
+                    if (messageIndex == 3){
+                        Log.d("if message index", "entramos en condicion")
+                        mqttViewModel.setMessageIndex(7)
+                    }
+                    else {
+                        Log.d("if message no index", "no entramos en condicion")
+                        mqttViewModel.navigateToEyesScreen()
+                    }
+                })
                 showDrivingComposable = false
             }
         )

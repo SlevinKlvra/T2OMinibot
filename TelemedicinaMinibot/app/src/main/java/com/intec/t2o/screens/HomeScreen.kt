@@ -116,6 +116,10 @@ fun HomeScreen(
                     showDrivingComposable = false
                 },
                 onContinue = {
+                    mqttViewModel.robotMan.resumeNavigation(onNavigationComplete = {
+                        mqttViewModel.isNavigating.value = false
+                        mqttViewModel.navigateToEyesScreen()
+                    })
                     showDrivingComposable = false
                 }
             )
@@ -172,6 +176,7 @@ fun LazyRowUbicaciones(
             Log.d("DESTINATIONS", item.name)
             // Un botón con el onClick y el estilo que quieras
             NavigationButton(item.name, onClick = {
+                Log.d("asdsadasdadsdsada", item.name)
                 mqttViewModel.isNavigating.value = true
                 mqttViewModel.robotMan.startNavigation(
                     0,

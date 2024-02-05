@@ -212,6 +212,7 @@ fun MeetingScreen(
                         }
                     })
             }
+
             8 -> {
                 mqttViewModel.setReturningHome(true)
                 // Acciones a realizar después de hablar
@@ -317,7 +318,7 @@ fun MeetingScreen(
         "CURRENT PAGE: $currentPage, MESSAGE INDEX: $messageIndex, IS WORKING: $isWorking"
     )
 
-    if (messageIndex == 5 || messageIndex == 6 || messageIndex == 7 || messageIndex == 8) {
+    if (messageIndex == 4 || messageIndex == 5 || messageIndex == 6 || messageIndex == 7 || messageIndex == 8) {
         Log.d("SECUENCIA DRIVING", "$messageIndex: PressableEyes")
         PressableEyes(
             modifier = Modifier.fillMaxSize(),
@@ -336,10 +337,14 @@ fun MeetingScreen(
             robotManager = robotManager,
             onCancel = {
                 mqttViewModel.setReturningHome(true)
-                recompositionTrigger = !recompositionTrigger
                 showDrivingComposable = false
             },
             onContinue = {
+                robotManager.resumeNavigation(onNavigationComplete = {
+                    mqttViewModel.isNavigating.value = false
+                    if (messageIndex == 7) mqttViewModel.setMessageIndex(4)
+                    else mqttViewModel.navigateToEyesScreen()
+                })
                 recompositionTrigger = !recompositionTrigger
                 showDrivingComposable = false
             }

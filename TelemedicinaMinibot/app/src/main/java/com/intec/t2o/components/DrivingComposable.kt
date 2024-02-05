@@ -113,10 +113,6 @@ fun DrivingComposable(
                         onClick = {
                             mqttViewModel.coutndownJob?.cancel()
                             mqttViewModel.isNavigating.value = true
-                            robotManager.resumeNavigation(onNavigationComplete = {
-                                mqttViewModel.isNavigating.value = false
-                                mqttViewModel.navigateToEyesScreen()
-                            })
                             onContinue()
                         })
                     TransparentButtonWithIcon(
