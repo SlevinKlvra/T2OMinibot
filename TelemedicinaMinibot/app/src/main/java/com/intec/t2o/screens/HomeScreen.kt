@@ -66,11 +66,10 @@ fun HomeScreen(
 
     LaunchedEffect(key1 = true) {
         robotManager.speak(
-            "Bienvenido a t, 2, o. ¿Cuál es el motivo de su visita?",
+            "Hola, soy Píter, bienvenido a t2ó, en qué puedo ayudarte? Por favor, pulsa en el menú para elegir alguna de las opciones",
             true,
             object : RobotManager.SpeakCompleteListener {
                 override fun onSpeakComplete() {
-                    // Acciones a realizar después de hablar
                 }
             })
     }
