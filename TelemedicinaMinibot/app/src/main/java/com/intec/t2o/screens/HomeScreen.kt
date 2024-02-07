@@ -1,5 +1,6 @@
 package com.intec.t2o.screens
 
+import android.os.Build
 import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -8,8 +9,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -21,9 +20,8 @@ import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.MailOutline
+import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.Person
-import androidx.compose.material.icons.filled.Place
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -35,19 +33,26 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import coil.ImageLoader
+import coil.compose.rememberAsyncImagePainter
+import coil.decode.GifDecoder
+import coil.decode.ImageDecoderDecoder
 import com.ainirobot.coreservice.client.actionbean.Pose
 import com.intec.t2o.R
 import com.intec.t2o.components.DrivingComposable
+import com.intec.t2o.components.HomeScreenButtonCard
 import com.intec.t2o.components.NavigationButton
 import com.intec.t2o.components.PressableEyes
-import com.intec.t2o.components.TransparentButtonWithIconAndText
 import com.intec.t2o.robotinterface.RobotManager
 import com.intec.t2o.viewmodels.MqttViewModel
 
@@ -74,6 +79,16 @@ fun HomeScreen(
             })
     }
 
+    val imageEmotionsLoader = ImageLoader.Builder(LocalContext.current)
+        .components {
+            if (Build.VERSION.SDK_INT >= 28) {
+                add(ImageDecoderDecoder.Factory())
+            } else {
+                add(GifDecoder.Factory())
+            }
+        }
+        .build()
+
     FuturisticGradientBackground {
 
         if (!mqttViewModel.isNavigating.value) {
@@ -81,9 +96,19 @@ fun HomeScreen(
 
             Column(modifier = Modifier.fillMaxSize()) {
                 Cabecera(mqttViewModel = mqttViewModel)
-                if (!adminMode) Spacer(modifier = Modifier.size(30.dp))
                 Botones(
                     mqttViewModel = mqttViewModel,
+                )
+                Image(
+                    painter = rememberAsyncImagePainter(
+                        R.drawable.speechrecognition,
+                        imageEmotionsLoader
+                    ),
+                    contentDescription = null,
+                    modifier = Modifier
+                        .size(35.dp)
+                        .align(Alignment.CenterHorizontally)
+                        .padding(bottom = 5.dp)
                 )
                 if (adminMode) {
                     LazyRowUbicaciones(
@@ -129,28 +154,37 @@ fun HomeScreen(
 
 @Composable
 fun Cabecera(mqttViewModel: MqttViewModel) {
-    // Una columna con un espacio fijo entre sus elementos
-    Column(modifier = Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
-        // El Row que contiene el título
-        Row(
+    var clickCount by remember { mutableStateOf(0) }
+
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(top = 5.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Image(
+            painter = painterResource(id = R.drawable.logot2o),
+            contentDescription = "logo",
             modifier = Modifier
-                .fillMaxWidth()
-                .padding(top = 8.dp),
-            horizontalArrangement = Arrangement.SpaceEvenly,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            MqttButton(mqttViewModel = mqttViewModel)
-            Text(
-                text = "¿Cuál es el motivo de su visita?",
-                color = Color.White,
-                fontSize = 25.sp,
-                fontWeight = FontWeight.SemiBold,
-                textAlign = TextAlign.Center
-            )
-            ClockInBtn(mqttViewModel = mqttViewModel)
-        }
+                .size(60.dp)
+                .clickable {
+                    clickCount++
+                    if (clickCount == 5) {
+                        mqttViewModel.navigateToMqttScreen()
+                        clickCount = 0
+                    }
+                }
+        )
+        Text(
+            text = "¿Cuál es el motivo de su visita?",
+            color = Color.White,
+            fontSize = 20.sp,
+            fontWeight = FontWeight.Medium,
+            textAlign = TextAlign.Center
+        )
     }
 }
+
 
 @Composable
 fun LazyRowUbicaciones(
@@ -200,11 +234,19 @@ fun Botones(
 ) {
 
     // Una lista de iconos para los botones
-    val iconos = listOf(Icons.Default.Person, Icons.Default.Place, Icons.Default.MailOutline)
+    val iconos = listOf(
+        Icons.Default.DateRange,
+        Icons.Default.Person,
+        ImageVector.vectorResource(R.drawable.shipping)
+    )
     // Una lista de textos para los botones
-    val textos = listOf("VISITA", "REUNIÓN", "MENSAJERÍA")
+    val textos = listOf("Cita", "Reunión", "Entregas")
     val indicaciones =
-        listOf("\"tengo una visita...\"", "\"tengo una reunión...\"", "\"soy de mensajería...\"")
+        listOf(
+            "\"tengo una visita...\"",
+            "\"tengo una reunión...\"",
+            "\"tengo una entrega...\""
+        )
 
     Box(
         modifier = Modifier
@@ -217,25 +259,25 @@ fun Botones(
         LazyVerticalGrid(
             columns = GridCells.Fixed(3),
             // Alineación y espaciado adicionales si son necesarios
-            contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
+            contentPadding = PaddingValues(horizontal = 16.dp, vertical = 0.dp),
             horizontalArrangement = Arrangement.Center,
             verticalArrangement = Arrangement.Center
         ) {
             // Tre botones con los colores, iconos y textos correspondientes
             items(3) { index ->
 
-                TransparentButtonWithIconAndText(
+                HomeScreenButtonCard(
                     text = textos[index],
                     indicacion = indicaciones[index],
-                    icon = iconos[index], // Reemplaza con tu icono
-                    onClick = {
-                        when (index) {
-                            0 -> mqttViewModel.navigateToUnknownVisitsScreen()
-                            1 -> mqttViewModel.navigateToNumericPanelScreen()
-                            2 -> mqttViewModel.navigateToPackageAndMailManagementScreen()
-                        }
-                    }
+                    icon = iconos[index]
                 )
+                {
+                    when (index) {
+                        0 -> mqttViewModel.navigateToUnknownVisitsScreen()
+                        1 -> mqttViewModel.navigateToNumericPanelScreen()
+                        2 -> mqttViewModel.navigateToPackageAndMailManagementScreen()
+                    }
+                }
             }
         }
     }

@@ -8,13 +8,21 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
 import com.intec.t2o.R
 
-val IBM = FontFamily (
+val IBM = FontFamily(
     Font(R.font.ibmreg)
 )
+
+val Poppins = FontFamily(
+    Font(R.font.poppins_regular),
+    Font(R.font.poppins_bold, FontWeight.Bold),
+    Font(R.font.poppins_semibold, FontWeight.SemiBold),
+    Font(R.font.poppins_medium, FontWeight.Medium)
+)
+
 // Set of Material typography styles to start with
 val Typography = Typography(
     bodyLarge = TextStyle(
-        fontFamily = IBM,
+        fontFamily = Poppins,
         fontWeight = FontWeight.Normal,
         fontSize = 16.sp,
         lineHeight = 24.sp,

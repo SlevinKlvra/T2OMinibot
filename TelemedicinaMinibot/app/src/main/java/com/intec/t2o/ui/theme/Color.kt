@@ -1,4 +1,5 @@
 package com.intec.t2o.ui.theme
+
 import androidx.compose.ui.graphics.Color
 
 val md_theme_light_primary = Color(0xFF0058CC)
@@ -64,4 +65,9 @@ val md_theme_dark_outlineVariant = Color(0xFF44464F)
 val md_theme_dark_scrim = Color(0xFF000000)
 
 
-val seed = Color(0xFF4B86FE)
+// val seed = Color(0xFF4B86FE)
+
+val bgColor = Color(0xff111619)
+val textColor = Color(0xFFDCECEF)
+val cardColor = Color(0xff22323b)
+val iconColor = Color(0xff4b86fe)
