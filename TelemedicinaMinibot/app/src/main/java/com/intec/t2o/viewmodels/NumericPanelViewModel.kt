@@ -65,7 +65,7 @@ class NumericPanelViewModel(
 
     // Función para añadir un dígito al código
     fun addDigit(digit: Char) {
-        enteredCode.value += digit
+        if (enteredCode.value.length < 10) enteredCode.value += digit
     }
 
     // Función para borrar el último dígito

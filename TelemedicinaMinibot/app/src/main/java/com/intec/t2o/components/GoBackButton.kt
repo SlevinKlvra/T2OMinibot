@@ -6,10 +6,11 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import com.intec.t2o.ui.theme.cardColor
+import com.intec.t2o.ui.theme.iconColor
 
 @Composable
 fun GoBackButton(onClick: () -> Unit) {
@@ -18,8 +19,8 @@ fun GoBackButton(onClick: () -> Unit) {
         modifier = Modifier
             .size(56.dp)
             .padding(16.dp),
-        contentColor = MaterialTheme.colorScheme.secondary
+        containerColor = cardColor
     ) {
-        Icon(imageVector = Icons.Default.ArrowBack, contentDescription = null)
+        Icon(imageVector = Icons.Default.ArrowBack, contentDescription = null, tint = iconColor)
     }
 }

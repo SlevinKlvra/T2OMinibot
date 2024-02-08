@@ -36,6 +36,7 @@ import com.intec.t2o.R
 import com.intec.t2o.components.DrivingComposable
 import com.intec.t2o.components.PressableEyes
 import com.intec.t2o.robotinterface.RobotManager
+import com.intec.t2o.ui.theme.textColor
 import com.intec.t2o.viewmodels.MqttViewModel
 import com.intec.t2o.viewmodels.NumericPanelViewModel
 
@@ -291,7 +292,7 @@ fun MeetingScreen(
                             Text(
                                 color = Color.White,
                                 fontSize = 25.sp,
-                                fontWeight = FontWeight.SemiBold,
+                                fontWeight = FontWeight.Medium,
                                 textAlign = TextAlign.Center,
                                 maxLines = 2,
                                 text = "He notificado a ${meetingInfo.anfitrion} de tu llegada"
@@ -299,9 +300,8 @@ fun MeetingScreen(
                             Spacer(modifier = Modifier.height(15.dp))
                             Text(
                                 text = "Reunión programada a las ${meetingInfo.start_time}",
-                                color = Color.White,
+                                color = textColor,
                                 fontSize = 15.sp,
-                                fontWeight = FontWeight.Light,
                                 textAlign = TextAlign.Center,
                                 maxLines = 1
                             )

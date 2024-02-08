@@ -63,34 +63,25 @@ fun DrivingComposable(
         ) {
             Box(
                 modifier = Modifier
-                    .padding(16.dp),
+                    .padding(10.dp),
                 contentAlignment = Alignment.Center
             ) {
                 Column(
-                    verticalArrangement = Arrangement.Center,
                     horizontalAlignment = Alignment.CenterHorizontally,
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     Text(
-                        text = "La actividad del robot se reanudará en",
-                        modifier = Modifier,
+                        text = "La actividad del robot se reanudará en:",
                         textAlign = TextAlign.Center,
                         fontSize = 16.sp,
                         color = Color.White
                     )
                     Text(
-                        text = tiempoRestantePausa.toString(),
-                        modifier = Modifier,
+                        text = tiempoRestantePausa.toString() + "s",
+                        modifier = Modifier.padding(bottom = 20.dp),
                         textAlign = TextAlign.Center,
-                        fontSize = 104.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = Color.White
-                    )
-                    Text(
-                        text = "segundos",
-                        modifier = Modifier,
-                        textAlign = TextAlign.Center,
-                        fontSize = 16.sp,
+                        fontSize = 90.sp,
+                        fontWeight = FontWeight.Medium,
                         color = Color.White
                     )
                 }
@@ -99,15 +90,16 @@ fun DrivingComposable(
                 modifier = Modifier
                     .align(alignment = Alignment.BottomCenter)
                     .fillMaxWidth()
-                    .background(Color.Transparent),
+                    .background(Color.Transparent)
+                    .padding(bottom = 20.dp),
                 contentAlignment = Alignment.Center
             ) {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceAround,
+                    horizontalArrangement = Arrangement.SpaceEvenly,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    TransparentButtonWithIcon(
+                    ButtonCard(
                         text = "Reanudar tarea",
                         icon = Icons.Outlined.PlayArrow,
                         onClick = {
@@ -115,7 +107,7 @@ fun DrivingComposable(
                             mqttViewModel.isNavigating.value = true
                             onContinue()
                         })
-                    TransparentButtonWithIcon(
+                    ButtonCard(
                         text = "Cancelar tarea",
                         icon = Icons.Outlined.Clear,
                         onClick = {

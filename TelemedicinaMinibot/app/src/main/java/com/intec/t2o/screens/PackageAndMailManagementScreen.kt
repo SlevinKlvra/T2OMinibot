@@ -43,12 +43,13 @@ import coil.compose.rememberAsyncImagePainter
 import coil.decode.GifDecoder
 import coil.decode.ImageDecoderDecoder
 import com.intec.t2o.R
+import com.intec.t2o.components.ButtonCard
 import com.intec.t2o.components.DrivingComposable
 import com.intec.t2o.components.GoBackButton
 import com.intec.t2o.components.NumericPad
 import com.intec.t2o.components.PressableEyes
-import com.intec.t2o.components.TransparentButtonWithIcon
 import com.intec.t2o.robotinterface.RobotManager
+import com.intec.t2o.ui.theme.textColor
 import com.intec.t2o.viewmodels.MqttViewModel
 import com.intec.t2o.viewmodels.NumericPanelViewModel
 
@@ -196,6 +197,7 @@ fun PackageAndMailManagementScreen(
                         }
                     })
             }
+
             7 -> {
                 Log.d(
                     "SECUENCIA",
@@ -263,7 +265,8 @@ fun PackageAndMailManagementScreen(
                         ButtonsStep(
                             icon1 = Icons.Outlined.Check,
                             icon2 = Icons.Outlined.Clear,
-                            text = "¿Dispone de código de entrega?",
+                            title = "¿Dispone de código de entrega?",
+                            subtitle = "Seleccione Sí o No para proceder con la confirmación de su código",
                             onButton1Click = {
                                 mqttViewModel.setCurrentPage(2); hasCode =
                                 true; mqttViewModel.setMessageIndex(2)
@@ -372,11 +375,10 @@ fun PackageAndMailManagementScreen(
             onContinue = {
                 robotManager.resumeNavigation(onNavigationComplete = {
                     mqttViewModel.isNavigating.value = false
-                    if (messageIndex == 3){
+                    if (messageIndex == 3) {
                         Log.d("if message index", "entramos en condicion")
                         mqttViewModel.setMessageIndex(7)
-                    }
-                    else {
+                    } else {
                         Log.d("if message no index", "no entramos en condicion")
                         mqttViewModel.navigateToEyesScreen()
                     }
@@ -392,35 +394,44 @@ fun PackageAndMailManagementScreen(
 fun ButtonsStep(
     icon1: ImageVector,
     icon2: ImageVector,
-    text: String,
+    title: String,
+    subtitle: String,
     onButton1Click: () -> Unit,
     onButton2Click: () -> Unit
 ) {
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(8.dp)
     ) {
         Text(
-            text = text,
+            text = title,
             color = Color.White,
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(bottom = 8.dp),
             textAlign = TextAlign.Center,
-            style = MaterialTheme.typography.headlineLarge
+            style = MaterialTheme.typography.headlineMedium
+        )
+        Text(
+            text = subtitle,
+            color = textColor,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(bottom = 8.dp),
+            textAlign = TextAlign.Center,
+            style = MaterialTheme.typography.bodySmall
         )
         Row(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(8.dp),
-            horizontalArrangement = Arrangement.SpaceBetween
+                .padding(8.dp, top = 16.dp),
+            horizontalArrangement = Arrangement.SpaceAround
         ) {
-            TransparentButtonWithIcon(
-                text = "Sí", icon = icon1, onClick = onButton1Click
+            ButtonCard(
+                text = "Sí tengo código", icon = icon1, onClick = onButton1Click
             )
-            TransparentButtonWithIcon(
-                text = "No", icon = icon2, onClick = onButton2Click
+            ButtonCard(
+                text = "No tengo código", icon = icon2, onClick = onButton2Click
             )
         }
     }

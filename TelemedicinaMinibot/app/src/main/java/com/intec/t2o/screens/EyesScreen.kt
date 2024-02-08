@@ -125,13 +125,12 @@ fun ImageExample(
                 Face.NEUTRAL -> {
                     Image(
                         painter = rememberAsyncImagePainter(
-                            R.drawable.white_neutral,
+                            R.drawable.blue_neutral,
                             imageEmotionsLoader
                         ),
                         contentDescription = null,
                         modifier = Modifier
-                            .size(380.dp)
-                            .padding(top = 24.dp)
+                            .fillMaxSize()
                             .align(Alignment.Center)
                     )
                 }

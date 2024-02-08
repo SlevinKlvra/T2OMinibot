@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
@@ -52,7 +53,7 @@ fun NumericPad(
     } else Modifier
 
     val textStyle = TextStyle(
-        fontWeight = FontWeight.Bold,
+        fontWeight = FontWeight.SemiBold,
         fontSize = 16.sp,
         textAlign = TextAlign.Center,
         color = Color.Black
@@ -77,8 +78,10 @@ fun NumericPad(
         ) {
             Text(
                 text = titleText,
-                style = textStyle.copy(fontSize = 15.sp),
-                modifier = Modifier.padding(bottom = 4.dp),
+                textAlign = TextAlign.Center,
+                style = MaterialTheme.typography.bodyMedium,
+                modifier = Modifier
+                    .padding(top = 5.dp),
                 color = Color.White
             )
             Text(
@@ -88,7 +91,6 @@ fun NumericPad(
                     .padding(6.dp),
                 color = Color.White
             )
-
             // Teclado numérico
             val buttons =
                 listOf("1", "2", "3", "4", "5", "6", "7", "8", "9", "Borrar", "0", "Enviar")
@@ -99,9 +101,8 @@ fun NumericPad(
                 ) {
                     row.forEach { number ->
                         if (number.isNotBlank()) {
-                            NumericPadButton(
-                                text = number,
-                                onClick = {
+                            if (number == "Enviar" || number == "Borrar") {
+                                NumericPadActionButton(text = number, onClick = {
                                     when (number) {
                                         "Borrar" -> {
                                             numericPanelViewModel.removeLastDigit()
@@ -110,11 +111,16 @@ fun NumericPad(
                                         "Enviar" -> {
                                             onClick()
                                         }
-
-                                        else -> numericPanelViewModel.addDigit(number.first())
                                     }
-                                },
-                            )
+                                })
+                            } else {
+                                NumericPadButton(
+                                    text = number,
+                                    onClick = {
+                                        numericPanelViewModel.addDigit(number.first())
+                                    },
+                                )
+                            }
                         } else {
                             Spacer(
                                 modifier = Modifier
