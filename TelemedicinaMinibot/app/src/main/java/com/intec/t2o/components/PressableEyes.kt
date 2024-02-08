@@ -50,7 +50,7 @@ fun ImageExample() {
         ) {
             Image(
                 painter = rememberAsyncImagePainter(
-                    R.drawable.white_neutral,
+                    R.drawable.blue_neutral,
                     imageEmotionsLoader
                 ),
                 contentDescription = null,

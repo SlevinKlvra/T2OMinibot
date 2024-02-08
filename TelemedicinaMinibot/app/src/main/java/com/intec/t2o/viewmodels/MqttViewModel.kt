@@ -41,7 +41,7 @@ class MqttViewModel @Inject constructor(
 
     //COUNTDOWN DEL ESTADO DE PAUSA
     //TO DO: AÑADIR A SETPREFERENCES LA VARIABLE PARA PODER EDITARLA
-    private val _countdownState = MutableStateFlow(5)
+    private val _countdownState = MutableStateFlow(10)
     val countdownState: StateFlow<Int> = _countdownState
 
     val countdownFlag = MutableStateFlow(false)
@@ -82,7 +82,7 @@ class MqttViewModel @Inject constructor(
     var coutndownJob: Job? = null
     fun startCountdown() {
         coutndownJob = viewModelScope.launch {
-            var currentCount = 5
+            var currentCount = 10
             while (currentCount >= 0) {
                 _countdownState.value = currentCount
                 delay(1000)
