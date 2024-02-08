@@ -30,8 +30,6 @@ fun NavigationButton(
     Box(
         modifier = Modifier
             .clickable(onClick = onClick)
-            .padding(vertical = 16.dp, horizontal = 20.dp)
-            .border(2.dp, color = Color.White, shape = CircleShape)
     ) {
         Column(
             modifier = Modifier.padding(6.dp),
