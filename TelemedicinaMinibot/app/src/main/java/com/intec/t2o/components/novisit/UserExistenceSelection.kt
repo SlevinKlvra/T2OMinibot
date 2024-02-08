@@ -16,35 +16,44 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import com.intec.t2o.components.ButtonCard
 import com.intec.t2o.components.TransparentButtonWithIcon
 import com.intec.t2o.screens.UserExistence
+import com.intec.t2o.ui.theme.textColor
 
 @Composable
 fun UserExistenceSelection(onUserExistenceSelected: (UserExistence) -> Unit) {
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(8.dp)
+            .padding(2.dp)
     ) {
         Text(
             text = "Usuario nuevo o existente",
             color = Color.White,
             modifier = Modifier
-                .fillMaxWidth()
-                .padding(bottom = 8.dp),
+                .fillMaxWidth(),
             textAlign = TextAlign.Center,
-            style = MaterialTheme.typography.headlineLarge
+            style = MaterialTheme.typography.headlineMedium
+        )
+        Text(
+            text = "Seleccione si es usuario nuevo o usuario existente",
+            color = textColor,
+            modifier = Modifier
+                .fillMaxWidth(),
+            textAlign = TextAlign.Center,
+            style = MaterialTheme.typography.bodySmall
         )
         Row(
             modifier = Modifier
-                .fillMaxSize()
-                .padding(8.dp),
-            horizontalArrangement = Arrangement.SpaceBetween
+                .fillMaxWidth()
+                .padding(top = 35.dp),
+            horizontalArrangement = Arrangement.SpaceAround
         ) {
-            TransparentButtonWithIcon(text = "Nuevo usuario",
+            ButtonCard(text = "Nuevo",
                 icon = Icons.Outlined.AddCircle,
                 onClick = { onUserExistenceSelected(UserExistence.NUEVO) })
-            TransparentButtonWithIcon(text = "Usuario existente",
+            ButtonCard(text = "Existente",
                 icon = Icons.Outlined.Person,
                 onClick = { onUserExistenceSelected(UserExistence.EXISTENTE) })
         }

@@ -26,6 +26,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.intec.t2o.ui.theme.cardColor
 import com.intec.t2o.ui.theme.iconColor
+import com.intec.t2o.ui.theme.textColor
 
 @Composable
 fun HomeScreenButtonCard(
@@ -63,13 +64,13 @@ fun HomeScreenButtonCard(
             Spacer(Modifier.height(5.dp))
             Text(
                 text = "Pulse aquí o diga: ",
-                color = Color.White,
+                color = textColor,
                 fontSize = 10.sp,
                 textAlign = TextAlign.Center
             )
             Text(
                 text = indicacion,
-                color = Color.White,
+                color = textColor,
                 fontSize = 9.sp,
                 lineHeight = 14.sp,
                 textAlign = TextAlign.Center,

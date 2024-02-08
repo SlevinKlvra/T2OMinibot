@@ -68,6 +68,6 @@ val md_theme_dark_scrim = Color(0xFF000000)
 // val seed = Color(0xFF4B86FE)
 
 val bgColor = Color(0xff111619)
-val textColor = Color(0xFFDCECEF)
+val textColor = Color(0xffb2ced4)
 val cardColor = Color(0xff22323b)
 val iconColor = Color(0xff4b86fe)
