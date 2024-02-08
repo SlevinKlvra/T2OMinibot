@@ -54,7 +54,7 @@ fun NumericPanelScreen(
         NumericPad(
             numericPanelViewModel = numericPanelViewModel,
             onClick = { shouldCheckCode.value = true },
-            titleText = "Por favor, introduce el código que se te ha proporcionado"
+            titleText = "Por favor, introduce el código de reunión que se te ha proporcionado"
         )
         GoBackButton(onClick = {
             mqttViewModel.setReturningHome(true)
