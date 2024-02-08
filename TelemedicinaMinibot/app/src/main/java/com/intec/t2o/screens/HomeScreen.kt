@@ -99,21 +99,22 @@ fun HomeScreen(
                 Botones(
                     mqttViewModel = mqttViewModel,
                 )
-                Image(
-                    painter = rememberAsyncImagePainter(
-                        R.drawable.speechrecognition,
-                        imageEmotionsLoader
-                    ),
-                    contentDescription = null,
-                    modifier = Modifier
-                        .size(35.dp)
-                        .align(Alignment.CenterHorizontally)
-                        .padding(bottom = 5.dp)
-                )
                 if (adminMode) {
                     LazyRowUbicaciones(
                         mqttViewModel = mqttViewModel,
                         modifier = Modifier,
+                    )
+                } else {
+                    Image(
+                        painter = rememberAsyncImagePainter(
+                            R.drawable.speechrecognition,
+                            imageEmotionsLoader
+                        ),
+                        contentDescription = null,
+                        modifier = Modifier
+                            .size(35.dp)
+                            .align(Alignment.CenterHorizontally)
+                            .padding(bottom = 5.dp)
                     )
                 }
             }
