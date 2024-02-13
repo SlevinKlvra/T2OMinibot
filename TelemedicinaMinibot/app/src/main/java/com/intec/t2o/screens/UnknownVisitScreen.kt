@@ -78,10 +78,10 @@ fun UnknownVisitScreen(
             UserData(
                 tipo = null,
                 userExistence = null,
-                nombre = "dsadsadad",
-                empresa = "dsdasdada",
-                email = "dsadadasdasdadadsa@sads.es",
-                asunto = "efkefekfekfleklfkelfklewkflewkflweklfkwlfkwlfklwekflwekflflwkelwlfewlfklwkflw"
+                nombre = "",
+                empresa = "",
+                email = "",
+                asunto = ""
             )
         )
     }
