@@ -38,7 +38,9 @@ import com.intec.t2o.components.novisit.EmailStep
 import com.intec.t2o.components.novisit.LastStep
 import com.intec.t2o.components.novisit.MessageStep
 import com.intec.t2o.components.novisit.NameStep
+import com.intec.t2o.components.novisit.SendExistingUserInfoStep
 import com.intec.t2o.components.novisit.UserExistenceSelection
+import com.intec.t2o.components.novisit.UserExistsStep
 import com.intec.t2o.components.novisit.UserTypeSelection
 import com.intec.t2o.robotinterface.RobotManager
 import com.intec.t2o.ui.theme.cardColor
@@ -78,10 +80,10 @@ fun UnknownVisitScreen(
             UserData(
                 tipo = null,
                 userExistence = null,
-                nombre = "dsadsadad",
-                empresa = "dsdasdada",
-                email = "dsadadasdasdadadsa@sads.es",
-                asunto = "efkefekfekfleklfkelfklewkflewkflweklfkwlfkwlfklwekflwekflflwkelwlfewlfklwkflw"
+                nombre = "",
+                empresa = "",
+                email = "",
+                asunto = ""
             )
         )
     }
@@ -131,42 +133,46 @@ fun UnknownVisitScreen(
                 .fillMaxWidth()
                 .padding(8.dp),
         ) {
-            if (currentPage != totalPages) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceEvenly,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    if (currentPage != totalPages) {
-                        GoBackButton(onClick = {
-                            if (currentPage > 1) {
-                                currentPage--
-                            } else {
-                                mqttViewModel.navigateToHomeScreen()
-                            }
-                        })
-                    }
-                    Text(
-                        text = "$currentPage de ${totalPages - 1}",
-                        color = Color.White,
-                        modifier = Modifier.widthIn(min = 33.dp)
-                    )
-                    FloatingActionButton(
-                        onClick = {
-                            if (currentPage != totalPages - 1) {
-                                currentPage++
-                            }
-                        },
-                        modifier = Modifier
-                            .size(56.dp)
-                            .padding(16.dp),
-                        containerColor = if (currentPage != totalPages - 1) cardColor else Color.Gray
+            if (!(currentPage == 5 && userData.userExistence == UserExistence.EXISTENTE)) {
+                if (currentPage != totalPages) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceAround,
+                        verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Icon(
-                            imageVector = Icons.Default.ArrowForward,
-                            contentDescription = null,
-                            tint = if (currentPage != totalPages - 1) iconColor else Color.LightGray
-                        )
+                        if (currentPage != totalPages) {
+                            GoBackButton(onClick = {
+                                if (currentPage > 1) {
+                                    currentPage--
+                                } else {
+                                    mqttViewModel.navigateToHomeScreen()
+                                }
+                            })
+                        }
+                        if (userData.userExistence == UserExistence.NUEVO && currentPage > 2) {
+                            Text(
+                                text = "${currentPage - 2} de ${totalPages - 3}",
+                                color = Color.White,
+                                modifier = Modifier.widthIn(min = 33.dp)
+                            )
+                        }
+                        FloatingActionButton(
+                            onClick = {
+                                if (currentPage != totalPages - 1) {
+                                    currentPage++
+                                }
+                            },
+                            modifier = Modifier
+                                .size(56.dp)
+                                .padding(16.dp),
+                            containerColor = if (currentPage != totalPages - 1 && !(currentPage == 5 && userData.userExistence == UserExistence.EXISTENTE)) cardColor else Color.Gray,
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.ArrowForward,
+                                contentDescription = null,
+                                tint = if (currentPage != totalPages - 1 && !(currentPage == 5 && userData.userExistence == UserExistence.EXISTENTE)) iconColor else Color.LightGray
+                            )
+                        }
                     }
                 }
             }
@@ -182,19 +188,48 @@ fun UnknownVisitScreen(
                     currentPage++
                 })
 
-                3 -> NameStep(
-                    name = userData.nombre,
-                    onNameChange = { userData = userData.copy(nombre = it) },
-                )
+                3 -> {
+                    if (userData.userExistence == UserExistence.EXISTENTE) {
+                        UserExistsStep(
+                            numericPanelViewModel = numericPanelViewModel
+                        )
+                    } else {
+                        NameStep(
+                            name = userData.nombre,
+                            onNameChange = { userData = userData.copy(nombre = it) },
+                        )
+                    }
+                }
 
-                4 -> CompanyStep(
-                    company = userData.empresa,
-                    onCompanyChange = { userData = userData.copy(empresa = it) },
-                )
+                4 -> {
+                    if (userData.userExistence == UserExistence.EXISTENTE) {
+                        SendExistingUserInfoStep()
+                    } else {
+                        CompanyStep(
+                            company = userData.empresa,
+                            onCompanyChange = { userData = userData.copy(empresa = it) },
+                        )
+                    }
+                }
 
-                5 -> EmailStep(
-                    email = userData.email,
-                    onEmailChange = { userData = userData.copy(email = it) })
+                5 -> {
+                    if (userData.userExistence == UserExistence.EXISTENTE) {
+
+                        robotManager.speak(
+                            "Proceso completado. En breves se pondrán en contacto con usted para concertar una visita. Muchas gracias.",
+                            false,
+                            object : RobotManager.SpeakCompleteListener {
+                                override fun onSpeakComplete() {
+                                }
+                            }
+                        )
+                        LastStep(mqttViewModel)
+                    } else {
+                        EmailStep(
+                            email = userData.email,
+                            onEmailChange = { userData = userData.copy(email = it) })
+                    }
+                }
 
                 6 -> MessageStep(
                     message = userData.asunto,

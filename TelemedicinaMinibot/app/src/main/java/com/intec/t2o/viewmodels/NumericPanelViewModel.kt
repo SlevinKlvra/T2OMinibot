@@ -40,6 +40,29 @@ class NumericPanelViewModel(
         val idvisita: String?, val visitante: String?
     )
 
+    data class ApiResponse(
+        val records: List<Employee>,
+        val totalRecords: Int,
+        val recordCount: Int,
+        val totalPages: Int
+    )
+
+    data class Employee(
+        val id: Int,
+        val nombre: String,
+        val apellidos: String,
+        val email: String,
+        val telefono: String,
+        val departamento: String,
+        val cargo: String,
+        val imagen: String, // URL de la imagen
+        val horarios_id: Int,
+        val horarios_nombre: String,
+        val user_role_id: Int,
+        val roles_role_name: String,
+        val activo: Int // Podría ser un Boolean dependiendo de cómo se maneje en la API
+    )
+
     var collectedMeetingInfo =
         mutableStateOf(MeetingResponse(0, "", "", "", "", "", "", "", "", ""))
 
@@ -171,6 +194,58 @@ class NumericPanelViewModel(
         Log.d("makeApiCall Request", "URL: $request")
         resetDigits()
         return client.newCall(request).execute()
+    }
+
+    suspend fun callGetEmployees(nombre: String): List<Employee>? {
+        return try {
+            withContext(Dispatchers.IO) {
+                val client = OkHttpClient()
+                _isLoading.value = true
+
+                if (currentToken.isEmpty()) {
+                    Log.d("checkForTaskExecution", "currentToken is empty")
+                    currentToken = refreshToken() ?: ""
+                }
+
+                val request = Request.Builder()
+                    .url("http://t2o.intecrobots.com/api/users/index?search=$nombre")
+                    .addHeader("Authorization", "Bearer $currentToken")
+                    .get().build()
+
+                Log.d("Request Info", "Sending request to URL: ${request.url}")
+                Log.d("Request Info", "Authorization Header: ${request.header("Authorization")}")
+                Log.d("tokennnn", currentToken)
+
+                client.newCall(request).execute().use { response ->
+                    Log.d("Response Info", "Response Code: ${response.code}")
+                    Log.d("Response Headers", "Headers: ${response.headers}")
+                    val responseBodyPreview = response.peekBody(Long.MAX_VALUE).string()
+                    Log.d("Response Body Preview", responseBodyPreview)
+
+                    if (response.code == 400) {
+                        Log.d("Response Error", "Bad request - Status Code 400")
+                        val newToken = refreshToken()
+                        if (newToken != null) {
+                            Log.d("TAG MAIN", "Token refrescado: $newToken")
+                            currentToken = newToken
+                        }
+                    }
+
+                    _isLoading.value = false
+                    return@use if (response.isSuccessful) {
+                        val responseBody = response.body?.string()
+                        val gson = Gson()
+                        val type = object : TypeToken<ApiResponse>() {}.type
+                        gson.fromJson<ApiResponse>(responseBody, type).records  // Obtén los registros (lista de Employee)
+                    } else {
+                        null
+                    }
+                }
+            }
+        } catch (e: Exception) {
+            Log.e("Error", "Exception in callGetEmployees: ${e.javaClass.simpleName}: ${e.message}")
+            return null
+        }
     }
 
 
@@ -313,7 +388,7 @@ class NumericPanelViewModel(
                 } else null
             }
         } catch (e: Exception) {
-            Log.e("Error", "Error al refrescar el token: ${e.message}")
+            Log.e("Error", "Error al refrescar el token: $e")
             null
         }
     }
