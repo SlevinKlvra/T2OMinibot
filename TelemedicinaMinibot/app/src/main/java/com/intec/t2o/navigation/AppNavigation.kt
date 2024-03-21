@@ -1,10 +1,11 @@
 package com.intec.t2o.navigation
 
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.compose.runtime.Composable
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import com.intec.t2o.robotinterface.RobotManager
 import com.intec.t2o.screens.AdminPanelScreen
 import com.intec.t2o.screens.ClockInScreen
 import com.intec.t2o.screens.DrivingScreen
@@ -19,11 +20,11 @@ import com.intec.t2o.screens.UnknownVisitScreen
 import com.intec.t2o.viewmodels.MqttViewModel
 import com.intec.t2o.viewmodels.NumericPanelViewModel
 
+@RequiresApi(Build.VERSION_CODES.R)
 @Composable
 fun AppNavigation(
     mqttViewModel: MqttViewModel,
-    numericPanelViewModel: NumericPanelViewModel,
-    robotManager: RobotManager
+    numericPanelViewModel: NumericPanelViewModel
 ) {
     val navController = rememberNavController()
 
@@ -34,8 +35,7 @@ fun AppNavigation(
         composable(AppScreens.HomeScreen.route) {
             HomeScreen(
                 navController = navController,
-                mqttViewModel = mqttViewModel,
-                robotManager = robotManager
+                mqttViewModel = mqttViewModel
             )
         }
         composable(AppScreens.MQTTScreen.route) {
@@ -47,8 +47,7 @@ fun AppNavigation(
         composable(AppScreens.EyesScreen.route) {
             EyesScreen(
                 navController = navController,
-                mqttViewModel = mqttViewModel,
-                robotManager = robotManager
+                mqttViewModel = mqttViewModel
             )
         }
 
@@ -56,48 +55,42 @@ fun AppNavigation(
             NumericPanelScreen(
                 navController = navController,
                 numericPanelViewModel = numericPanelViewModel,
-                mqttViewModel = mqttViewModel,
-                robotManager = robotManager
+                mqttViewModel = mqttViewModel
             )
         }
         composable(AppScreens.MainScreen.route) {
             MainScreen(
                 navController = navController,
                 mqttViewModel = mqttViewModel,
-                numericPanelViewModel = numericPanelViewModel,
-                robotManager = robotManager
+                numericPanelViewModel = numericPanelViewModel
             )
         }
         composable(AppScreens.AdminPanelScreen.route) {
             AdminPanelScreen(
                 navController = navController,
                 mqttViewModel = mqttViewModel,
-                numericPanelViewModel = numericPanelViewModel,
-                robotManager = robotManager
+                numericPanelViewModel = numericPanelViewModel
             )
         }
         composable(AppScreens.MeetingScreen.route) {
             MeetingScreen(
                 navController = navController,
                 mqttViewModel = mqttViewModel,
-                numericPanelViewModel = numericPanelViewModel,
-                robotManager = robotManager
+                numericPanelViewModel = numericPanelViewModel
             )
         }
         composable(AppScreens.UnknownVisitScreen.route) {
             UnknownVisitScreen(
                 navController = navController,
                 mqttViewModel = mqttViewModel,
-                numericPanelViewModel = numericPanelViewModel,
-                robotManager = robotManager
+                numericPanelViewModel = numericPanelViewModel
             )
         }
         composable(AppScreens.PackageAndMailManagementScreen.route) {
             PackageAndMailManagementScreen(
                 navController = navController,
                 mqttViewModel = mqttViewModel,
-                numericPanelViewModel = numericPanelViewModel,
-                robotManager = robotManager
+                numericPanelViewModel = numericPanelViewModel
             )
         }
         composable(AppScreens.ClockInScreen.route) {

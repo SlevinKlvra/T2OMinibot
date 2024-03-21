@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -38,8 +39,7 @@ import com.intec.t2o.viewmodels.MqttViewModel
 @Composable
 fun EyesScreen(
     navController: NavController,
-    mqttViewModel: MqttViewModel,
-    robotManager: RobotManager
+    mqttViewModel: MqttViewModel
 ) {
     Log.d("Current Screen", "Eyes Screen")
 
@@ -59,14 +59,27 @@ fun EyesScreen(
 
     if (isDriving) {
         Log.d("isDriving EyesScreen", "stopFocus and unregister")
-        robotManager.stopFocusFollow()
-        robotManager.unregisterPersonListener()
+        mqttViewModel.detenerFocus()
+        //robotManager.stopFocusFollow()
+        mqttViewModel.desregistrarPersonListener()
+        //robotManager.unregisterPersonListener()
     }
 
     if (isFinished or isPaused) {
         Log.d("isDriving EyesScreen", "register and startFocus")
-        robotManager.registerPersonListener()
-        robotManager.startFocusFollow(0)
+        mqttViewModel.registrarPersonListener()
+        //robotManager.registerPersonListener()
+        mqttViewModel.iniciarFocus()
+        //robotManager.startFocusFollow(0)
+    }
+
+    val isFollowing by mqttViewModel.isFollowing.collectAsState()
+
+    LaunchedEffect(isFollowing) {
+        if (isFollowing) {
+            // Navegar a HomeScreen cuando isFollowing cambie a true
+            mqttViewModel.navigateToHomeScreen()
+        }
     }
 
     Box(
@@ -78,8 +91,10 @@ fun EyesScreen(
 
                 } else {
                     mqttViewModel.navigateToHomeScreen()
-                    robotManager.registerPersonListener()
-                    robotManager.startFocusFollow(0)
+                    mqttViewModel.registrarPersonListener()
+                    //robotManager.registerPersonListener()
+                    mqttViewModel.iniciarFocus()
+                    //robotManager.startFocusFollow(0)
                 }
             }
             .background(Color.Black)

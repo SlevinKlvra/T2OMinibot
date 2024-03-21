@@ -24,6 +24,7 @@ import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -55,28 +56,43 @@ import com.intec.t2o.components.NavigationButton
 import com.intec.t2o.components.PressableEyes
 import com.intec.t2o.robotinterface.RobotManager
 import com.intec.t2o.viewmodels.MqttViewModel
+import kotlinx.coroutines.delay
 
 @Composable
 fun HomeScreen(
     navController: NavController,
-    mqttViewModel: MqttViewModel,
-    robotManager: RobotManager
+    mqttViewModel: MqttViewModel
 ) {
 
     Log.d("Current Screen", "HomeScreen")
 
-
     var showDrivingComposable by remember { mutableStateOf(false) }
     val adminMode by mqttViewModel.adminState.collectAsState(initial = false)
 
-    LaunchedEffect(key1 = true) {
-        robotManager.speak(
-            "Hola, soy Píter, bienvenido a t2ó, en qué puedo ayudarte? Por favor, pulsa en el menú para elegir alguna de las opciones",
-            true,
-            object : RobotManager.SpeakCompleteListener {
-                override fun onSpeakComplete() {
-                }
-            })
+    // Observación de eventos
+    val greetVisitorEventCount by mqttViewModel.greetVisitorEventCount.collectAsState()
+    val isInWelcomeProcess by mqttViewModel.isInWelcomeProcess.collectAsState()
+
+    // Observación de texto reconocido
+    val speechText by mqttViewModel.speechText.collectAsState()
+
+    LaunchedEffect(key1 = speechText) {
+        delay(5000) // Espera 5 segundos
+        mqttViewModel.clearRecognizedText() // Limpia el texto
+    }
+
+    LaunchedEffect(key1 = greetVisitorEventCount, key2 = isInWelcomeProcess) { // Usar el contador como key
+        if (greetVisitorEventCount > 0 && isInWelcomeProcess) { // Asegurarse de que hay al menos un evento para procesar
+            Log.d("EVENT TRIGGER", "Procesando evento de saludo")
+            mqttViewModel.speak(
+                "Hola, soy Píter, bienvenido a intec róbots, en qué puedo ayudarte?",
+                true
+            )
+            {
+                Log.d("EVENT TRIGGER", "Evento de saludo procesado")
+                mqttViewModel.finishWelcomeProcess()
+            }
+        }
     }
 
     val imageEmotionsLoader = ImageLoader.Builder(LocalContext.current)
@@ -93,7 +109,6 @@ fun HomeScreen(
 
         if (!mqttViewModel.isNavigating.value) {
 
-
             Column(modifier = Modifier.fillMaxSize()) {
                 Cabecera(mqttViewModel = mqttViewModel)
                 Botones(
@@ -105,17 +120,42 @@ fun HomeScreen(
                         modifier = Modifier,
                     )
                 } else {
-                    Image(
-                        painter = rememberAsyncImagePainter(
-                            R.drawable.speechrecognition,
-                            imageEmotionsLoader
-                        ),
-                        contentDescription = null,
-                        modifier = Modifier
-                            .size(35.dp)
-                            .align(Alignment.CenterHorizontally)
-                            .padding(bottom = 5.dp)
-                    )
+
+                    if(speechText.isNotEmpty()){
+                        Log.d("HomeScreen STT", "Speech Text not empty: $speechText")
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .wrapContentHeight()
+                                .background(Color.Transparent)
+                                .padding(10.dp)
+                        ){
+                            Text(
+                                text = speechText,
+                                color = Color.White,
+                                fontSize = 15.sp,
+                                fontWeight = FontWeight.Medium,
+                                maxLines = 1,
+                                textAlign = TextAlign.Center,
+                                modifier = Modifier
+                                    .align(Alignment.Center) // Asegura que el Text esté centrado dentro del Box.
+                                    .fillMaxWidth() // Hace que el Text ocupe todo el ancho disponible.
+                            )
+                        }
+                    }else{
+                        Log.d("HomeScreen STT", "Speech Text empty")
+                        Image(
+                            painter = rememberAsyncImagePainter(
+                                R.drawable.speechrecognition,
+                                imageEmotionsLoader
+                            ),
+                            contentDescription = null,
+                            modifier = Modifier
+                                .size(35.dp)
+                                .align(Alignment.CenterHorizontally)
+                                .padding(bottom = 5.dp)
+                        )
+                    }
                 }
             }
         } else {
@@ -124,7 +164,7 @@ fun HomeScreen(
                 modifier = Modifier.fillMaxSize(),
                 onClick = {
                     mqttViewModel.isNavigating.value = false
-                    robotManager.stopNavigation()
+                    mqttViewModel.detenerNavegacion()
                     showDrivingComposable = true
                 }
             )
@@ -135,16 +175,13 @@ fun HomeScreen(
             DrivingComposable(
                 navController = navController,
                 mqttViewModel = mqttViewModel,
-                robotManager = robotManager,
                 onCancel = {
                     mqttViewModel.setReturningHome(true)
                     showDrivingComposable = false
                 },
                 onContinue = {
-                    mqttViewModel.robotMan.resumeNavigation(onNavigationComplete = {
-                        mqttViewModel.isNavigating.value = false
-                        mqttViewModel.navigateToEyesScreen()
-                    })
+                    mqttViewModel.currentNavigationContext.value = MqttViewModel.NavigationState.HomeScreen
+                    mqttViewModel.reanudarNavegacion()
                     showDrivingComposable = false
                 }
             )
@@ -159,12 +196,11 @@ fun Cabecera(mqttViewModel: MqttViewModel) {
 
     Column(
         modifier = Modifier
-            .fillMaxWidth()
-            .padding(top = 5.dp),
+            .fillMaxWidth(),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Image(
-            painter = painterResource(id = R.drawable.logot2o),
+            painter = painterResource(id = R.drawable.intecrobots_dark),
             contentDescription = "logo",
             modifier = Modifier
                 .size(60.dp)
@@ -212,18 +248,7 @@ fun LazyRowUbicaciones(
             NavigationButton(item.name, onClick = {
                 Log.d("asdsadasdadsdsada", item.name)
                 mqttViewModel.isNavigating.value = true
-                mqttViewModel.robotMan.startNavigation(
-                    0,
-                    item.name,
-                    0.1,
-                    1000000,
-                    navigationCompleteListener = object :
-                        RobotManager.NavigationCompleteListener {
-                        override fun onNavigationComplete() {
-                            mqttViewModel.isNavigating.value = false
-                            mqttViewModel.navigateToEyesScreen()
-                        }
-                    })
+                mqttViewModel.startNavigation(item.name){Log.d("HomeScreen", "Navigation started")}
             })
         }
     }
@@ -264,7 +289,7 @@ fun Botones(
             horizontalArrangement = Arrangement.Center,
             verticalArrangement = Arrangement.Center
         ) {
-            // Tre botones con los colores, iconos y textos correspondientes
+            // Tres botones con los colores, iconos y textos correspondientes
             items(3) { index ->
 
                 HomeScreenButtonCard(
@@ -273,6 +298,7 @@ fun Botones(
                     icon = iconos[index]
                 )
                 {
+                    mqttViewModel.clearRecognizedText()
                     when (index) {
                         0 -> mqttViewModel.navigateToUnknownVisitsScreen()
                         1 -> mqttViewModel.navigateToNumericPanelScreen()

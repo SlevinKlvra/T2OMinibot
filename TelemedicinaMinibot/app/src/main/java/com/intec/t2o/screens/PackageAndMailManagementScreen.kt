@@ -57,7 +57,6 @@ import com.intec.t2o.viewmodels.NumericPanelViewModel
 fun PackageAndMailManagementScreen(
     navController: NavController,
     mqttViewModel: MqttViewModel,
-    robotManager: RobotManager,
     numericPanelViewModel: NumericPanelViewModel
 ) {
     Log.d("Current Screen", "PackageAndMailManagementScreen")
@@ -92,14 +91,12 @@ fun PackageAndMailManagementScreen(
         when (messageIndex) {
             1 -> {
                 Log.d("SECUENCIA", "$messageIndex: ¿Dispone de código de entrega?")
-                robotManager.speak(
+                mqttViewModel.speak(
                     "¿Dispone de código de entrega?",
-                    false,
-                    object : RobotManager.SpeakCompleteListener {
-                        override fun onSpeakComplete() {
-                            // Acciones a realizar después de hablar
-                        }
-                    })
+                    false){
+                    // Acciones a realizar antes de hablar
+                    Log.d("NumericPanelScreen Speak Finished", "Speak finished")
+                }
             }
 
             2 -> {
@@ -107,14 +104,11 @@ fun PackageAndMailManagementScreen(
                     "SECUENCIA",
                     "$messageIndex: Por favor, introduzca el código que se le ha proporcionado"
                 )
-                robotManager.speak(
+                mqttViewModel.speak(
                     "Por favor, introduzca el código que se le ha proporcionado",
-                    false,
-                    object : RobotManager.SpeakCompleteListener {
-                        override fun onSpeakComplete() {
-                            // Acciones a realizar después de hablar
-                        }
-                    })
+                    false){
+                    // Acciones a realizar antes de hablar
+                }
             }
 
             3 -> {
@@ -122,35 +116,15 @@ fun PackageAndMailManagementScreen(
                     "SECUENCIA",
                     "$messageIndex: Acompáñeme a la sección de mensajería para depositar el paquete"
                 )
-                robotManager.speak(
+                mqttViewModel.speak(
                     "Acompáñeme a la sección de mensajería para depositar el paquete",
-                    false,
-                    object : RobotManager.SpeakCompleteListener {
-                        override fun onSpeakComplete() {
-                            // Acciones a realizar después de hablar
-                            robotManager.startNavigation(
-                                1,
-                                "correo",
-                                mqttViewModel.coordinateDeviation.value!!.toDouble(),
-                                mqttViewModel.navigationTimeout.value!!.toLong(),
-                                navigationCompleteListener = object :
-                                    RobotManager.NavigationCompleteListener {
-                                    override fun onNavigationComplete() {
-                                        // Acciones a realizar después de hablar
-                                        robotManager.speak(
-                                            "Hemos llegado. Puede depositar el paquete aquí. Yo vuelvo a mi puesto. Muchas gracias.",
-                                            false,
-                                            object : RobotManager.SpeakCompleteListener {
-                                                override fun onSpeakComplete() {
-                                                    // Acciones a realizar después de hablar
-                                                    mqttViewModel.setReturningHome(true)
-                                                    mqttViewModel.returnToPosition(mqttViewModel.returnDestination.value!!)
-                                                }
-                                            })
-                                    }
-                                })
-                        }
-                    })
+                    false)
+                {
+                    Log.d("PackageAndMailManagement Speak Finished", "Acompáñeme a la sección de mensajería para depositar el paquete")
+                    mqttViewModel.startNavigation("correo"){
+                        Log.d("PackageAndMailManagement Navigation Finished", "navigation ended")
+                    }
+                }
             }
 
             4 -> {
@@ -162,15 +136,12 @@ fun PackageAndMailManagementScreen(
                     "SECUENCIA",
                     "$messageIndex: Código introducido correctamente. Por favor, acompáñeme a la sección de mensajería"
                 )
-                robotManager.speak(
+                mqttViewModel.speak(
                     "Código introducido correctamente. Por favor, acompáñeme a la sección de mensajería",
-                    false,
-                    object : RobotManager.SpeakCompleteListener {
-                        override fun onSpeakComplete() {
-                            // Acciones a realizar después de hablar
-                            mqttViewModel.setMessageIndex(3)
-                        }
-                    })
+                    false){
+                    Log.d("PackageAndMailManagement Speak Finished", "Código introducido correctamente. Por favor, acompáñeme a la sección de mensajería")
+                    mqttViewModel.setMessageIndex(3)
+                }
             }
 
             6 -> {
@@ -178,24 +149,16 @@ fun PackageAndMailManagementScreen(
                     "SECUENCIA",
                     "$messageIndex: Notificando a ${meetingInfo.anfitrion} de que su entrega ha llegado. Espere por favor"
                 )
-                robotManager.speak(
+                mqttViewModel.speak(
                     "Notificando a ${meetingInfo.anfitrion} de que su entrega ha llegado. Espere por favor",
-                    false,
-                    object : RobotManager.SpeakCompleteListener {
-                        override fun onSpeakComplete() {
-                            //TODO: Realizar notificación
-                            robotManager.speak(
-                                "Notificación enviada.",
-                                false,
-                                object : RobotManager.SpeakCompleteListener {
-                                    override fun onSpeakComplete() {
-                                        // Acciones a realizar después de hablar
-                                        mqttViewModel.setMessageIndex(3)
-
-                                    }
-                                })
-                        }
-                    })
+                    false){
+                    mqttViewModel.speak(
+                        "Notificación enviada.",
+                        false){
+                        Log.d("PackageAndMailManagement Speak Finished", "Notificación enviada.")
+                        mqttViewModel.setMessageIndex(3)
+                    }
+                }
             }
 
             7 -> {
@@ -203,16 +166,14 @@ fun PackageAndMailManagementScreen(
                     "SECUENCIA",
                     "$messageIndex: acasa"
                 )
-                robotManager.speak(
+                mqttViewModel.speak(
                     "Hemos llegado. Puede depositar el paquete aquí. Yo vuelvo a mi puesto. Muchas gracias.",
-                    false,
-                    object : RobotManager.SpeakCompleteListener {
-                        override fun onSpeakComplete() {
-                            // Acciones a realizar después de hablar
-                            mqttViewModel.setReturningHome(true)
-                            mqttViewModel.returnToPosition(mqttViewModel.returnDestination.value!!)
-                        }
-                    })
+                    false)
+                {
+                    Log.d("PackageAndMailManagement Speak Finished", "Hemos llegado. Puede depositar el paquete aquí. Yo vuelvo a mi puesto. Muchas gracias.")
+                    mqttViewModel.setReturningHome(true)
+                    mqttViewModel.returnToPosition(mqttViewModel.returnDestination.value!!)
+                }
             }
         }
     }
@@ -358,7 +319,7 @@ fun PackageAndMailManagementScreen(
         PressableEyes(
             modifier = Modifier.fillMaxSize(),
             onClick = {
-                robotManager.stopNavigation()
+                mqttViewModel.detenerNavegacion()
                 showDrivingComposable = true
             }
         )
@@ -367,22 +328,13 @@ fun PackageAndMailManagementScreen(
         DrivingComposable(
             navController = navController,
             mqttViewModel = mqttViewModel,
-            robotManager = robotManager,
             onCancel = {
                 mqttViewModel.setReturningHome(true)
                 showDrivingComposable = false
             },
             onContinue = {
-                robotManager.resumeNavigation(onNavigationComplete = {
-                    mqttViewModel.isNavigating.value = false
-                    if (messageIndex == 3) {
-                        Log.d("if message index", "entramos en condicion")
-                        mqttViewModel.setMessageIndex(7)
-                    } else {
-                        Log.d("if message no index", "no entramos en condicion")
-                        mqttViewModel.navigateToEyesScreen()
-                    }
-                })
+                mqttViewModel.currentNavigationContext.value = MqttViewModel.NavigationState.PackageAndMailManagementScreen
+                mqttViewModel.reanudarNavegacion()
                 showDrivingComposable = false
             }
         )

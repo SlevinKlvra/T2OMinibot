@@ -28,7 +28,7 @@ fun UserExistenceSelection(onUserExistenceSelected: (UserExistence) -> Unit) {
             .fillMaxSize()
             .padding(2.dp)
     ) {
-        Text(
+        /*Text(
             text = "Usuario nuevo o existente",
             color = Color.White,
             modifier = Modifier
@@ -43,7 +43,7 @@ fun UserExistenceSelection(onUserExistenceSelected: (UserExistence) -> Unit) {
                 .fillMaxWidth(),
             textAlign = TextAlign.Center,
             style = MaterialTheme.typography.bodySmall
-        )
+        )*/
         Row(
             modifier = Modifier
                 .fillMaxWidth()

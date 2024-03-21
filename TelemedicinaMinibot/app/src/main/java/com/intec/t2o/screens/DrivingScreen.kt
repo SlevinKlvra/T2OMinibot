@@ -107,7 +107,8 @@ fun DrivingScreen(
                         icon = Icons.Outlined.PlayArrow,
                         onClick = {
                             mqttViewModel.coutndownJob?.cancel()
-                            mqttViewModel.robotMan.resumeNavigation(onNavigationComplete = { mqttViewModel.navigateToEyesScreen() })
+                            mqttViewModel.currentNavigationContext.value = MqttViewModel.NavigationState.DrivingScreen
+                            mqttViewModel.reanudarNavegacion()
                         })
                     TransparentButtonWithIcon(
                         text = "Cancelar tarea",

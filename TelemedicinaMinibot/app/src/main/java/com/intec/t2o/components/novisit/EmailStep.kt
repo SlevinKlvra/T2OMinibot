@@ -33,7 +33,7 @@ fun EmailStep(email: String, onEmailChange: (String) -> Unit) {
             .padding(2.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Text(
+        /*Text(
             text = "Correo Electrónico",
             color = Color.White,
             textAlign = TextAlign.Center,
@@ -51,7 +51,7 @@ fun EmailStep(email: String, onEmailChange: (String) -> Unit) {
                 .fillMaxWidth()
                 .padding(bottom = 24.dp),
             style = MaterialTheme.typography.bodySmall
-        )
+        )*/
 
         TextField(
             value = email,

@@ -151,7 +151,7 @@ fun MQTTScreen(navController: NavController, mqttViewModel: MqttViewModel) {
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Button(onClick = {
-                            viewModel.robotMan.goCharge()
+                            viewModel.irACargar()
                             viewModel.navigateToEyesScreen()
                         }) {
                             Text("Cargar robot", color = Color.White)

@@ -1,5 +1,6 @@
 package com.intec.t2o.screens
 
+import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -50,11 +51,9 @@ fun ClockInScreen(
                 titleText = "Introduce tu código de empleado"
             )
         } else {
-            mqttViewModel.robotMan.speak("", false, object : RobotManager.SpeakCompleteListener {
-                override fun onSpeakComplete() {
-                    // Acciones a realizar después de hablar
-                }
-            })
+            mqttViewModel.speak("", false){
+                Log.d("ClockInScreen", "Código incorrecto")
+            }
             Column(
                 modifier = Modifier
                     .fillMaxSize()

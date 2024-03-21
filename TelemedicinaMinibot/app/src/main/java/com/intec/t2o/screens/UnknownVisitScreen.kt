@@ -3,7 +3,9 @@ package com.intec.t2o.screens
 import android.content.Context
 import android.util.Log
 import android.widget.Toast
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
@@ -11,11 +13,13 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowForward
 import androidx.compose.material3.Button
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -28,7 +32,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.intec.t2o.components.GoBackButton
 import com.intec.t2o.components.LoadingSpinner
@@ -49,6 +56,7 @@ import com.intec.t2o.viewmodels.MqttViewModel
 import com.intec.t2o.viewmodels.NumericPanelViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import com.intec.t2o.ui.theme.textColor
 
 enum class UserType {
     CLIENTE, PROVEEDOR
@@ -71,10 +79,15 @@ data class UserData(
 fun UnknownVisitScreen(
     navController: NavController,
     mqttViewModel: MqttViewModel,
-    robotManager: RobotManager,
     numericPanelViewModel: NumericPanelViewModel
 ) {
     Log.d("Current Screen", "UnknownVisitScreen")
+
+    val speechText by mqttViewModel.speechText.collectAsState()
+
+    var currentTitle by remember { mutableStateOf("") }
+    var currentSubtitle by remember { mutableStateOf("") }
+
     var userData by remember {
         mutableStateOf(
             UserData(
@@ -91,20 +104,19 @@ fun UnknownVisitScreen(
     val context = LocalContext.current
     val isLoading by numericPanelViewModel.isLoading.collectAsState()
 
-    var currentPage by remember { mutableStateOf(1) }
+    var currentPage by remember { mutableStateOf(0) }
     val totalPages = 8
 
     var isSendingData by remember { mutableStateOf(false) }
 
     LaunchedEffect(true) {
-        robotManager.speak(
+        currentPage = 1
+        mqttViewModel.speak(
             "Por favor, rellene los campos para concertar una visita",
-            false,
-            object : RobotManager.SpeakCompleteListener {
-                override fun onSpeakComplete() {
-                    // Acciones a realizar después de hablar
-                }
-            })
+            false){
+            //Acciones a realizar después de hablar
+            Log.d("Unknown Speak Finished", "Por favor, rellene los campos para concertar una visita")
+        }
     }
 
     LaunchedEffect(isSendingData) {
@@ -149,13 +161,35 @@ fun UnknownVisitScreen(
                                 }
                             })
                         }
-                        if (userData.userExistence == UserExistence.NUEVO && currentPage > 2) {
-                            Text(
-                                text = "${currentPage - 2} de ${totalPages - 3}",
-                                color = Color.White,
-                                modifier = Modifier.widthIn(min = 33.dp)
-                            )
+                        Box(
+                            modifier = Modifier.weight(1f),
+                            contentAlignment = Alignment.Center
+                        ){
+                            Column(
+                                horizontalAlignment = Alignment.CenterHorizontally
+                            ){
+                                if (userData.userExistence == UserExistence.NUEVO && currentPage > 2) {
+                                    Text(
+                                        text = "${currentPage - 2} de ${totalPages - 3}",
+                                        color = Color.White,
+                                        modifier = Modifier.widthIn(min = 33.dp)
+                                    )
+                                }
+                                Text(
+                                    text = currentTitle,
+                                    color = Color.White,
+                                    textAlign = TextAlign.Center,
+                                    style = MaterialTheme.typography.headlineMedium
+                                )
+                                Text(
+                                    text = currentSubtitle,
+                                    color = textColor,
+                                    textAlign = TextAlign.Center,
+                                    style = MaterialTheme.typography.bodySmall
+                                )
+                            }
                         }
+
                         FloatingActionButton(
                             onClick = {
                                 if (currentPage != totalPages - 1) {
@@ -178,22 +212,101 @@ fun UnknownVisitScreen(
             }
 
             when (currentPage) {
-                1 -> UserTypeSelection(onUserTypeSelected = {
-                    userData = userData.copy(tipo = it)
-                    currentPage++
-                })
+                1 ->
+                {
+                    currentTitle = "Cliente o proveedor"
+                    currentSubtitle = "Diga o indique si es cliente o proveedor"
+                    mqttViewModel.speak("Diga o indique si es cliente o proveedor", true)
+                    {
+                        //Acciones a realizar después de hablar
+                        Log.d("Unknown Speak Finished", "Diga o indique si es cliente o proveedor")
+                    }
+                    UserTypeSelection(
+                        mqttViewModel,
+                        onUserTypeSelected = {
+                        userData = userData.copy(tipo = it)
+                        currentPage++
+                    })
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .wrapContentHeight()
+                            .background(Color.Transparent)
+                            .padding(10.dp)
+                    ){
+                        Text(
+                            text = speechText,
+                            color = Color.White,
+                            fontSize = 15.sp,
+                            fontWeight = FontWeight.Medium,
+                            maxLines = 1,
+                            textAlign = TextAlign.Center,
+                            modifier = Modifier
+                                .align(Alignment.Center) // Asegura que el Text esté centrado dentro del Box.
+                                .fillMaxWidth() // Hace que el Text ocupe todo el ancho disponible.
+                        )
+                    }
+                }
 
-                2 -> UserExistenceSelection(onUserExistenceSelected = {
+                2 ->
+                {
+                    currentTitle = "Usuario nuevo o existente"
+                    currentSubtitle = "Seleccione si es usuario nuevo o usuario existente"
+                    mqttViewModel.speak("¿Es usted un cliente nuevo o ya nos conocemos?", true
+                    )
+                    {
+                        //Acciones a realizar después de hablar
+                        Log.d("Unknown Speak Finished", "Diga o indique si es cliente o proveedor")
+                    }
+                    UserExistenceSelection(onUserExistenceSelected = {
                     userData = userData.copy(userExistence = it)
                     currentPage++
-                })
+                })}
 
-                3 -> {
+                3 ->
+                {
                     if (userData.userExistence == UserExistence.EXISTENTE) {
+                        currentTitle = "Avisar a"
+                        currentSubtitle = "Indique a quién quiere notificar"
+                        mqttViewModel.speak("¿A quién quiere notificar?", true)
+                        {
+                            //Acciones a realizar después de hablar
+                            Log.d("Unknown Speak Finished", "Diga o indique si es cliente o proveedor")
+                        }
                         UserExistsStep(
                             numericPanelViewModel = numericPanelViewModel
                         )
                     } else {
+                        currentTitle = "Nombre"
+                        currentSubtitle = "Diga o indique su nombre"
+                        mqttViewModel.speak("¿Cuál es su nombre?", true)
+                        {
+                            //Acciones a realizar después de hablar
+                            Log.d("Unknown Speak Finished", "Cual es su nombre?")
+
+                        }
+                        if(speechText.isNotEmpty()) {
+                            Log.d("HomeScreen STT", "Speech Text not empty: $speechText")
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .wrapContentHeight()
+                                    .background(Color.Transparent)
+                                    .padding(10.dp)
+                            ) {
+                                Text(
+                                    text = speechText,
+                                    color = Color.White,
+                                    fontSize = 15.sp,
+                                    fontWeight = FontWeight.Medium,
+                                    maxLines = 1,
+                                    textAlign = TextAlign.Center,
+                                    modifier = Modifier
+                                        .align(Alignment.Center) // Asegura que el Text esté centrado dentro del Box.
+                                        .fillMaxWidth() // Hace que el Text ocupe todo el ancho disponible.
+                                )
+                            }
+                        }
                         NameStep(
                             name = userData.nombre,
                             onNameChange = { userData = userData.copy(nombre = it) },
@@ -205,6 +318,8 @@ fun UnknownVisitScreen(
                     if (userData.userExistence == UserExistence.EXISTENTE) {
                         SendExistingUserInfoStep()
                     } else {
+                        currentTitle = "Empresa"
+                        currentSubtitle = "Diga o indique su empresa o la empresa a la que representa"
                         CompanyStep(
                             company = userData.empresa,
                             onCompanyChange = { userData = userData.copy(empresa = it) },
@@ -215,25 +330,33 @@ fun UnknownVisitScreen(
                 5 -> {
                     if (userData.userExistence == UserExistence.EXISTENTE) {
 
-                        robotManager.speak(
+                        mqttViewModel.speak(
                             "Proceso completado. En breves se pondrán en contacto con usted para concertar una visita. Muchas gracias.",
-                            false,
-                            object : RobotManager.SpeakCompleteListener {
-                                override fun onSpeakComplete() {
-                                }
-                            }
-                        )
+                            false
+                        ){
+                            //Acciones a realizar después de hablar
+                            Log.d("Unknown Speak Finished", "Proceso completado. En breves se pondrán en contacto con usted para concertar una visita. Muchas gracias.")
+                            mqttViewModel.setReturningHome(true)
+                            mqttViewModel.returnToPosition(mqttViewModel.returnDestination.value!!)
+                        }
                         LastStep(mqttViewModel)
                     } else {
+                        currentTitle = "Correo electrónico"
+                        currentSubtitle = "Diga o indique el email por el que quiere ser contactado"
                         EmailStep(
                             email = userData.email,
                             onEmailChange = { userData = userData.copy(email = it) })
                     }
                 }
 
-                6 -> MessageStep(
-                    message = userData.asunto,
-                    onMessageChange = { userData = userData.copy(asunto = it) })
+                6 -> {
+                    currentTitle = "Asunto"
+                    currentSubtitle = "Diga o indique el motivo de su visita"
+                    MessageStep(
+                        message = userData.asunto,
+                        onMessageChange = { userData = userData.copy(asunto = it) }
+                    )
+                }
 
                 7 -> {
                     if (isLoading) LoadingSpinner()
@@ -242,6 +365,15 @@ fun UnknownVisitScreen(
                             modifier = Modifier
                                 .fillMaxSize(),
                         ) {
+                            currentTitle = "¿Son estos datos correctos?"
+                            currentSubtitle = "Pulse en \"Enviar\" para concertar una cita con los datos mostrados"
+                            mqttViewModel.speak(
+                                "¿Son estos datos correctos? Diga sí o pulse en enviar para concertar una cita con los datos mostrados.",
+                                false
+                            ){
+
+                            }
+
                             DataStep(userData)
                             Button(
                                 onClick = {
@@ -261,14 +393,15 @@ fun UnknownVisitScreen(
                 }
 
                 8 -> {
-                    robotManager.speak(
+                    mqttViewModel.speak(
                         "Proceso completado. En breves se pondrán en contacto con usted para concertar una visita. Muchas gracias.",
-                        false,
-                        object : RobotManager.SpeakCompleteListener {
-                            override fun onSpeakComplete() {
-                            }
-                        }
+                        false
                     )
+                    {
+                        Log.d("Unknown Speak Finished", "Proceso completado. En breves se pondrán en contacto con usted para concertar una visita. Muchas gracias.")
+                    }
+                    currentTitle = "Muchas gracias por su visita"
+                    currentSubtitle = "Su información ha sido enviada. Nos pondremos en contacto con usted lo antes posible."
                     LastStep(mqttViewModel)
                 }
             }

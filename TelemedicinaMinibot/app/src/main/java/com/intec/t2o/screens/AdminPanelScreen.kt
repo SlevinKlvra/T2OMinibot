@@ -1,5 +1,6 @@
 package com.intec.t2o.screens
 
+import android.util.Log
 import androidx.compose.runtime.Composable
 import androidx.navigation.NavController
 import com.intec.t2o.components.GoBackButton
@@ -13,8 +14,7 @@ import com.intec.t2o.viewmodels.NumericPanelViewModel
 fun AdminPanelScreen(
     navController: NavController,
     mqttViewModel: MqttViewModel,
-    numericPanelViewModel: NumericPanelViewModel,
-    robotManager: RobotManager
+    numericPanelViewModel: NumericPanelViewModel
 ) {
 
     FuturisticGradientBackground {
@@ -24,14 +24,11 @@ fun AdminPanelScreen(
             ) {
                 mqttViewModel.navigateToMqttScreen()
             } else {
-                robotManager.speak(
+                mqttViewModel.speak(
                     "Código incorrecto",
-                    false,
-                    object : RobotManager.SpeakCompleteListener {
-                        override fun onSpeakComplete() {
-                            // Acciones a realizar después de hablar
-                        }
-                    })
+                    false){
+                    Log.d("AdminPanelScreen", "Código incorrecto")
+                }
             }
         }, titleText = "Código de acceso administrador")
 

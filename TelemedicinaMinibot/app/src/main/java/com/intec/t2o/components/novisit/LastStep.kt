@@ -27,7 +27,7 @@ fun LastStep(mqttViewModel: MqttViewModel) {
             .fillMaxSize()
             .padding(8.dp)
     ) {
-        Text(
+        /*Text(
             text = "Muchas gracias por su visita",
             color = Color.White,
             textAlign = TextAlign.Center,
@@ -46,7 +46,7 @@ fun LastStep(mqttViewModel: MqttViewModel) {
                 .padding(bottom = 24.dp)
                 .padding(horizontal = 85.dp),
             style = MaterialTheme.typography.bodySmall,
-        )
+        )*/
         Row(
             horizontalArrangement = Arrangement.Center,
             modifier = Modifier

@@ -34,7 +34,7 @@ fun CompanyStep(company: String, onCompanyChange: (String) -> Unit) {
             .padding(2.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Text(
+        /*Text(
             text = "Empresa",
             color = Color.White,
             textAlign = TextAlign.Center,
@@ -52,7 +52,7 @@ fun CompanyStep(company: String, onCompanyChange: (String) -> Unit) {
                 .fillMaxWidth()
                 .padding(bottom = 24.dp),
             style = MaterialTheme.typography.bodySmall
-        )
+        )*/
 
         TextField(
             value = company,

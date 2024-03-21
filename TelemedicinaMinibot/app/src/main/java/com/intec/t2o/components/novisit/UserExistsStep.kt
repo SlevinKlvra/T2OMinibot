@@ -88,12 +88,12 @@ fun UserExistsStep(
             .padding(2.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Text(
+        /*Text(
             text = "¿A quién quiere notificar?",
             color = Color.White,
             textAlign = TextAlign.Center,
             style = MaterialTheme.typography.headlineMedium
-        )
+        )*/
         Spacer(modifier = Modifier.height(15.dp))
         Column(
             horizontalAlignment = Alignment.CenterHorizontally

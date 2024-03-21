@@ -22,11 +22,14 @@ import com.intec.t2o.mqtt.MqttManagerCallback
 import com.intec.t2o.mqtt.MqttMessageListener
 import com.intec.t2o.preferences.PreferencesRepository
 import com.intec.t2o.robotinterface.RobotManager
+import com.intec.t2o.robotinterface.SkillApiService
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -35,7 +38,8 @@ import javax.inject.Inject
 @HiltViewModel
 class MqttViewModel @Inject constructor(
     application: Application,
-    var robotMan: RobotManager,
+    private val robotMan: RobotManager,
+    private val skillApiService: SkillApiService,
     private val preferencesRepository: PreferencesRepository
 ) : AndroidViewModel(application), MqttMessageListener {
 
@@ -50,6 +54,8 @@ class MqttViewModel @Inject constructor(
     // Estados del estado de la secuencia meetingScreen
     val messageIndexState = mutableStateOf(0)
     val currentPageState = mutableStateOf(0)
+
+    val isFollowing = robotMan.isFollowing
 
     // Métodos para actualizar estos estados
     fun setMessageIndex(index: Int) {
@@ -89,7 +95,8 @@ class MqttViewModel @Inject constructor(
                 currentCount--
             }
             coutndownJob?.cancel()
-            robotMan.resumeNavigation(onNavigationComplete = { navigateToEyesScreen() })
+            navigateToEyesScreen()
+            reanudarNavegacion()
             setCountdownFlagState(true)
         }
     }
@@ -180,6 +187,8 @@ class MqttViewModel @Inject constructor(
     enum class NavigationState {
         EyesScreen, HomeScreen, NumericPanelScreen, MeetingScreen, UnknownVisitsScreen, PackageAndMailManagementScreen, DrivingScreen, MqttScreen, AdminPanelScreen, ClockInScreen
     }
+
+    var currentNavigationContext = MutableLiveData<NavigationState>()
 
     // Observador para cambios en brokerIp
     private val brokerIpObserver = Observer<String> { _ ->
@@ -302,6 +311,9 @@ class MqttViewModel @Inject constructor(
         return preferencesRepository.getNavigationTimeout()
     }
 
+    private val _speechText = MutableStateFlow("")
+    val speechText = _speechText.asStateFlow()
+
     init {
         mqttManager = MqttManager(getApplication(), mqttCallback, mqttConfigInstance, application)
 
@@ -342,6 +354,17 @@ class MqttViewModel @Inject constructor(
         //TODO Inicializar los LiveData para cada configuración
 
         configurePersonDetection()
+
+        skillApiService.partialSpeechResult.observeForever{speechResult ->
+            viewModelScope.launch {
+                Log.d("mqttViewModel", "speechResult: $speechResult")
+                _speechText.value = speechResult
+            }
+        }
+    }
+
+    fun clearRecognizedText() {
+        _speechText.value = ""
     }
 
     private fun configurePersonDetection() {
@@ -581,16 +604,14 @@ class MqttViewModel @Inject constructor(
             //robotMan.stopFocusFollow()
             robotMan.speak(
                 "Deacuerdo, por aquí por favor",
-                false,
-                object : RobotManager.SpeakCompleteListener {
-                    override fun onSpeakComplete() {
-                        // Acciones a realizar después de hablar
-                    }
-                })
+                false
+            ){
+                Log.d("mqttViewModel processSpeechResult", "Deacuerdo, por aquí por favor")
+            }
         } else {
             Log.d("speechResult", "No se ha detectado nada")
             // Lógica cuando no se detectan palabras clave
-            repeatCommand()
+            //repeatCommand()
         }
     }
 
@@ -647,14 +668,11 @@ class MqttViewModel @Inject constructor(
     }
 
     private fun repeatCommand() {
-        robotMan.speak(
+        speak(
             "Por favor repita el comando",
-            true,
-            object : RobotManager.SpeakCompleteListener {
-                override fun onSpeakComplete() {
-                    // Acciones a realizar después de hablar
-                }
-            })
+            true){
+                Log.d("repeatCommand", "Por favor repita el comando")
+            }
     }
 
     private fun startPersonDetection(waitTimeInSeconds: Int) {
@@ -830,22 +848,19 @@ class MqttViewModel @Inject constructor(
                 Log.d("UPDATE SAFE DISTANCE", "Update the safe distance")
 
                 setDrivingState()
-                robotMan.startNavigation(
-                    0,
-                    message,
-                    0.1234,
-                    0,
-                    navigationCompleteListener = object :
-                        RobotManager.NavigationCompleteListener {
-                        override fun onNavigationComplete() {
-                            // Acciones a realizar después de hablar
-                        }
-                    })
+                startNavigation(
+                    message
+                ){
+                    Log.d("MQTTViewModel message", "OnNavigationComplete")
+                    speak("Llegamos a nuestro destinocvia mqtt", false){
+                        Log.d("MQTTViewModel message", "OnSpeakComplete")
+                    }
+                }
             }
 
             "robot/nav_cmds/go_charger" -> RobotApi.getInstance().goCharging(0)
             "robot/nav_cmds/stop_navigation" -> {
-                robotMan.stopNavigation()
+                detenerNavegacion()
             }
 
             "robot/nav_cmds/pause_navigation" -> {
@@ -853,7 +868,7 @@ class MqttViewModel @Inject constructor(
             }
 
             "robot/nav_cmds/resume_navigation" -> {
-                robotMan.resumeNavigation(onNavigationComplete = {})
+                reanudarNavegacion()
                 isPaused.value = false
             }
 
@@ -870,20 +885,53 @@ class MqttViewModel @Inject constructor(
             }
 
             "zigbee2mqtt/Pulsador/action" -> {
-                robotMan.startNavigation(
-                    0,
-                    "entrada",
-                    robotConfigInstance.coordinateDeviation,
-                    robotConfigInstance.navigationTimeout, navigationCompleteListener = object :
-                        RobotManager.NavigationCompleteListener {
-                        override fun onNavigationComplete() {
-                            // Acciones a realizar después de hablar
-                            publishMessage("zigbee2mqtt/Cerradura/left/set", "ON")
-                            publishMessage("zigbee2mqtt/Cerradura/right/set", "ON")
-                            addIncomingMessage("Opening door")
-                        }
+                startWelcomeProcess()
+                triggerGreetVisitorEvent()
+                startNavigation(
+                    "entrada"
+                ) {
+                    // Acciones a realizar después de hablar
+                    publishMessage("zigbee2mqtt/Cerradura/left/set", "ON")
+                    publishMessage("zigbee2mqtt/Cerradura/right/set", "ON")
+                    addIncomingMessage("Opening door")
+                    Log.d("EVENT TRIGGER", "Finish welcome process")
+                    //finishWelcomeProcess()
+                }
+            }
+            "/robot/tts/speak" -> {
+                speak(message, false){
+                    Log.d("MQTTViewModel message", "OnSpeakComplete")
+                }
+            }
+            "/api/robot/control" -> {
+
+                when(message) {
+                    "adelante" -> {
+                        robotMan.moveForward()
                     }
-                )
+                    "derecha" -> {
+                        robotMan.turnRight()
+                    }
+                    "izquierda" -> {
+                        robotMan.turnLeft()
+                    }
+                    "detener" -> {
+                        Log.d("MQTTViewModel", "Deteniendo robot")
+                        robotMan.stopMove()
+                    }
+                    "arriba" -> {
+                        Log.d("MQTTViewModel", "Mover cabeza arriba")
+                        robotMan.moveHeadUp()
+                    }
+                    "abajo" -> {
+                        Log.d("MQTTViewModel", "Mover cabeza abajo")
+                        robotMan.moveHeadDown()
+                    }
+                    else -> {
+                        Log.d("MQTTViewModel", "ELSE: Deteniendo robot")
+                        robotMan.stopMove()
+                    }
+                }
             }
         }
     }
@@ -917,36 +965,131 @@ class MqttViewModel @Inject constructor(
         Log.d("ADMIN STATE", adminState.value.toString())
     }
 
-    fun returnToPosition(positionToReturn: String) {
-        //TODO: Save last known coordinates when starting a navigation
-        Log.d("RETURN TO POSITION", "Returning to position: $positionToReturn")
-        if (positionToReturn != "") {
-            robotMan.startNavigation(
-                0,
-                positionToReturn,
-                coordinateDeviation.value!!.toDouble(),
-                navigationTimeout.value!!.toLong(),
-                navigationCompleteListener = object :
-                    RobotManager.NavigationCompleteListener {
-                    override fun onNavigationComplete() {
-                        if (isReturningHome.value) {
-                            navigateToEyesScreen()
-                            isNavigating.value = false
-                            setMessageIndex(0)
-                            setCurrentPage(0)
-                            setReturningHome(false)
-                            resetAndRestartDetection()
-                        }
+    fun speak(text: String, listen: Boolean, onSpeakComplete: () -> Unit) {
+        clearRecognizedText()
+        robotMan.speak(text, listen, onSpeakComplete)
+    }
+
+    fun startNavigation(goalPosition: String, onNavigationComplete: () -> Unit) {
+        // Ejemplo de valores hardcoded para coordinateDeviation y navigationTimeout.
+        // Reemplázalos con los valores apropiados según tu caso de uso.
+        robotMan.startNavigation(goalPosition, 0.5, 3000L, onNavigationComplete)
+    }
+
+    /*fun speak(text: String, listen: Boolean, onComplete: RobotManager.SpeakCompleteListener){
+        Log.d("MqttViewModel", "speak: $text, listen: $listen")
+        /*robotMan.speak(text, listen, object : RobotManager.SpeakCompleteListener {
+            override fun onSpeakComplete() {
+                Log.d("OnSpeak", "OnSpeak Completed")
+            }
+        })*/
+        robotMan.speak(text, listen, onComplete)
+    }*/
+
+    fun detenerNavegacion(){
+        robotMan.stopNavigation()
+    }
+
+    fun iniciarFocus(){
+        robotMan.startFocusFollow(0)
+    }
+
+    fun detenerFocus(){
+        robotMan.stopFocusFollow()
+    }
+
+    fun registrarPersonListener(){
+        robotMan.registerPersonListener()
+    }
+
+    fun desregistrarPersonListener(){
+        robotMan.unregisterPersonListener()
+    }
+
+    fun reanudarNavegacion(){
+        robotMan.resumeNavigation{
+            isNavigating.value = false
+            when (currentNavigationContext.value) {
+                NavigationState.PackageAndMailManagementScreen -> {
+                    if (messageIndexState.value == 3) {
+                        Log.d("if message index", "entramos en condicion")
+                        setMessageIndex(7)
+                    } else {
+                        Log.d("if message no index", "no entramos en condicion")
+                        navigateToEyesScreen()
                     }
-                })
-        } else {
-            robotMan.speak(
-                "Actualmente no existe un destino al que haya ido previamente",
-                false,
-                object : RobotManager.SpeakCompleteListener {
-                    override fun onSpeakComplete() {
-                    }
-                })
+                }
+                NavigationState.MeetingScreen -> {
+                    if (messageIndexState.value == 7) setMessageIndex(4)
+                    else navigateToEyesScreen()
+                }
+                NavigationState.HomeScreen -> {
+                    isNavigating.value = false
+                    navigateToEyesScreen()
+                }
+                NavigationState.DrivingScreen -> {
+                    isNavigating.value = false
+                    navigateToEyesScreen()
+                }
+                else -> Unit // Manejar cualquier caso no esperado
+            }
         }
+    }
+
+    fun returnToPosition(positionToReturn: String) {
+        navigateToEyesScreen()
+        if (positionToReturn != "") {
+            startNavigation(
+                positionToReturn
+            ) {
+                // Este es el callback de navegación completa.
+                if (isReturningHome.value) {
+                    navigateToEyesScreen()
+                    isNavigating.value = false
+                    setMessageIndex(0)
+                    setCurrentPage(0)
+                    setReturningHome(false)
+                    resetAndRestartDetection()
+                }
+            }
+        } else {
+            speak("Actualmente no existe un destino al que haya ido previamente", false) {
+                // Este callback se ejecutará después de hablar, si necesitas hacer algo aquí.
+                Log.d("MqttViewModel Speak", "Finished speaking")
+            }
+        }
+    }
+
+    fun irACargar(){
+        robotMan.goCharge()
+    }
+
+    //FUNCIONES PARA INICIAR LA INTERACCIÓN DE SALUDO
+    private val _greetVisitorEventCount = MutableStateFlow(0) // Contador de eventos
+    val greetVisitorEventCount = _greetVisitorEventCount.asStateFlow()
+
+    private val _isInWelcomeProcess = MutableStateFlow(false)
+    val isInWelcomeProcess = _isInWelcomeProcess.asStateFlow()
+
+    fun startWelcomeProcess() {
+        Log.d("EVENT TRIGGER", "Start welcome process")
+        _isInWelcomeProcess.value = true
+    }
+
+    fun finishWelcomeProcess() {
+        Log.d("EVENT TRIGGER", "Finish welcome process")
+        _isInWelcomeProcess.value = false
+        resetGreetVisitorEventCount()
+    }
+
+    fun triggerGreetVisitorEvent() {
+        viewModelScope.launch {
+            Log.d("EVENT TRIGGER", "Emitiendo evento de saludo")
+            _greetVisitorEventCount.value = _greetVisitorEventCount.value + 1 // Incrementar el contador
+        }
+    }
+
+    private fun resetGreetVisitorEventCount() {
+        _greetVisitorEventCount.value = 0
     }
 }

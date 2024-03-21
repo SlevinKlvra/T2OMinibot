@@ -33,7 +33,6 @@ import com.intec.t2o.viewmodels.MqttViewModel
 fun DrivingComposable(
     navController: NavController,
     mqttViewModel: MqttViewModel,
-    robotManager: RobotManager,
     onCancel: () -> Unit,
     onContinue: () -> Unit
 ) {

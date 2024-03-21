@@ -15,7 +15,7 @@ import com.intec.t2o.ui.theme.textColor
 
 @Composable
 fun DataStep(userData: UserData) {
-    Text(
+    /*Text(
         text = "¿Son estos datos correctos?",
         color = Color.White,
         modifier = Modifier
@@ -31,7 +31,7 @@ fun DataStep(userData: UserData) {
             .padding(bottom = 20.dp),
         textAlign = TextAlign.Center,
         style = MaterialTheme.typography.bodySmall
-    )
+    )*/
     Row {
         Text(
             text = "Nombre: ",

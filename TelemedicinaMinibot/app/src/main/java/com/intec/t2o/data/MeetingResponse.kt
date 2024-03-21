@@ -1,6 +1,7 @@
 package com.intec.t2o.data
 
 data class MeetingResponse(
+    val usuario : String,
     val id: Int,
     val start_date: String,
     val end_date: String,

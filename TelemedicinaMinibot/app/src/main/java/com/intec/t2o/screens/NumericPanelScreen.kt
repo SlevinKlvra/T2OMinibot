@@ -18,20 +18,18 @@ import com.intec.t2o.viewmodels.NumericPanelViewModel
 fun NumericPanelScreen(
     navController: NavController,
     numericPanelViewModel: NumericPanelViewModel,
-    mqttViewModel: MqttViewModel,
-    robotManager: RobotManager
+    mqttViewModel: MqttViewModel
 ) {
     Log.d("Current Screen", "NumericPanelScreen")
 
     LaunchedEffect(true) {
-        robotManager.speak(
+        mqttViewModel.speak(
             "Por favor, introduce el código que se te ha proporcionado",
-            false,
-            object : RobotManager.SpeakCompleteListener {
-                override fun onSpeakComplete() {
-                    // Acciones a realizar después de hablar
-                }
-            })
+            false
+        ){
+            // Acciones a realizar antes de hablar
+            Log.d("NumericPanelScreen Speak Finished", "Speak finished")
+        }
     }
 
     val shouldCheckCode = remember { mutableStateOf(false) }

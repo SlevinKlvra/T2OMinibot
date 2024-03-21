@@ -5,9 +5,10 @@ import android.content.Context
 import android.content.SharedPreferences
 import com.ainirobot.coreservice.client.listener.ActionListener
 import com.ainirobot.coreservice.client.speech.SkillApi
-import com.intec.t2o.api.RickAndMortyApi
 import com.intec.t2o.preferences.PreferencesRepository
-import com.intec.t2o.utils.BASE_URL
+import com.intec.t2o.robotinterface.RobotConnectionService
+import com.intec.t2o.robotinterface.RobotManager
+import com.intec.t2o.robotinterface.SkillApiService
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -22,14 +23,12 @@ import javax.inject.Singleton
 @Module
 @InstallIn(SingletonComponent::class)
 object RemoteModule {
+
+
     @Provides
     @Singleton
-    fun provideRickAndMortyApi(): RickAndMortyApi {
-        return Retrofit.Builder()
-            .baseUrl(BASE_URL)
-            .addConverterFactory(GsonConverterFactory.create())
-            .build()
-            .create(RickAndMortyApi::class.java)
+    fun provideRobotManager(@ApplicationContext appContext: Context, robotConnectionService: RobotConnectionService): RobotManager {
+        return RobotManager(robotConnectionService, appContext) // Asumiendo que RobotManager no tiene dependencias en su constructor
     }
 
     @Provides
@@ -48,9 +47,18 @@ object RemoteModule {
     @Singleton
     fun provideRobotApi(): RobotApi = RobotApi.getInstance()*/
 
-    @Provides
     @Singleton
-    fun provideSkillApi(): SkillApi = SkillApi()
+    @Provides
+    fun provideRobotConnectionService(@ApplicationContext context: Context): RobotConnectionService {
+        return RobotConnectionService(context, skillApi = SkillApi())
+    }
+
+    @Singleton
+    @Provides
+    fun provideSkillApi(@ApplicationContext context: Context): SkillApiService {
+        // Suponiendo que SkillApi tiene un método estático `getInstance()` y requiere inicialización
+        return SkillApiService(context)
+    }
 
     @Provides
     @Singleton

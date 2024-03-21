@@ -17,8 +17,7 @@ import com.intec.t2o.viewmodels.NumericPanelViewModel
 fun MainScreen(
     navController: NavController,
     mqttViewModel: MqttViewModel,
-    numericPanelViewModel: NumericPanelViewModel,
-    robotManager: RobotManager
+    numericPanelViewModel: NumericPanelViewModel
 ) {
     val navigationState by mqttViewModel.navigationState.collectAsState()
     Log.d("Current Screen", "MainScreen")
@@ -26,7 +25,7 @@ fun MainScreen(
 
         MqttViewModel.NavigationState.EyesScreen -> {
             Log.d("HomeScreen enum", AppScreens.EyesScreen.route)
-            EyesScreen(navController, mqttViewModel, robotManager)
+            EyesScreen(navController, mqttViewModel)
         }
 
         MqttViewModel.NavigationState.MqttScreen -> {
@@ -36,7 +35,7 @@ fun MainScreen(
 
         MqttViewModel.NavigationState.HomeScreen -> {
             Log.d("HomeScreen enum", AppScreens.HomeScreen.route)
-            HomeScreen(navController, mqttViewModel, robotManager)
+            HomeScreen(navController, mqttViewModel)
         }
 
         MqttViewModel.NavigationState.NumericPanelScreen -> {
@@ -44,8 +43,7 @@ fun MainScreen(
             NumericPanelScreen(
                 navController,
                 numericPanelViewModel = numericPanelViewModel,
-                mqttViewModel = mqttViewModel,
-                robotManager = robotManager
+                mqttViewModel = mqttViewModel
             )
         }
 
@@ -54,8 +52,7 @@ fun MainScreen(
             AdminPanelScreen(
                 navController,
                 mqttViewModel = mqttViewModel,
-                numericPanelViewModel = numericPanelViewModel,
-                robotManager = robotManager
+                numericPanelViewModel = numericPanelViewModel
             )
         }
 
@@ -64,8 +61,7 @@ fun MainScreen(
             MeetingScreen(
                 navController,
                 mqttViewModel = mqttViewModel,
-                numericPanelViewModel = numericPanelViewModel,
-                robotManager = robotManager
+                numericPanelViewModel = numericPanelViewModel
             )
         }
 
@@ -74,8 +70,7 @@ fun MainScreen(
             UnknownVisitScreen(
                 navController,
                 mqttViewModel = mqttViewModel,
-                numericPanelViewModel = numericPanelViewModel,
-                robotManager = robotManager
+                numericPanelViewModel = numericPanelViewModel
             )
         }
 
@@ -84,8 +79,7 @@ fun MainScreen(
             PackageAndMailManagementScreen(
                 navController,
                 mqttViewModel = mqttViewModel,
-                numericPanelViewModel = numericPanelViewModel,
-                robotManager = robotManager
+                numericPanelViewModel = numericPanelViewModel
             )
         }
 

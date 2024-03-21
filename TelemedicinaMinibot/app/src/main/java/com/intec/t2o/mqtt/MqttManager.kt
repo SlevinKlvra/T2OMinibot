@@ -168,6 +168,8 @@ class MqttManager(
         listaTopics.add(35,"zigbee2mqtt/Cerradura/right/set")
         listaTopics.add(36, "zigbee2mqtt/Cerradura/left/set")
         listaTopics.add(37, "zigbee2mqtt/Pulsador/action")
+        listaTopics.add(38, "/api/robot/control")
+        listaTopics.add(39, "/robot/tts/speak")
         return listaTopics
     }
 

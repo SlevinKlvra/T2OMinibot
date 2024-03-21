@@ -33,11 +33,17 @@ import java.time.LocalTime
 
 
 class NumericPanelViewModel(
-    application: Application, var robotMan: RobotManager
+    application: Application,
+    private val robotMan: RobotManager
 ) : AndroidViewModel(application) {
 
     data class EmailData(
         val idvisita: String?, val visitante: String?
+    )
+
+    data class LoginData(
+        val usuario: String?,
+        val id: String?,
     )
 
     data class ApiResponse(
@@ -64,7 +70,7 @@ class NumericPanelViewModel(
     )
 
     var collectedMeetingInfo =
-        mutableStateOf(MeetingResponse(0, "", "", "", "", "", "", "", "", ""))
+        mutableStateOf(MeetingResponse("", 0, "", "", "", "", "", "", "", "", ""))
 
     // Estado para almacenar el código ingresado
     var enteredCode = mutableStateOf("")
@@ -113,12 +119,10 @@ class NumericPanelViewModel(
             triggerErrorAnimation()
             Log.e("Error", "La respuesta es no válida")
             robotMan.speak("El código no es válido. Inténtelo de nuevo",
-                false,
-                object : RobotManager.SpeakCompleteListener {
-                    override fun onSpeakComplete() {
-                        // Acciones a realizar después de hablar
-                    }
-                })
+                false){
+                // Acciones a realizar después de hablar
+                Log.d("NumericPanelViewModel", "El código no es válido. Inténtelo de nuevo")
+            }
             _isLoading.value = false
             false
         }
@@ -136,12 +140,10 @@ class NumericPanelViewModel(
             triggerErrorAnimation()
             Log.e("Error", "La respuesta es no válida")
             robotMan.speak("El código no es válido. Inténtelo de nuevo",
-                false,
-                object : RobotManager.SpeakCompleteListener {
-                    override fun onSpeakComplete() {
-                        // Acciones a realizar después de hablar
-                    }
-                })
+                false){
+                // Acciones a realizar después de hablar
+                Log.d("NumericPanelViewModel", "El código no es válido. Inténtelo de nuevo")
+            }
             _isLoading.value = false
             false
         }
@@ -187,13 +189,40 @@ class NumericPanelViewModel(
 
         val client = OkHttpClient()
         val request = Request.Builder()
-            .url("https://t2o.intecrobots.com/api/visitas/consultacodigototal?codigo=${enteredCode.value}")
+            .url("https://demo.intecrobots.com/api/visitas/consultacodigototal?codigo=${enteredCode.value}")
             .addHeader("Authorization", "Bearer $token").get().build()
 
         // Log the complete URL
         Log.d("makeApiCall Request", "URL: $request")
         resetDigits()
         return client.newCall(request).execute()
+    }
+
+    suspend fun checkAvailability() : Boolean{
+        return try {
+            withContext(Dispatchers.IO){
+                val client = OkHttpClient()
+                val request = Request.Builder()
+                    .url("https://demo.intecrobots.com/api/salas")
+                    .get()
+                    .build()
+                client.newCall(request).execute().use { response ->
+                    if (response.isSuccessful) {
+                        val responseBody = response.body?.string()
+                        val gson = Gson()
+                        val type = object : TypeToken<ApiResponse>() {}.type
+                        val apiResponse = gson.fromJson<ApiResponse>(responseBody, type)
+                        Log.d("AVAILABILITY", "Respuesta sala disponible: $apiResponse")
+                        return@withContext apiResponse.records.isNotEmpty()
+                    } else {
+                        return@withContext false
+                    }
+                }
+            }
+        } catch (e: Exception) {
+            Log.e("Error", "Exception in callGetEmployees: ${e.javaClass.simpleName}: ${e.message}")
+            return false
+        }
     }
 
     suspend fun callGetEmployees(nombre: String): List<Employee>? {
@@ -208,7 +237,7 @@ class NumericPanelViewModel(
                 }
 
                 val request = Request.Builder()
-                    .url("http://t2o.intecrobots.com/api/users/index?search=$nombre")
+                    .url("http://demo.intecrobots.com/api/users/index?search=$nombre")
                     .addHeader("Authorization", "Bearer $currentToken")
                     .get().build()
 
@@ -265,13 +294,13 @@ class NumericPanelViewModel(
                         triggerErrorAnimation()
                         Log.e("Error", "La respuesta es no válida")
                         robotMan.speak("El código no es válido. Inténtelo de nuevo",
-                            false,
-                            object : RobotManager.SpeakCompleteListener {
-                                override fun onSpeakComplete() {
-                                    resetDigits()
-                                    _isCodeCorrect.value = false
-                                }
-                            })
+                            false
+                        )
+                        {
+                            Log.d("NumericPanelViewModel", "El código no es válido. Inténtelo de nuevo")
+                            resetDigits()
+                            _isCodeCorrect.value = false
+                        }
                     }
                     return
                 }
@@ -293,21 +322,26 @@ class NumericPanelViewModel(
                             idvisita = collectedMeetingInfo.value.id.toString(),
                             visitante = collectedMeetingInfo.value.visitante
                         )
+                        val loginData = LoginData(
+                            usuario = collectedMeetingInfo.value.usuario,
+                            id = collectedMeetingInfo.value.id.toString()
+                        )
                         sendMeetingEmail(emailData)
+                        sendMeetingNotification(loginData, emailData)
                         Log.d("meetingInfo", "${collectedMeetingInfo.value}")
                         resetDigits()
                         _isCodeCorrect.value = false
                     } else {
                         // Manejar el caso de que la lista esté vacía
                         triggerErrorAnimation()
-                        robotMan.speak("El código no es válido. Inténtelo de nuevo",
-                            false,
-                            object : RobotManager.SpeakCompleteListener {
-                                override fun onSpeakComplete() {
-                                    resetDigits()
-                                    _isCodeCorrect.value = false
-                                }
-                            })
+                        robotMan.speak(
+                            "El código no es válido. Inténtelo de nuevo",
+                            false
+                        ) {
+                            Log.d("NumericPanelViewModel", "El código no es válido. Inténtelo de nuevo")
+                            resetDigits()
+                            _isCodeCorrect.value = false
+                        }
                     }
                 }
             } else if (response.code == 401) {
@@ -322,14 +356,15 @@ class NumericPanelViewModel(
                     withContext(Dispatchers.Main) {
                         // Manejar otros errores
                         triggerErrorAnimation()
-                        robotMan.speak("El código no es válido. Inténtelo de nuevo",
-                            false,
-                            object : RobotManager.SpeakCompleteListener {
-                                override fun onSpeakComplete() {
-                                    resetDigits()
-                                    _isCodeCorrect.value = false
-                                }
-                            })
+                        robotMan.speak(
+                            "El código no es válido. Inténtelo de nuevo",
+                            false
+                        )
+                        {
+                            Log.d("NumericPanelViewModel", "El código no es válido. Inténtelo de nuevo")
+                            resetDigits()
+                            _isCodeCorrect.value = false
+                        }
                         Log.e("Error", "Error en la solicitud: Código ${response.code}")
                     }
                 }
@@ -340,13 +375,12 @@ class NumericPanelViewModel(
                     triggerErrorAnimation()
                     Log.e("Error", "Error en la solicitud: Código ${response.code}")
                     robotMan.speak("El código no es válido. Inténtelo de nuevo",
-                        false,
-                        object : RobotManager.SpeakCompleteListener {
-                            override fun onSpeakComplete() {
-                                resetDigits()
-                                _isCodeCorrect.value = false
-                            }
-                        })
+                        false){
+                        // Acciones a realizar después de hablar
+                        Log.d("NumericPanelViewModel", "El código no es válido. Inténtelo de nuevo")
+                        resetDigits()
+                        _isCodeCorrect.value = false
+                    }
                 }
                 // Mostrar mensaje de error en la UI o realizar alguna acción
             }
@@ -357,13 +391,13 @@ class NumericPanelViewModel(
                 triggerErrorAnimation()
                 Log.e("Error", "La respuesta es null")
                 robotMan.speak("El código no es válido. Inténtelo de nuevo",
-                    false,
-                    object : RobotManager.SpeakCompleteListener {
-                        override fun onSpeakComplete() {
-                            resetDigits()
-                            _isCodeCorrect.value = false
-                        }
-                    })
+                    false
+                )
+                {
+                    Log.d("NumericPanelViewModel", "El código no es válido. Inténtelo de nuevo")
+                    resetDigits()
+                    _isCodeCorrect.value = false
+                }
             }
             // Mostrar mensaje de error en la UI o realizar alguna acción
         }
@@ -377,7 +411,7 @@ class NumericPanelViewModel(
             val formBody = FormBody.Builder().add("username", "sergio.escudero@intecrobots.com")
                 .add("password", "sec000611").build()
             val request =
-                Request.Builder().url("https://t2o.intecrobots.com/api/auth/login").post(formBody)
+                Request.Builder().url("https://demo.intecrobots.com/api/auth/login").post(formBody)
                     .build()
             Log.d("Request", "URL: ${request.url}, Body: $formBody")
             client.newCall(request).execute().use { response ->
@@ -428,7 +462,7 @@ class NumericPanelViewModel(
 
                 // Crear la solicitud con el encabezado y el cuerpo JSON
                 val request = Request.Builder()
-                    .url("https://t2o.intecrobots.com/api/contactosvisitas/notificaremailllegadas")
+                    .url("https://demo.intecrobots.com/api/contactosvisitas/notificaremailllegadas")
                     .post(requestBody).addHeader(
                         "Authorization", "Bearer $currentToken"
                     )  // Agregar el encabezado de autorización
@@ -439,7 +473,7 @@ class NumericPanelViewModel(
                 // Realizar la solicitud y procesar la respuesta
                 client.newCall(request).execute().use { response ->
                     Log.d("Response", response.toString())
-                    Log.d("ResponseBody", response.body?.string() ?: "No response body")
+                    Log.d("ResponseBody Mail", response.body?.string() ?: "No response body")
                     if (response.code == 400) {
                         val newToken = refreshToken()
                         if (newToken != null) {
@@ -456,6 +490,61 @@ class NumericPanelViewModel(
             return null
         }
     }
+
+    private suspend fun sendMeetingNotification(loginData: LoginData, emailData: EmailData): Boolean? {
+        return try {
+            withContext(Dispatchers.IO) {
+                val client = OkHttpClient()
+                _isLoading.value = true
+
+                if (currentToken.isEmpty()) {
+                    Log.d("checkForTaskExecution", "currentToken is empty")
+                    currentToken = refreshToken() ?: ""
+                }
+
+                // Crear un objeto JSON con los datos del usuario
+                val json = JSONObject().apply {
+                    put("user_id", loginData.usuario)
+                    put("title", "NOTIFICACION")
+                    put("body", emailData.visitante + " ha llegado")
+                    // Agregar más campos según sea necesario
+                }
+
+                // Crear el cuerpo de la solicitud como JSON
+                val requestBody: RequestBody =
+                    json.toString().toRequestBody("application/json".toMediaType())
+
+                // Crear la solicitud con el encabezado y el cuerpo JSON
+                val request = Request.Builder()
+                    .url("https://demo.intecrobots.com/api/sendpush")
+                    .post(requestBody).addHeader(
+                        "Authorization", "Bearer $currentToken"
+                    )  // Agregar el encabezado de autorización
+                    .build()
+                Log.d("token notification", currentToken)
+                Log.d("cuerpo notification", bodyToString(request))
+
+                // Realizar la solicitud y procesar la respuesta
+                client.newCall(request).execute().use { response ->
+                    Log.d("Response", response.toString())
+                    Log.d("ResponseBody Notification", response.body?.string() ?: "No response body")
+                    if (response.code == 400) {
+                        val newToken = refreshToken()
+                        if (newToken != null) {
+                            Log.d("TAG MAIN", "Token refrescado: $newToken")
+                            currentToken = newToken
+                        }
+                    }
+                    _isLoading.value = false
+                    return@withContext response.isSuccessful
+                }
+            }
+        } catch (e: Exception) {
+            Log.e("Error", "Error al enviar solicitud: $e")
+            return null
+        }
+    }
+
 
     suspend fun postUnknownVisitor(userData: UserData): Boolean? {
         return try {
@@ -483,7 +572,7 @@ class NumericPanelViewModel(
                     json.toString().toRequestBody("application/json".toMediaType())
 
                 // Crear la solicitud con el encabezado y el cuerpo JSON
-                val request = Request.Builder().url("https://t2o.intecrobots.com/api/novisitas/add")
+                val request = Request.Builder().url("https://demo.intecrobots.com/api/novisitas/add")
                     .post(requestBody).addHeader(
                         "Authorization", "Bearer $currentToken"
                     )  // Agregar el encabezado de autorización
@@ -494,7 +583,7 @@ class NumericPanelViewModel(
                 // Realizar la solicitud y procesar la respuesta
                 client.newCall(request).execute().use { response ->
                     Log.d("Response", response.toString())
-                    Log.d("ResponseBody", response.body?.string() ?: "No response body")
+                    Log.d("ResponseBody Unknown", response.body?.string() ?: "No response body")
                     if (response.code == 400) {
                         val newToken = refreshToken()
                         if (newToken != null) {

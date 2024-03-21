@@ -34,7 +34,7 @@ fun MessageStep(message: String, onMessageChange: (String) -> Unit) {
             .padding(2.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Text(
+        /*Text(
             text = "Mensaje",
             color = Color.White,
             textAlign = TextAlign.Center,
@@ -52,7 +52,7 @@ fun MessageStep(message: String, onMessageChange: (String) -> Unit) {
                 .fillMaxWidth()
                 .padding(bottom = 24.dp),
             style = MaterialTheme.typography.bodySmall
-        )
+        )*/
 
         TextField(
             value = message,

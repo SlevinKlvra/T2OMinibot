@@ -33,7 +33,7 @@ fun NameStep(name: String, onNameChange: (String) -> Unit) {
             .padding(2.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Text(
+        /*Text(
             text = "Nombre",
             color = Color.White,
             textAlign = TextAlign.Center,
@@ -51,7 +51,7 @@ fun NameStep(name: String, onNameChange: (String) -> Unit) {
                 .fillMaxWidth()
                 .padding(bottom = 24.dp),
             style = MaterialTheme.typography.bodySmall
-        )
+        )*/
 
         TextField(
             value = name,

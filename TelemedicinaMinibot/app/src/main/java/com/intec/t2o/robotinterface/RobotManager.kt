@@ -13,8 +13,6 @@ import com.ainirobot.coreservice.client.listener.Person
 import com.ainirobot.coreservice.client.listener.TextListener
 import com.ainirobot.coreservice.client.person.PersonApi
 import com.ainirobot.coreservice.client.person.PersonListener
-import com.ainirobot.coreservice.client.speech.SkillApi
-import com.ainirobot.coreservice.client.speech.SkillCallback
 import com.ainirobot.coreservice.client.speech.entity.TTSEntity
 import com.google.gson.Gson
 import com.intec.t2o.mqtt.MqttMessageListener
@@ -23,15 +21,19 @@ import com.intec.t2o.robot.modulecallback.ModuleCallback
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import org.json.JSONArray
 import org.json.JSONException
+import org.json.JSONObject
 import javax.inject.Inject
+import javax.inject.Singleton
 
-
+@Singleton
 class RobotManager @Inject constructor(
-    private val skillApi: SkillApi,
+    private val robotConnectionService: RobotConnectionService,
     @ApplicationContext applicationContext: Context
 ) : MqttMessageListener {
 
@@ -56,11 +58,16 @@ class RobotManager @Inject constructor(
 
     var navigation: Boolean = false
 
-    var textListener: TextListener
+    private lateinit var textListener: TextListener
 
     var personListener: PersonListener
 
-    val isFollowing = MutableStateFlow(false)
+    var rotateListener: CommandListener = CommandListener()
+
+    var neckListener: CommandListener = CommandListener()
+
+    private val _isFollowing = MutableStateFlow(false)
+    val isFollowing: StateFlow<Boolean> = _isFollowing.asStateFlow()
 
     var onPersonDetected: ((List<Person>?) -> Unit)? = null
     var onSpeechResultReceived: ((String) -> Unit)? = null
@@ -68,7 +75,30 @@ class RobotManager @Inject constructor(
 
     init {
         setupActionListener()
-        getPlaceList()
+        setupTextListener()
+        robotConnectionService.onRobotApiConnected = {
+            getPlaceList()
+        }
+
+        rotateListener = object : CommandListener() {
+            override fun onResult(result: Int, message: String?) {
+                Log.d("ROTATE", "Result: $result, Message: $message")
+            }
+
+            override fun onError(errorCode: Int, errorString: String?) {
+                Log.e("ROTATE", "Error: $errorString")
+            }
+        }
+
+        neckListener = object : CommandListener() {
+            override fun onResult(result: Int, message: String?) {
+                Log.d("NECK", "Result: $result, Message: $message")
+            }
+
+            override fun onError(errorCode: Int, errorString: String?) {
+                Log.e("NECK", "Error: $errorString")
+            }
+        }
 
         personListener = object : PersonListener() {
             override fun personChanged() {
@@ -77,31 +107,34 @@ class RobotManager @Inject constructor(
                 onPersonDetected?.invoke(personList)
             }
         }
+        robotConnectionService.connectToRobotApi()
+    }
 
+    private fun setupTextListener(){
         textListener = object : TextListener() {
             override fun onStart() {
-                // Iniciar reproducción
+                // Manejar inicio de TTS
             }
 
             override fun onStop() {
-                // Detener reproducción
+                // Manejar fin de TTS
             }
 
             override fun onError() {
-                // Manejar error
+                // Manejar error de TTS
             }
 
             override fun onComplete() {
-                // Reproducción completada
+                // Manejar completitud de TTS
             }
         }
     }
 
+
     fun startFocusFollow(faceId: Int) {
         // Define los parámetros necesarios para el método startFocusFollow
         val reqId = 1 // Define o calcula un ID de solicitud adecuado
-        val lostTimeout =
-            10 // Define el tiempo en segundos antes de reportar la pérdida del objetivo
+        val lostTimeout = 10 // Define el tiempo en segundos antes de reportar la pérdida del objetivo
         val maxDistance = 2.5F //Define la distancia máxima en metros para el seguimiento
 
         // Inicia el seguimiento de la persona con el ID de cara dado
@@ -112,7 +145,7 @@ class RobotManager @Inject constructor(
                     when (status) {
                         Definition.STATUS_TRACK_TARGET_SUCCEED -> {
                             // El seguimiento del objetivo ha tenido éxito
-                            isFollowing.value = true
+                            _isFollowing.value = true
                             /*Log.d(
                                 "startFocusFolow",
                                 "Seguimiento del objetivo exitoso ${isFollowing.value}"
@@ -121,11 +154,12 @@ class RobotManager @Inject constructor(
 
                         Definition.STATUS_GUEST_LOST -> {
                             // El objetivo se ha perdido
-                            isFollowing.value = false
+                            _isFollowing.value = false
                             //Log.d("startFocusfollow", "Objetivo perdido : ${isFollowing.value}")
                         }
 
                         Definition.STATUS_GUEST_FARAWAY -> {
+                            _isFollowing.value = false
                             // El objetivo está fuera de rango
                             //Log.d("startFocusFollow", "Objetivo fuera de rango")
                         }
@@ -133,7 +167,7 @@ class RobotManager @Inject constructor(
                         Definition.STATUS_GUEST_APPEAR -> {
                             // El objetivo está en rango nuevamente
 
-                            isFollowing.value = true
+                            _isFollowing.value = true
                             /*Log.d(
                                 "startFocusFollow",
                                 "Objetivo detectado nuevamente: ${isFollowing.value}"
@@ -161,7 +195,7 @@ class RobotManager @Inject constructor(
         Log.d("stopFocusFollow", "Deteniendo seguimiento")
         unregisterPersonListener()
         RobotApi.getInstance().stopFocusFollow(1)
-        isFollowing.value = false
+        _isFollowing.value = false
     }
 
     private val personApi = PersonApi.getInstance()
@@ -248,7 +282,7 @@ class RobotManager @Inject constructor(
                     posesList.addAll(newPoses)
                     placesList.addAll(newPlaces)
                     _destinationsList.value = placesList.map { it.name }
-                    //Log.d("MAP", "CURRENT LOCATIONS ARE $placesList")
+                    Log.d("MAP", "CURRENT LOCATIONS ARE $placesList")
                     savePosesSharedPreferences.saveDataList(posesList)
 
                 } catch (e: JSONException) {
@@ -285,11 +319,10 @@ class RobotManager @Inject constructor(
     }
 
     fun startNavigation(
-        reqId: Int,
         destName: String,
         coordinateDeviation: Double,
         time: Long,
-        navigationCompleteListener: NavigationCompleteListener
+        onNavigationComplete: () -> Unit
     ) {
         Log.d("START NAVIGATION", "Comenzando navegación a $destName")
         setLastPosition(destName)
@@ -300,6 +333,8 @@ class RobotManager @Inject constructor(
         if (specialPose != null) {
             Log.d("START NAVIGATION", "Pose found for $destName")
 
+            //RobotApi.getInstance().startNavigation(1, destName, coordinateDeviation, time, actionListener)
+            //TODO: Complete the navigation listener for different scenarios
             RobotApi.getInstance().goPosition(
                 0,
                 specialPose.toJson(),
@@ -347,12 +382,9 @@ class RobotManager @Inject constructor(
                                         val json = gson.toJson(robotStatus)
                                         speak(
                                             "No puedo pasar, ¿podrías dejarme paso?",
-                                            false,
-                                            object : SpeakCompleteListener {
-                                                override fun onSpeakComplete() {
-                                                    // Acciones a realizar después de hablar
-                                                }
-                                            })
+                                            false){
+                                            Log.d("RobotMan Avoid", "Speaking finished")
+                                        }
                                     }
 
                                     "Avoid end" -> {
@@ -362,12 +394,10 @@ class RobotManager @Inject constructor(
                                         val json = gson.toJson(robotStatus)
                                         speak(
                                             "Gracias por dejarme paso",
-                                            false,
-                                            object : RobotManager.SpeakCompleteListener {
-                                                override fun onSpeakComplete() {
-                                                    // Acciones a realizar después de hablar
-                                                }
-                                            })
+                                            false)
+                                        {
+                                            Log.d("RobotMan Avoid end", "Speaking finished")
+                                        }
                                     }
                                 }
 
@@ -385,7 +415,7 @@ class RobotManager @Inject constructor(
                             //Log.d("ROBOT STATUS NUEVO", robotStatus.toString())
 
                             if (robotStatus.status == "END") {
-                                navigationCompleteListener.onNavigationComplete()
+                                onNavigationComplete()
                                 callbackNavigationStarted(false)
                                 startFocusFollow(0)
                                 registerPersonListener()
@@ -400,13 +430,10 @@ class RobotManager @Inject constructor(
             Log.d("START NAVIGATION", "Pose not found for $destName")
             speak(
                 "No puedo encontrar un destino llamado $destName. Por favor, contacta con un miembro del staff.",
-                false,
-                object : SpeakCompleteListener {
-                    override fun onSpeakComplete() {
-                        // Acciones a realizar después de hablar, si es necesario.
-                    }
-                }
-            )
+                false
+            ){
+                Log.d("RobotMan startNavigation", "Speaking finished")
+            }
         }
 
     }
@@ -415,18 +442,17 @@ class RobotManager @Inject constructor(
         if (lastDestination.value.isNotEmpty()) {
             Log.d("RESUME NAVIGATION", "Continuing navigation: ${lastDestination.value}")
             startNavigation(
-                0,
                 lastDestination.value,
                 0.1,
                 1000000,
-                navigationCompleteListener = object : NavigationCompleteListener {
-                    override fun onNavigationComplete() {
-                        onNavigationComplete()
-
-                    }
-                })
+                onNavigationComplete = {
+                    Log.d("RobotMan RESUME NAVIGATION", "Navigation completed")
+                    onNavigationComplete() // Invoca el callback.
+                }
+            )
         } else {
-            Log.d("RESUME NAVIGATION", "No last navigated location available")
+            Log.d("RobotMan RESUME NAVIGATION", "No last navigated location available")
+            onNavigationComplete() // Asegúrate de invocar el callback incluso si no hay navegación.
         }
     }
 
@@ -434,6 +460,11 @@ class RobotManager @Inject constructor(
         Log.d("STOP NAVIGATION", "Deteniendo navegación")
         RobotApi.getInstance().stopGoPosition(0)
         pausedLocation = ""
+    }
+
+    fun stopMove(){
+        Log.d("STOP MOVE", "Deteniendo movimiento")
+        RobotApi.getInstance().stopMove(0, rotateListener)
     }
 
     fun pauseNavigation() {
@@ -453,8 +484,22 @@ class RobotManager @Inject constructor(
         fun navigateToEyesScreen()
     }
 
-    fun speak(text: String, listen: Boolean, speakCompleteListener: SpeakCompleteListener) {
-        skillApi.playText(TTSEntity("sid-012345", text), object : TextListener() {
+    /*fun speak(text: String, listen: Boolean, speakCompleteListener: SpeakCompleteListener) {
+        // Lógica para ejecutar TTS
+        // Por ejemplo, usando una API de TTS proporcionada por el SDK del robot
+        Log.d("RobotMan speak", "Speaking: $text")
+        robotConnectionService.skillApi.playText(text, textListener)
+    }*/
+
+    fun speak(
+        text: String,
+        listen: Boolean,
+        onSpeakComplete: () -> Unit
+    ) {
+        Log.d("RobotMan speak", "Speaking: $text, Is going to listen: $listen")
+        robotConnectionService.skillApi.setRecognizable(listen)
+        robotConnectionService.skillApi.setRecognizeMode(listen)
+        robotConnectionService.skillApi.playText(TTSEntity("sid-012345", text), object : TextListener() {
             override fun onStart() {
                 // Iniciar reproducción
             }
@@ -471,9 +516,7 @@ class RobotManager @Inject constructor(
                 // Reproducción completada
                 Log.d("SPEAK", "Speak finished")
                 navigationCallback?.onSpeakFinished()
-                skillApi.setRecognizeMode(listen)
-                skillApi.setRecognizable(listen)
-                speakCompleteListener.onSpeakComplete()
+                onSpeakComplete()
             }
         })
     }
@@ -504,42 +547,31 @@ class RobotManager @Inject constructor(
         return false
     }
 
-    fun registerCallback() {
-        try {
-            skillApi.registerCallBack(object : SkillCallback() {
-                // Implementar los métodos override como antes
-                override fun onSpeechParResult(s: String) {
-                    // Resultado temporal del reconocimiento de voz
-                }
-
-                override fun onStart() {
-                    // Inicio del reconocimiento
-                }
-
-                override fun onStop() {
-                    // Fin del reconocimiento
-                }
-
-                override fun onVolumeChange(volume: Int) {
-                    // Cambio en el volumen de la voz reconocida
-                }
-
-                override fun onQueryEnded(status: Int) {
-                    // Manejar el fin de la consulta basado en el estado
-                }
-
-                override fun onQueryAsrResult(asrResult: String) {
-                    // asrResult: resultado final del reconocimiento
-                }
-            })
-            skillApi.setRecognizable(false)
-        } catch (e: Exception) {
-            Log.e("RobotManager", "Error al registrar callback: ${e.message}")
-        }
-    }
+    // LiveData para observar los resultados parciales del reconocimiento de voz
+    val partialSpeechResult = MutableLiveData<String>()
 
     fun moveForward() {
-        RobotApi.getInstance().goForward(0, 0.1F, 0.1F, false, CommandListener())
+        RobotApi.getInstance().goForward(0, 0.4F, CommandListener())
+    }
+
+    fun turnRight() {
+        RobotApi.getInstance().turnRight(0, 20F, rotateListener)
+    }
+
+    fun turnLeft() {
+        RobotApi.getInstance().turnLeft(0, 20F, rotateListener)
+    }
+
+    fun moveHeadDown(){
+        RobotApi.getInstance().moveHead(0, "relative", "relative", 50, 80, neckListener)
+    }
+
+    fun moveHeadUp(){
+        RobotApi.getInstance().moveHead(0, "relative", "relative", 50, 10, neckListener)
+    }
+
+    fun resetHead(){
+        RobotApi.getInstance().resetHead(0, neckListener)
     }
 
     fun disableChargingInterface() {
@@ -547,11 +579,9 @@ class RobotManager @Inject constructor(
     }
 
     fun goCharge() {
-        speak("Voy a recargar.", false, object : SpeakCompleteListener {
-            override fun onSpeakComplete() {
-                // Acciones a realizar después de hablar
-            }
-        })
+        speak("Voy a recargar.", false){
+            Log.d("RobotMan goCharge", "Speaking finished")
+        }
         unregisterPersonListener()
         RobotApi.getInstance().goCharging(0)
     }
@@ -564,15 +594,12 @@ class RobotManager @Inject constructor(
         launch {
             delay(6000L)
             startNavigation(
-                0,
                 "entrada",
                 0.1234,
-                0,
-                navigationCompleteListener = object : NavigationCompleteListener {
-                    override fun onNavigationComplete() {
-                        // Acciones a realizar después de hablar
-                    }
-                })
+                0
+            ){
+                Log.d("RobotMan ScheduleCoroutine", "Navigation completed")
+            }
         }
     }
 }
